@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
@@ -138,6 +139,8 @@ public class RootController {
                     .build()
                     .encode()
                     .toString();
+
+            linkListText = getLinkListText(linkList);
         }
         return null;
     }
