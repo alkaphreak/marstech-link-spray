@@ -139,8 +139,6 @@ public class RootController {
                     .build()
                     .encode()
                     .toString();
-
-            linkListText = getLinkListText(linkList);
         }
         return null;
     }
