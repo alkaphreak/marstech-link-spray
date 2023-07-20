@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="MtLinkSprayApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <module name="mt-link-spray" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="fr.marstech.mtlinkspray.MtLinkSprayApplication" />
+    <option name="ALTERNATIVE_JRE_PATH" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

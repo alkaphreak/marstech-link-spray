@@ -1,0 +1,20 @@
+html {
+    background: #1a1e21;
+}
+
+/* Footer Copyright list */
+ul.mt-copyright-list {
+    list-style-type: none;
+}
+
+ul.mt-copyright-list li {
+    display: inline-block;
+}
+
+ul.mt-copyright-list li:after {
+    content: "|";
+}
+
+ul.mt-copyright-list li:last-child:after {
+    content: "";
+}
