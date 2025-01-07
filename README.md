@@ -1,40 +1,64 @@
-# marstech/Marstech-Link-Spray
+# Marstech - Link Spray
 
-Application to open many link from one link.
+**Marstech - Link Spray** is a web application that allows you to open multiple URLs with a single click. Follow a few simple steps to generate a unique link that will open all specified URLs.
 
-## Getting Started
+## Features
 
-Download links:
+- **Unique Link Generation**: Enter multiple URLs and generate a single link to open them all at once.
+- **Intuitive User Interface**: A simple and easy-to-use interface for entering your URLs and generating the link.
+- **Favicon Support**: Favicons are automatically added for a better user experience.
 
-SSH clone URL: ssh://git@git.jetbrains.space/marstech/marstech/Marstech-Link-Spray.git
+## Technologies Used
 
-HTTPS clone URL: https://git.jetbrains.space/marstech/marstech/Marstech-Link-Spray.git
+- **Java**
+- **Spring Boot**
+- **Thymeleaf**
+- **Bootstrap**
+- **Maven**
 
-These instructions will get you a copy of the project up and running on your local machine for
-development and testing purposes.
+## Installation
 
-## Prerequisites
+1. Clone the repository:
+    ```bash
+    git clone https://github.com/alkaphreak/mtlinkspray.git
+    cd mtlinkspray
+    ```
 
-What things you need to install the software and how to install them.
+2. Build and run the application:
+    ```bash
+    mvn clean install
+    mvn spring-boot:run
+    ```
 
-```
-Examples
-```
+3. Access the application in your browser:
+    ```
+    http://localhost:8080
+    ```
 
-## Deployment
+## Usage
 
-### Reverse proxy apache
+1. Enter the URLs you want to open, one per line, in the text field.
+2. Click the "Generate URL" button.
+3. Use the generated link to open all the URLs with a single click.
 
-Update de SSL version of the apache conf to :
+## Contributing
 
-```
-ProxyPass / http://localhost:8096/
-ProxyPassReverse / http://localhost:8096/
-ProxyPreserveHost on
-RequestHeader set X-Forwarded-Proto https
-RequestHeader set X-Forwarded-Port 443
-ProxyPass /.well-known/acme-challenge !
-```
+Contributions are welcome! To contribute:
 
-## Resources
+1. Fork the project.
+2. Create a branch for your feature (`git checkout -b feature/AmazingFeature`).
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`).
+4. Push your branch (`git push origin feature/AmazingFeature`).
+5. Open a Pull Request.
 
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+## Authors
+
+- **Stéphane ROBIN** - *Creator* - [Marstech](https://marstech.fr/)
+
+---
+
+\© 2021 Marstech. All rights reserved.
