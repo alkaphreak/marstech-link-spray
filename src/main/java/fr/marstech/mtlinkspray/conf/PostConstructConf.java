@@ -39,4 +39,21 @@ public class PostConstructConf {
             );
         });
     }
+
+    @PostConstruct
+    private void testMongoDbConnection() {
+        CompletableFuture.runAsync(() -> {
+            try {
+                TimeUnit.SECONDS.sleep(10);
+
+                String mongoDbUriEnvVar = environment.getProperty("spring.data.mongodb.uri");
+                log.info(format("MongoDB URI : {0}", mongoDbUriEnvVar));
+
+            } catch (InterruptedException e) {
+                // Do nothing because we don't care.
+            }
+
+            log.info("MongoDB connection test");
+        });
+    }
 }

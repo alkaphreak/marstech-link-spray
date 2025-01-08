@@ -1,20 +1,20 @@
 # Marstech - Link Spray
 
-**Marstech - Link Spray** is a web application that allows you to open multiple URLs with a single click. Follow a few simple steps to generate a unique link that will open all specified URLs.
+**Marstech - Link Spray** is a web application that allows you to open multiple URLs with a single click. Follow a few simple steps to generate a unique link that will open all the specified URLs.
 
 ## Features
 
-- **Unique Link Generation**: Enter multiple URLs and generate a single link to open them all at once.
-- **Intuitive User Interface**: A simple and easy-to-use interface for entering your URLs and generating the link.
-- **Favicon Support**: Favicons are automatically added for a better user experience.
+- **Unique link generation**: Enter multiple URLs and generate a single link to open them all at once.
+- **Intuitive user interface**: A simple and easy-to-use interface to enter your URLs and generate the link.
 
-## Technologies Used
+## Technologies used
 
 - **Java**
 - **Spring Boot**
 - **Thymeleaf**
 - **Bootstrap**
 - **Maven**
+- **MongoDB**
 
 ## Installation
 
@@ -24,15 +24,26 @@
     cd mtlinkspray
     ```
 
-2. Build and run the application:
+2. Configure MongoDB:
+    - Ensure that MongoDB is installed and running on your machine.
+    - Set the `MONGODB_URI` environment variable with the connection URI to your MongoDB database. For example:
+        ```sh
+        export MONGODB_URI="mongodb://localhost:27017/mydatabase"
+        ```
+    - Reload your shell configuration file (e.g., `~/.profile` or `~/.bash_profile`):
+        ```sh
+        source ~/.profile
+        ```
+
+3. Build and run the application:
     ```bash
     mvn clean install
     mvn spring-boot:run
     ```
 
-3. Access the application in your browser:
+4. Access the application in your browser:
     ```
-    http://localhost:8080
+    http://localhost:8096
     ```
 
 ## Usage
