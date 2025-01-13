@@ -1,6 +1,9 @@
 package fr.marstech.mtlinkspray.utils;
 
 import javax.servlet.http.HttpServletRequest;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,10 +32,7 @@ public class NetworkUtils {
         return res;
     }
 
-    public static String getScheme(
-            HttpServletRequest httpServletRequest,
-            Map<String, String> headers
-    ) {
+    public static String getScheme(HttpServletRequest httpServletRequest, Map<String, String> headers) {
         String res = headers.getOrDefault("x-forwarded-proto", null);
         if (res == null) {
             res = httpServletRequest.getScheme();
@@ -40,10 +40,7 @@ public class NetworkUtils {
         return res;
     }
 
-    public static String getHost(
-            HttpServletRequest httpServletRequest,
-            Map<String, String> headers
-    ) {
+    public static String getHost(HttpServletRequest httpServletRequest, Map<String, String> headers) {
         String res;
         res = headers.getOrDefault("x-forwarded-server", null);
         if (res == null) {
@@ -56,5 +53,14 @@ public class NetworkUtils {
             res = httpServletRequest.getServerName();
         }
         return res.split(":")[0];
+    }
+
+    public static Boolean isValidUrl(String url) {
+        try {
+            new URL(url).toURI();
+            return true;
+        } catch (MalformedURLException | URISyntaxException e) {
+            return false;
+        }
     }
 }

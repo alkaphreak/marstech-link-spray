@@ -1,9 +1,10 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="MtLinkSprayApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
-    <envs>
-      <env name="MONGODB_URI" value="mongodb://127.0.0.1:27017/mt-link-spray-dev-db?directConnection=true&amp;serverSelectionTimeoutMS=2000&amp;appName=mongosh+2.3.8" />
-    </envs>
     <module name="mt-link-spray" />
+    <option name="PASS_PARENT_ENVS" value="false" />
+    <selectedOptions>
+      <option name="environmentVariables" />
+    </selectedOptions>
     <option name="SPRING_BOOT_MAIN_CLASS" value="fr.marstech.mtlinkspray.MtLinkSprayApplication" />
     <extension name="net.ashald.envfile">
       <option name="IS_ENABLED" value="false" />

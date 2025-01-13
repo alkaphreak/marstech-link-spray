@@ -1,0 +1,49 @@
+{
+  "properties": [
+    {
+      "name": "mt.link-spray.protocol",
+      "type": "java.lang.String",
+      "description": "The protocol to use for the link spray service, eg: https, https."
+    },
+    {
+      "name": "mt.link-spray.host",
+      "type": "java.lang.String",
+      "description": "The host of the link spray service, eg: link-spray.example.com, localhost."
+    },
+    {
+      "name": "mt.link-spray.port",
+      "type": "java.lang.Integer",
+      "description": "The port of the link spray service, eg: 443, 8080."
+    },
+    {
+      "name": "mt.link-spray.random-id.charset",
+      "type": "java.lang.String",
+      "description": "The charset to use for generating random ids, eg: abcdefghijklmnopqrstuvwxyz0123456789."
+    },
+    {
+      "name": "mt.link-spray.random-id.length",
+      "type": "java.lang.Integer",
+      "description": "The length of the random id to generate, prefix lentgh prefix included, eg: 8."
+    },
+    {
+      "name": "mt.link-spray.random-id.prefix",
+      "type": "java.lang.String",
+      "description": "The prefixto use for the random id, eg: id-, cde-. Can be empty."
+    },
+    {
+      "name": "mt.link-spray.random-id.cache.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enable the cache for the random id generation, eg: true, false."
+    },
+    {
+      "name": "mt.link-spray.random-id.cache.depth",
+      "type": "java.lang.Integer",
+      "description": "The depth of the cache for the random id generation, the number of ids generated, eg: 1000."
+    },
+    {
+      "name": "mt.link-spray.random-id.cache.treshold",
+      "type": "java.lang.Integer",
+      "description": "The treshold of the cache for the random id generation, below this value it will trigger a cache refresh, eg: 100."
+    }
+  ]
+}
