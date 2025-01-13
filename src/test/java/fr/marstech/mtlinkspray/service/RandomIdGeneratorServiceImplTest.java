@@ -1,6 +1,5 @@
 package fr.marstech.mtlinkspray.service;
 
-import fr.marstech.mtlinkspray.config.AbstractBaseIntegrationTest;
 import lombok.extern.java.Log;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -8,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.core.env.Environment;
+import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -15,17 +15,19 @@ import org.testcontainers.utility.DockerImageName;
 
 import java.util.stream.IntStream;
 
+import static fr.marstech.mtlinkspray.config.TestConfig.MONGO_DB_DOCKER_IMAGE_NAME;
 import static java.text.MessageFormat.format;
 import static org.junit.jupiter.api.Assertions.*;
 
+@ActiveProfiles("test")
 @Log
 @Testcontainers
 @SpringBootTest
-class RandomIdGeneratorServiceImplTest extends AbstractBaseIntegrationTest {
+class RandomIdGeneratorServiceImplTest {
 
     @Container
     @ServiceConnection
-    static MongoDBContainer mongoDBContainer = new MongoDBContainer(DockerImageName.parse("mongo:4.0.10"));
+    static MongoDBContainer mongoDBContainer = new MongoDBContainer(DockerImageName.parse(MONGO_DB_DOCKER_IMAGE_NAME)).withReuse(true);
 
     @Autowired
     private RandomIdGeneratorServiceImpl randomIdGeneratorService;
@@ -49,10 +51,7 @@ class RandomIdGeneratorServiceImplTest extends AbstractBaseIntegrationTest {
 
     @Test
     void benchmarkWithAndWithoutCache() {
-
-
         int testRange = 1;
-
         long start;
         long end;
         long withCache;
