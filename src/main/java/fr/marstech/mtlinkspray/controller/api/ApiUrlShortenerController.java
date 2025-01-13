@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.net.URL;
+import java.net.MalformedURLException;
 
 @RestController
 public class ApiUrlShortenerController {
@@ -17,9 +17,9 @@ public class ApiUrlShortenerController {
     }
 
     @GetMapping("/api/url-shortener/shorten")
-    public URL getShort(
+    public String getShort(
             @RequestParam(name = "url") String inputUrl
-    ) {
-        return shortenerService.shorten(inputUrl);
+    ) throws MalformedURLException {
+        return shortenerService.shorten(inputUrl).toString();
     }
 }

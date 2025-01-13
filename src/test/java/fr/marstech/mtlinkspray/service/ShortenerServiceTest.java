@@ -1,17 +1,32 @@
 package fr.marstech.mtlinkspray.service;
 
+import fr.marstech.mtlinkspray.config.AbstractBaseIntegrationTest;
+import fr.marstech.mtlinkspray.entity.LinkItem;
+import fr.marstech.mtlinkspray.repository.LinkItemRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Optional;
+import java.util.UUID;
 
+import static fr.marstech.mtlinkspray.utils.NetworkUtils.isValidUrl;
 import static org.junit.jupiter.api.Assertions.*;
 
-class ShortenerServiceTest {
+@Testcontainers
+@SpringBootTest
+class ShortenerServiceTest extends AbstractBaseIntegrationTest {
 
-    ShortenerService shortenerService = new ShortenerService();
+    @Autowired
+    LinkItemRepository linkItemRepository;
+
+    @Autowired
+    ShortenerService shortenerService;
 
     @BeforeEach
     void setUp() {
@@ -22,11 +37,19 @@ class ShortenerServiceTest {
     }
 
     @Test
-    void shortenValidUrl() {
+    void linkItemTest() {
+        String id = UUID.randomUUID().toString();
+        LinkItem linkItem = linkItemRepository.save(new LinkItem().setId(id));
+        Optional<LinkItem> byId = linkItemRepository.findById(id);
+        //noinspection OptionalGetWithoutIsPresent
+        assertEquals(linkItem.getId(), byId.get().getId());
+    }
+
+    @Test
+    void shortenValidUrl() throws MalformedURLException {
         String validUrl = "https://www.example.com";
         URL result = shortenerService.shorten(validUrl);
-        assertNotNull(result);
-        assertEquals("https://www.example.com", result.toString());
+        assertTrue(isValidUrl(result.toString()));
     }
 
     @Test

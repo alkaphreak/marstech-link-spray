@@ -47,7 +47,7 @@ public class PostConstructConf {
     private void testMongoDbConnection() {
         CompletableFuture.runAsync(() -> {
             try {
-                SECONDS.sleep(10);
+                SECONDS.sleep(4);
 
                 String mongoDbUriEnvVar = environment.getProperty("spring.data.mongodb.uri");
                 log.info(format("MongoDB URI : {0}", mongoDbUriEnvVar));
@@ -62,7 +62,7 @@ public class PostConstructConf {
                 );
                 assert mtLinkSprayCollectionRepository.findById(uuid).isPresent();
                 //mtLinkSprayCollectionRepository.deleteById(uuid);
-
+                mtLinkSprayCollectionRepository.findAll().forEach(it -> log.info(it.toString()));
             } catch (InterruptedException e) {
                 // Do nothing because we don't care.
             }
