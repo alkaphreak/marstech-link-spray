@@ -1,12 +1,12 @@
 package fr.marstech.mtlinkspray.controller.api;
 
 import fr.marstech.mtlinkspray.service.SprayService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.java.Log;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 @RestController
