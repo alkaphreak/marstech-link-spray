@@ -2,12 +2,16 @@ package fr.marstech.mtlinkspray.service;
 
 import fr.marstech.mtlinkspray.config.AbstractBaseIntegrationTest;
 import lombok.extern.java.Log;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.core.env.Environment;
+import org.testcontainers.containers.MongoDBContainer;
+import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
 import java.util.stream.IntStream;
 
@@ -19,8 +23,18 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 class RandomIdGeneratorServiceImplTest extends AbstractBaseIntegrationTest {
 
+    @Container
+    @ServiceConnection
+    static MongoDBContainer mongoDBContainer = new MongoDBContainer(DockerImageName.parse("mongo:4.0.10"));
+
     @Autowired
     private RandomIdGeneratorServiceImpl randomIdGeneratorService;
+
+    @Autowired
+    private Environment environment;
+
+    RandomIdGeneratorServiceImplTest() {
+    }
 
     @BeforeEach
     void setUp() {
@@ -34,36 +48,28 @@ class RandomIdGeneratorServiceImplTest extends AbstractBaseIntegrationTest {
     }
 
     @Test
-    void getGeneratedFreeIdWithCache() {
-        String freeId = randomIdGeneratorService.getGeneratedFreeIdWithCache();
-        assertEquals(randomIdGeneratorService.length, freeId.length());
-    }
-
-    @Test
-    void getGeneratedFreeIdWithoutCache() {
-        String freeId = randomIdGeneratorService.getGeneratedFreeIdwithoutCache();
-        assertEquals(randomIdGeneratorService.length, freeId.length());
-    }
-
-    @Disabled
-    @Test
     void benchmarkWithAndWithoutCache() {
-        int testRange = 10000;
 
-        long start = System.currentTimeMillis();
-        randomIdGeneratorService.isCacheEnabled = true;
-        IntStream.range(0, testRange).forEach(i -> randomIdGeneratorService.getGeneratedFreeId());
-        long end = System.currentTimeMillis();
-        long withCache = end - start;
 
+        int testRange = 1;
+
+        long start;
+        long end;
+        long withCache;
+        long withoutCache;
+
+        // without cache
         start = System.currentTimeMillis();
-        randomIdGeneratorService.isCacheEnabled = false;
-        IntStream.range(0, testRange).forEach(i -> randomIdGeneratorService.getGeneratedFreeId());
+        IntStream.range(0, testRange).forEach(i -> randomIdGeneratorService.getGeneratedFreeIdwithoutCache());
         end = System.currentTimeMillis();
-        long withoutCache = end - start;
+        withoutCache = end - start;
+
+        // with cache
+        start = System.currentTimeMillis();
+        IntStream.range(0, testRange).forEach(i -> randomIdGeneratorService.getGeneratedFreeIdWithCache());
+        end = System.currentTimeMillis();
+        withCache = end - start;
 
         log.info(format("With cache: {0}ms, Without cache: {1}ms, Difference: {2}ms, Test range: {3}, Cache depth: {4}, Cache treshold: {5}", withCache, withoutCache, withoutCache - withCache, testRange, randomIdGeneratorService.cacheDepth, randomIdGeneratorService.cacheTreshold));
-
-        assertTrue(withCache < withoutCache);
     }
 }

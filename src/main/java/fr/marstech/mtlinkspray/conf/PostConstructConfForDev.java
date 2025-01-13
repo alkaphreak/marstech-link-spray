@@ -5,10 +5,10 @@ import fr.marstech.mtlinkspray.repository.MtLinkSprayCollectionRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.java.Log;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.EnableAsync;
 
-import javax.annotation.PostConstruct;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -19,13 +19,14 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 @EnableAsync
 @Configuration
 @Log
-public class PostConstructConf {
+@Profile("dev")
+public class PostConstructConfForDev {
 
     final MtLinkSprayCollectionRepository mtLinkSprayCollectionRepository;
 
     private final Environment environment;
 
-    public PostConstructConf(Environment environment, MtLinkSprayCollectionRepository mtLinkSprayCollectionRepository) {
+    public PostConstructConfForDev(Environment environment, MtLinkSprayCollectionRepository mtLinkSprayCollectionRepository) {
         this.environment = environment;
         this.mtLinkSprayCollectionRepository = mtLinkSprayCollectionRepository;
     }

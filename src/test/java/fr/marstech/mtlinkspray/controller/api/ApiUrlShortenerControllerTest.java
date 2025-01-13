@@ -34,7 +34,7 @@ class ApiUrlShortenerControllerTest {
     @Test
     void getShort() throws Exception {
         mockMvc.perform(get("/api/url-shortener/shorten")
-                .param("url", "https://www.example.com"))
+                        .param("url", "https://www.example.com"))
                 .andExpect(status().isOk())
                 .andExpect(content().string("https://short.url"));
     }

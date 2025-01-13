@@ -1,6 +1,7 @@
 package fr.marstech.mtlinkspray.utils;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
+
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;

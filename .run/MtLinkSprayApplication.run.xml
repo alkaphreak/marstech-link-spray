@@ -1,5 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="MtLinkSprayApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <option name="ACTIVE_PROFILES" value="dev" />
     <module name="mt-link-spray" />
     <option name="PASS_PARENT_ENVS" value="false" />
     <selectedOptions>

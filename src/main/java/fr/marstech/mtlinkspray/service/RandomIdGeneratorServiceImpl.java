@@ -2,6 +2,7 @@ package fr.marstech.mtlinkspray.service;
 
 import fr.marstech.mtlinkspray.objects.RandomIdGeneratorObject;
 import fr.marstech.mtlinkspray.repository.LinkItemRepository;
+import lombok.extern.java.Log;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -10,6 +11,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+@Log
 @Service
 public class RandomIdGeneratorServiceImpl implements RandomIdGeneratorService {
 
