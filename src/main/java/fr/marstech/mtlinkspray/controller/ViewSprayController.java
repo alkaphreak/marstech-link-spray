@@ -40,7 +40,7 @@ public class ViewSprayController implements ThymeleafViewControllerInterface {
 
     @GetMapping("/open")
     public ModelAndView getSpray(
-            @RequestParam List<String> sprayStringList
+            @RequestParam(name = "spray") List<String> sprayStringList
     ) {
         return getModelAndView()
                 .addObject("linkListText", SprayService.getLinkListText(sprayStringList))
