@@ -3,11 +3,12 @@ package fr.marstech.mtlinkspray.service;
 import fr.marstech.mtlinkspray.entity.LinkItem;
 import fr.marstech.mtlinkspray.entity.LinkItemTarget;
 import fr.marstech.mtlinkspray.repository.LinkItemRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.java.Log;
+import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.stereotype.Service;
 
 import java.net.MalformedURLException;
-import java.net.URL;
 
 import static fr.marstech.mtlinkspray.utils.NetworkUtils.isValidUrl;
 
@@ -19,18 +20,21 @@ public class ShortenerServiceImpl implements ShortenerService {
 
     final LinkItemRepository linkItemRepository;
 
-    public ShortenerServiceImpl(LinkItemRepository linkItemRepository, RandomIdGeneratorService randomIdGeneratorService) {
+    public ShortenerServiceImpl(
+            LinkItemRepository linkItemRepository,
+            RandomIdGeneratorService randomIdGeneratorService
+    ) {
         this.linkItemRepository = linkItemRepository;
         this.randomIdGeneratorService = randomIdGeneratorService;
     }
 
     @Override
-    public URL shorten(String url) {
+    public String shorten(String url, HttpServletRequest httpServletRequest) {
         try {
             if (isValidUrl(url)) {
                 LinkItem linkItem = new LinkItem().setTarget(new LinkItemTarget().setTargetUrl(url)).setId(getFreeUniqueId());
                 LinkItem savedLinkItem = linkItemRepository.save(linkItem);
-                return new URL("http://localhost:8080/" + savedLinkItem.getId());
+                return ShortenerService.getShortenedLink(httpServletRequest, savedLinkItem.getId());
             } else {
                 throw new MalformedURLException("Invalid URL: " + url);
             }
@@ -38,6 +42,15 @@ public class ShortenerServiceImpl implements ShortenerService {
             log.severe("Error while shortening URL: " + url);
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public String getTarget(String uid, HttpServletRequest httpServletRequest) throws ChangeSetPersister.NotFoundException {
+        LinkItem linkItem = linkItemRepository.findById(uid).orElseThrow(ChangeSetPersister.NotFoundException::new);
+
+        // TODO add target management
+
+        return linkItem.getTarget().getTargetUrl();
     }
 
     private String getFreeUniqueId() {

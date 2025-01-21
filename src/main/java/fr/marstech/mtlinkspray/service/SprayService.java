@@ -5,12 +5,12 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.List;
-import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static fr.marstech.mtlinkspray.utils.NetworkUtils.*;
 import static fr.marstech.mtlinkspray.utils.NetworkUtils.getPort;
+import static java.text.MessageFormat.format;
 
 public interface SprayService {
 
@@ -43,15 +43,14 @@ public interface SprayService {
      */
     static String getLinkSpray(HttpServletRequest httpServletRequest, List<String> linkList) {
         if (CollectionUtils.isNotEmpty(linkList)) {
-            Map<String, String> headers = getHeadersAsMap(httpServletRequest);
-            String host = getHost(httpServletRequest, headers);
-            String scheme = getScheme(httpServletRequest, headers);
-            String port = getPort(httpServletRequest, headers);
+            String host = getHost(httpServletRequest);
+            String scheme = getScheme(httpServletRequest);
+            String port = getPort(httpServletRequest);
             return UriComponentsBuilder.newInstance()
                     .scheme(scheme)
                     .host(host)
                     .port(port)
-                    .path(httpServletRequest.getRequestURI() + "/open")
+                    .path(format("{0}/open", httpServletRequest.getRequestURI()))
                     .queryParam("spray", linkList)
                     .build()
                     .encode()

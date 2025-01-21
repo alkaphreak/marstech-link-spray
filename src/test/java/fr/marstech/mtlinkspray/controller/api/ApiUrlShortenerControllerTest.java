@@ -11,6 +11,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.net.URL;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -28,7 +29,8 @@ class ApiUrlShortenerControllerTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        when(shortenerServiceImpl.shorten(anyString())).thenReturn(new URL("https://short.url"));
+        when(shortenerServiceImpl.shorten(anyString(), any()))
+                .thenReturn(new URL("https://short.url").toString());
     }
 
     @Test
