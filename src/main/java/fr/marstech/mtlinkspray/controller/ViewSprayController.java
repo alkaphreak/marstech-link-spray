@@ -12,13 +12,16 @@ import org.springframework.web.servlet.ModelAndView;
 
 import java.util.List;
 
+import static fr.marstech.mtlinkspray.enums.ViewNameEnum.SPRAY;
 import static fr.marstech.mtlinkspray.utils.NetworkUtils.*;
 
 @Controller
 @Log
 public class ViewSprayController implements ThymeleafViewControllerInterface {
 
-    @GetMapping("/")
+    private final ViewNameEnum viewNameEnum = SPRAY;
+
+    @GetMapping("/spray")
     public ModelAndView getHome(
             HttpServletRequest httpServletRequest
     ) {
@@ -26,7 +29,7 @@ public class ViewSprayController implements ThymeleafViewControllerInterface {
                 .addObject("headers", getHeadersAsMap(httpServletRequest));
     }
 
-    @PostMapping("/")
+    @PostMapping("/spray")
     public ModelAndView getLink(
             @RequestParam String inputLinkList,
             HttpServletRequest httpServletRequest
@@ -38,7 +41,7 @@ public class ViewSprayController implements ThymeleafViewControllerInterface {
                 .addObject("linkSpray", SprayService.getLinkSpray(httpServletRequest, linkList));
     }
 
-    @GetMapping("/open")
+    @GetMapping("/spray/open")
     public ModelAndView getSpray(
             @RequestParam(name = "spray") List<String> sprayStringList
     ) {
@@ -49,7 +52,6 @@ public class ViewSprayController implements ThymeleafViewControllerInterface {
 
     @Override
     public ModelAndView getModelAndView() {
-        return new ModelAndView("index")
-                .addObject("viewName", ViewNameEnum.SPRAY);
+        return getModelAndView(viewNameEnum);
     }
 }
