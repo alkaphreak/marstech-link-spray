@@ -22,7 +22,14 @@ public class NetworkUtils {
         return headers;
     }
 
-    public static String getPort(HttpServletRequest httpServletRequest, Map<String, String> headers) {
+    public static String getPort(HttpServletRequest httpServletRequest) {
+        return getPort(httpServletRequest, getHeadersAsMap(httpServletRequest));
+    }
+
+    private static String getPort(
+            HttpServletRequest httpServletRequest,
+            Map<String, String> headers
+    ) {
         String res = headers.getOrDefault("x-forwarded-port", null);
         if (res == null) {
             res = headers.getOrDefault("port", null);
@@ -33,7 +40,15 @@ public class NetworkUtils {
         return res;
     }
 
-    public static String getScheme(HttpServletRequest httpServletRequest, Map<String, String> headers) {
+
+    public static String getScheme(HttpServletRequest httpServletRequest) {
+        return getScheme(httpServletRequest, getHeadersAsMap(httpServletRequest));
+    }
+
+    private static String getScheme(
+            HttpServletRequest httpServletRequest,
+            Map<String, String> headers
+    ) {
         String res = headers.getOrDefault("x-forwarded-proto", null);
         if (res == null) {
             res = httpServletRequest.getScheme();
@@ -41,7 +56,15 @@ public class NetworkUtils {
         return res;
     }
 
-    public static String getHost(HttpServletRequest httpServletRequest, Map<String, String> headers) {
+
+    public static String getHost(HttpServletRequest httpServletRequest) {
+        return getHost(httpServletRequest, getHeadersAsMap(httpServletRequest));
+    }
+
+    private static String getHost(
+            HttpServletRequest httpServletRequest,
+            Map<String, String> headers
+    ) {
         String res;
         res = headers.getOrDefault("x-forwarded-server", null);
         if (res == null) {
