@@ -10,20 +10,24 @@ simple steps to generate a unique link that will open all the specified URLs.
 
 ## Technologies used
 
-- **Java 17**
+- **Java 21**
+- **Kotlin**
 - **Spring Boot**
 - **Thymeleaf**
 - **Bootstrap**
 - **Maven**
 - **MongoDB**
-- **Docker** (for testing purposes)
+- **Docker**
+- **Testcontainers**
+- **Apache Commons**
+- **Jakarta Servlet API**
+- **Lombok**
 
 ## Installation
 
 1. Clone the repository:
     ```bash
-    git clone https://github.com/alkaphreak/mtlinkspray.git
-    cd mtlinkspray
+    git clone https://github.com/alkaphreak/marstech-link-spray.git
     ```
 
 2. Configure MongoDB:
