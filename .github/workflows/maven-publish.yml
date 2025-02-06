@@ -5,30 +5,43 @@ name: Maven Package
 
 on:
   release:
-    types: [created]
+    types: [ created ]
 
 jobs:
   build:
-
+    #    runs-on: ubuntu-20.04
     runs-on: self-hosted
     permissions:
       contents: read
       packages: write
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Java version
-      uses: actions/setup-java@v3
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-        server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
-        settings-path: ${{ github.workspace }} # location for the settings.xml file
+      - uses: actions/checkout@v4
+      - name: Set up Java version
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'liberica'
+          # Value of the distributionManagement/repository/id field of the pom.xml file
+          server-id: github
+          # location for the settings.xml file
+          settings-path: ${{ github.workspace }}
 
-    - name: Build with Maven
-      run: mvn -B package --file pom.xml
+      - name: Build with Maven
+        run: mvn -B package --file pom.xml
 
-    - name: Publish to GitHub Packages Apache Maven
-      run: echo $GITHUB_WORKSPACE/settings.xml && mvn deploy -s $GITHUB_WORKSPACE/settings.xml
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
+      - name: Publish to GitHub Packages Apache Maven
+        run: echo $GITHUB_WORKSPACE/settings.xml && mvn deploy -s $GITHUB_WORKSPACE/settings.xml
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      # New deploy
+      - name: Set up Java for publishing to GitHub Packages
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'liberica'
+      - name: Publish to GitHub Packages
+        run: mvn --batch-mode deploy
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
