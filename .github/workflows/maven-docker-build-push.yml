@@ -7,10 +7,6 @@ on:
   push:
     branches: [ main, MLS-33 ]
 
-env:
-  MY_ORGANISATION: ${{ vars.MY_ORGANISATION }}
-  APP_NAME: ${{ vars.APP_NAME }}
-
 jobs:
   build:
     #    runs-on: ubuntu-20.04
@@ -40,9 +36,12 @@ jobs:
 
       - name: Build with Maven
         env:
+          MY_ORGANISATION: ${{ vars.MY_ORGANISATION }}
+          APP_NAME: ${{ vars.APP_NAME }}
           TAGNAME: ${{ steps.pom-version.outputs.version }}
           DOCKER_HUB_USERNAME: ${{ secrets.GITHUB_HUB_USERNAME }}
           DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.GITHUB_HUB_ACCESS_TOKEN }}
+          DOCKER_REPO: ${{ vars.DOCKER_REPO }}
         run: |
           mvn spring-boot:build-image \
             -Dspring-boot.build-image.imageName="$MY_ORGANISATION/$APP_NAME:$TAGNAME" \
