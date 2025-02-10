@@ -39,7 +39,7 @@ jobs:
 
       - name: get the version from the pom.xml
         id: pom-version
-        run: echo "{version}={$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)}" >> $GITHUB_OUTPUT
+        run: echo "version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_OUTPUT
 
       - name: Build with Maven
         env:
