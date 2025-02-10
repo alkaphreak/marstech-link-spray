@@ -28,11 +28,18 @@ jobs:
           server-id: github
           # location for the settings.xml file
           settings-path: ${{ github.workspace }}
-          cache: maven
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
 
       - name: get the version from the pom.xml
         id: pom-version
-        run: echo ::set-output name=version::$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+        run: echo "{version}={$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)}" >> $GITHUB_OUTPUT
 
       - name: Build with Maven
         env:
@@ -40,7 +47,7 @@ jobs:
           APP_NAME: ${{ vars.APP_NAME }}
           TAGNAME: ${{ steps.pom-version.outputs.version }}
           DOCKER_HUB_USERNAME: ${{ secrets.GITHUB_HUB_USERNAME }}
-          DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.GITHUB_HUB_ACCESS_TOKEN }}
+          DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
           DOCKER_REPO: ${{ vars.DOCKER_REPO }}
         run: |
           mvn spring-boot:build-image \
