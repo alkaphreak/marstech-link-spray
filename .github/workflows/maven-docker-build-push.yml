@@ -34,27 +34,20 @@ jobs:
           settings-path: ${{ github.workspace }}
           cache: maven
 
-      - name: login to docker hub
-        uses: docker/login-action@v1
-        with:
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-
       - name: get the version from the pom.xml
         id: pom-version
         run: echo ::set-output name=version::$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
 
       - name: Build with Maven
         env:
-            TAGNAME: ${{ steps.pom-version.outputs.version }}
-        run: mvn spring-boot:build-image \
-          -Dspring-boot.build-image.imageName="$MY_ORGANISATION/$APP_NAME:$TAGNAME" \
-          -DskipTests \
-          -f "pom.xml"
-
-      - name: Push to Docker Hub
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          push: true
-          tags: $MY_ORGANISATION/$APP_NAME:$TAGNAME
+          TAGNAME: ${{ steps.pom-version.outputs.version }}
+          DOCKER_HUB_USERNAME: ${{ secrets.GITHUB_HUB_USERNAME }}
+          DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.GITHUB_HUB_ACCESS_TOKEN }}
+        run: |
+          mvn spring-boot:build-image \
+            -Dspring-boot.build-image.imageName="$MY_ORGANISATION/$APP_NAME:$TAGNAME" \
+            -DskipTests \
+            -f "pom.xml"          
+          docker login -u $DOCKER_HUB_USERNAME -p $DOCKER_HUB_ACCESS_TOKEN
+          docker tag "$APP_NAME:$TAGNAME" "$DOCKER_REPO:$TAGNAME"
+          docker push "$DOCKER_REPO:$TAGNAME"
