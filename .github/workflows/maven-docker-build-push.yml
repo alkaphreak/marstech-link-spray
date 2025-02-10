@@ -8,8 +8,8 @@ on:
     branches: [ main, MLS-33 ]
 
 env:
-  MY_ORGANISATION: ${{ env.MY_ORGANISATION }}
-  APP_NAME: ${{ env.APP_NAME }}
+  MY_ORGANISATION: ${{ vars.MY_ORGANISATION }}
+  APP_NAME: ${{ vars.APP_NAME }}
 
 jobs:
   build:
