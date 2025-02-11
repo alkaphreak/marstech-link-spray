@@ -51,13 +51,20 @@ jobs:
           DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
           DOCKER_REPO: ${{ vars.DOCKER_REPO }}
         run: |
+          echo "docker start"
           bash dev-ops/docker-start.sh
-          echo "User: ${DOCKER_HUB_USERNAME:0:2}..."
-          echo "Token: ${DOCKER_HUB_ACCESS_TOKEN:0:3}..."
+          
+          echo "Docker login"
           echo $DOCKER_HUB_ACCESS_TOKEN | docker login $DOCKER_HUB_REGISTRY -u $DOCKER_HUB_USERNAME --password-stdin  
+          
+          echo "Maven build"
           mvn spring-boot:build-image \
             -Dspring-boot.build-image.imageName="$MY_ORGANISATION/$APP_NAME:$TAGNAME" \
             -DskipTests \
-            -f "pom.xml"          
+            -f "pom.xml"  
+          
+          echo "Docker image tag"
           docker tag "$APP_NAME:$TAGNAME" "$DOCKER_REPO:$TAGNAME"
-          docker push "$DOCKER_REPO:$TAGNAME"
+          
+          echo "Docker image push"
+          docker push "$DOCKER_HUB_REGISTRY/$DOCKER_REPO:$TAGNAME"
