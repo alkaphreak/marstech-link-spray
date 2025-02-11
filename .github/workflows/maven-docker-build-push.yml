@@ -64,7 +64,7 @@ jobs:
             -f "pom.xml"  
           
           echo "Docker image tag"
-          docker tag "$APP_NAME:$TAGNAME" "$DOCKER_REPO:$TAGNAME"
+          docker tag "$MY_ORGANISATION/$APP_NAME:$TAGNAME" "$DOCKER_REPO:$TAGNAME"
           
           echo "Docker image push"
           docker push "$DOCKER_HUB_REGISTRY/$DOCKER_REPO:$TAGNAME"
