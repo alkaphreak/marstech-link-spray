@@ -52,6 +52,8 @@ jobs:
           DOCKER_REPO: ${{ vars.DOCKER_REPO }}
         run: |
           bash dev-ops/docker-start.sh
+          echo "User: ${DOCKER_HUB_USERNAME:0:2}..."
+          echo "Token: ${DOCKER_HUB_ACCESS_TOKEN:0:3}..."
           echo $DOCKER_HUB_ACCESS_TOKEN | docker login $DOCKER_HUB_REGISTRY -u $DOCKER_HUB_USERNAME --password-stdin  
           mvn spring-boot:build-image \
             -Dspring-boot.build-image.imageName="$MY_ORGANISATION/$APP_NAME:$TAGNAME" \
