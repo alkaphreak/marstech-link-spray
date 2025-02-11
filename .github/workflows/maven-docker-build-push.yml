@@ -46,12 +46,13 @@ jobs:
           MY_ORGANISATION: ${{ vars.MY_ORGANISATION }}
           APP_NAME: ${{ vars.APP_NAME }}
           TAGNAME: ${{ steps.pom-version.outputs.version }}
+          DOCKER_HUB_REGISTRY: ${{ vars.DOCKER_HUB_REGISTRY }}
           DOCKER_HUB_USERNAME: ${{ secrets.GITHUB_HUB_USERNAME }}
           DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
           DOCKER_REPO: ${{ vars.DOCKER_REPO }}
         run: |
           bash dev-ops/docker-start.sh
-          docker login -u $DOCKER_HUB_USERNAME --password-stdin <<< $DOCKER_HUB_ACCESS_TOKEN 
+          docker login $DOCKER_HUB_REGISTRY -u $DOCKER_HUB_USERNAME --password-stdin <<< $DOCKER_HUB_ACCESS_TOKEN 
           mvn spring-boot:build-image \
             -Dspring-boot.build-image.imageName="$MY_ORGANISATION/$APP_NAME:$TAGNAME" \
             -DskipTests \
