@@ -1,5 +1,19 @@
+/* Sticky footer styles */
 html {
     background: #1a1e21;
+    position: relative;
+    min-height: 100%;
+}
+
+body {
+    margin-bottom: 95px;
+}
+
+.footer {
+    position: absolute;
+    width: 100%;
+    bottom: 0;
+    padding-top: 15px;
 }
 
 /* Footer Copyright list */
@@ -17,4 +31,9 @@ ul.mt-copyright-list li:after {
 
 ul.mt-copyright-list li:last-child:after {
     content: "";
+}
+
+/* Section */
+section {
+    padding: 10px 0;
 }
