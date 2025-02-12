@@ -29,10 +29,10 @@ simple steps to generate a unique link that will open all the specified URLs.
 2. Configure MongoDB:
     - Ensure that MongoDB is installed and running on your machine or set up a MongoDB instance using Docker, or on a
       cloud platform, a [MongoDB Atlas free tier is available](https://www.mongodb.com/pricing).
-    - Set the `MONGODB_URI` environment variable with the connection URI to your MongoDB database. For example:
+    - Set the `MONGODB_URI_LINK_SPRAY` environment variable with the connection URI to your MongoDB database. For example:
         ```sh
         # On Linux/macOS, in ~/.profile or ~/.bash_profile or ...
-        export MONGODB_URI="mongodb://localhost:27017/mydatabase"
+        export MONGODB_URI_LINK_SPRAY="mongodb://localhost:27017/mydatabase"
         ```
     - Reload your shell configuration file (e.g., `~/.profile` or `~/.bash_profile`):
         ```sh
@@ -40,9 +40,9 @@ simple steps to generate a unique link that will open all the specified URLs.
         ```    
     - You can also need this command to avoid restarting your Mac:
         ```sh
-        launchctl setenv MONGODB_URI "$MONGODB_URI"
+        launchctl setenv MONGODB_URI_LINK_SPRAY "$MONGODB_URI_LINK_SPRAY"
         ```
-    - Alternatively, you can set the `MONGODB_URI` property in the `application.properties` file.
+    - Alternatively, you can set the `MONGODB_URI_LINK_SPRAY` property in the `application.properties` file.
     - You may be forced to restart your IDE to take into account the new environment variable.
 
 3. Build and run the application:
@@ -93,7 +93,7 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 ## Authors
 
-- **Stéphane ROBIN** - *Creator* - [Marstech](https://marstech.fr/)
+- **Stéphane ROBIN** - *Creator* - [Link](https://linktr.ee/StephaneRobinJob)
 
 ---
 
