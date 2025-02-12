@@ -1,0 +1,70 @@
+# This workflow will build a package using Maven and then publish it to GitHub packages when a release is created
+# For more information see: https://github.com/actions/setup-java/blob/main/docs/advanced-usage.md#apache-maven-with-a-settings-path
+
+name: Maven build and push to Docker Hub
+
+on:
+  push:
+    branches: [ main, MLS-33 ]
+
+jobs:
+  build:
+    #    runs-on: ubuntu-20.04
+    runs-on: self-hosted
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Java version
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'liberica'
+          # Value of the distributionManagement/repository/id field of the pom.xml file
+          server-id: github
+          # location for the settings.xml file
+          settings-path: ${{ github.workspace }}
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: get the version from the pom.xml
+        id: pom-version
+        run: echo "version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_OUTPUT
+
+      - name: Build with Maven
+        env:
+          MY_ORGANISATION: ${{ vars.MY_ORGANISATION }}
+          APP_NAME: ${{ vars.APP_NAME }}
+          TAGNAME: ${{ steps.pom-version.outputs.version }}
+          DOCKER_HUB_REGISTRY: ${{ vars.DOCKER_HUB_REGISTRY }}
+          DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+          DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+          DOCKER_REPO: ${{ vars.DOCKER_REPO }}
+        run: |
+          echo "docker start"
+          bash dev-ops/docker-start.sh
+          
+          echo "Docker login"
+          echo $DOCKER_HUB_ACCESS_TOKEN | docker login $DOCKER_HUB_REGISTRY -u $DOCKER_HUB_USERNAME --password-stdin  
+          
+          echo "Maven build"
+          mvn spring-boot:build-image \
+            -Dspring-boot.build-image.imageName="$MY_ORGANISATION/$APP_NAME:$TAGNAME" \
+            -DskipTests \
+            -f "pom.xml"  
+          
+          echo "Docker image tag"
+          docker tag "$MY_ORGANISATION/$APP_NAME:$TAGNAME" "$DOCKER_REPO:$TAGNAME"
+          
+          echo "Docker image push"
+          docker push "$DOCKER_HUB_REGISTRY/$DOCKER_REPO:$TAGNAME"

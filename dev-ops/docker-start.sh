@@ -1,12 +1,15 @@
 #!/bin/bash
-
-# Vérifier si GitHub Desktop est en cours d'exécution
-if ! pgrep -x "Docker\ Desktop" > /dev/null
+#
+# Check if Docker Desktop is running
+if [[ "$(uname)" == "Darwin" ]]
 then
-    echo "Lancement de GitHub Desktop..."
-    open -a Docker;
-    sleep 5;
-else
-    echo "GitHub Desktop est déjà en cours d'exécution."
+    if ! pgrep -x "Docker\ Desktop" > /dev/null
+    then
+        echo "Starting Docker Desktop..."
+        open -a Docker;
+        sleep 5;
+    else
+    echo "Docker Desktop is already running."
+    fi
 fi
 exit 0
