@@ -24,7 +24,7 @@
         <div class="row align-items-center">
             <div class="col">
                 <form th:action="@{'/'+${view.getViewName()}}" action="/" method="post" accept-charset="UTF-8">
-                    <div>
+                    <div class="mb-3">
                         <label class="form-label" for="input-link">Target link</label>
                         <input th:value="${inputLink?:''}"
                                class="form-control"
@@ -33,9 +33,12 @@
                                type="url"
                                placeholder="Enter target link to shorten"
                         />
+                    </div>
+                    <div class="mb-3">
                         <button type="submit" class="btn btn-primary">Get shortened link</button>
                     </div>
-                    <div th:if="${shortenedLink}">
+
+                    <div class="mb-3" th:if="${shortenedLink}">
                         <label class="form-label" for="shortened-link">Shortened link</label>
                         <input id="shortened-link" class="form-control-plaintext user-select-all"
                                readonly="readonly"
