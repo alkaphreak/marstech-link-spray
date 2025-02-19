@@ -4,6 +4,7 @@ import fr.marstech.mtlinkspray.entity.MtLinkSprayCollectionItem;
 import fr.marstech.mtlinkspray.repository.MtLinkSprayCollectionRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.java.Log;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
@@ -21,6 +22,9 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 @Log
 @Profile("dev")
 public class PostConstructConfForDev {
+
+    @Value("${mt.link-spray.version}")
+    private String mtLinkSprayVersion;
 
     final MtLinkSprayCollectionRepository mtLinkSprayCollectionRepository;
 
@@ -69,6 +73,19 @@ public class PostConstructConfForDev {
             }
 
             log.info("MongoDB connection test");
+        });
+    }
+
+    @PostConstruct
+    private void displayAppVersion() {
+        CompletableFuture.runAsync(() -> {
+            try {
+                SECONDS.sleep(5);
+            } catch (InterruptedException e) {
+                // Do nothing because we don't care.
+            }
+
+            log.info("App version : %s".formatted(mtLinkSprayVersion));
         });
     }
 }

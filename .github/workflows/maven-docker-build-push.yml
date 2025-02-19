@@ -45,7 +45,7 @@ jobs:
         env:
           MY_ORGANISATION: ${{ vars.MY_ORGANISATION }}
           APP_NAME: ${{ vars.APP_NAME }}
-          TAGNAME: ${{ steps.pom-version.outputs.version }}
+          TAGNAME: ${{ steps.pom-version.outputs.version }}-${ maven.build.timestamp }
           DOCKER_HUB_REGISTRY: ${{ vars.DOCKER_HUB_REGISTRY }}
           DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
           DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}

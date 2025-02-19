@@ -44,6 +44,26 @@
       "name": "mt.link-spray.random-id.cache.treshold",
       "type": "java.lang.Integer",
       "description": "The treshold of the cache for the random id generation, below this value it will trigger a cache refresh, eg: 100."
+    },
+    {
+      "name": "build.timestamp",
+      "type": "java.lang.String",
+      "description": "The timestamp of the maven build."
+    },
+    {
+      "name": "mt.link-spray.version",
+      "type": "java.lang.String",
+      "description": "The version of the link spray service."
+    },
+    {
+      "name": "build.artifactId",
+      "type": "java.lang.String",
+      "description": "The artifactId of the maven build."
+    },
+    {
+      "name": "build.version",
+      "type": "java.lang.String",
+      "description": "The version of the maven build."
     }
   ]
 }
