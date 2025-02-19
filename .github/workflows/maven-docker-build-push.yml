@@ -5,7 +5,7 @@ name: Maven build and push to Docker Hub
 
 on:
   push:
-    branches: [ main, MLS-33 ]
+    branches: [ main, MLS-* ]
 
 jobs:
   build:
@@ -35,26 +35,29 @@ jobs:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
-            ${{ runner.os }}-maven-
+            ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
 
       - name: get the version from the pom.xml
         id: pom-version
         run: echo "version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_OUTPUT
 
-      - name: Get build timestamp
+      - name: get the timestamp
         id: build-timestamp
-        run: echo "timestamp=$(mvn help:evaluate -Dexpression=maven.build.timestamp -q -DforceStdout)" >> $GITHUB_OUTPUT
+        run: echo "timestamp=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
 
       - name: Build with Maven
         env:
           MY_ORGANISATION: ${{ vars.MY_ORGANISATION }}
           APP_NAME: ${{ vars.APP_NAME }}
+          TIMESTAMP: ${{ steps.build-timestamp.outputs.timestamp }}
           TAGNAME: ${{ steps.pom-version.outputs.version }}-${{ steps.build-timestamp.outputs.timestamp }}
           DOCKER_HUB_REGISTRY: ${{ vars.DOCKER_HUB_REGISTRY }}
           DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
           DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
           DOCKER_REPO: ${{ vars.DOCKER_REPO }}
         run: |
+          echo "Maven build with TAGNAME: $TAGNAME"
+          
           echo "docker start"
           bash dev-ops/docker-start.sh
           
@@ -65,6 +68,7 @@ jobs:
           mvn spring-boot:build-image \
             -Dspring-boot.build-image.imageName="$MY_ORGANISATION/$APP_NAME:$TAGNAME" \
             -DskipTests \
+            -Dtimestamp="$TIMESTAMP" \
             -f "pom.xml"  
           
           echo "Docker image tag"
