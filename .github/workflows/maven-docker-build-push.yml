@@ -41,11 +41,15 @@ jobs:
         id: pom-version
         run: echo "version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_OUTPUT
 
+      - name: Get build timestamp
+        id: build-timestamp
+        run: echo "timestamp=$(mvn help:evaluate -Dexpression=maven.build.timestamp -q -DforceStdout)" >> $GITHUB_OUTPUT
+
       - name: Build with Maven
         env:
           MY_ORGANISATION: ${{ vars.MY_ORGANISATION }}
           APP_NAME: ${{ vars.APP_NAME }}
-          TAGNAME: ${{ steps.pom-version.outputs.version }}-${ maven.build.timestamp }
+          TAGNAME: ${{ steps.pom-version.outputs.version }}-${{ steps.build-timestamp.outputs.timestamp }}
           DOCKER_HUB_REGISTRY: ${{ vars.DOCKER_HUB_REGISTRY }}
           DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
           DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
