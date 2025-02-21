@@ -2,7 +2,7 @@ name: Maven Install
 
 on:
   push:
-    branches: [ * ]
+    branches: [ all ]
 
 jobs:
   build:
