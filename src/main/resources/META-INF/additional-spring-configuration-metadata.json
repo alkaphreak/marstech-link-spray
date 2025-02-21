@@ -64,6 +64,16 @@
       "name": "build.version",
       "type": "java.lang.String",
       "description": "The version of the maven build."
+    },
+    {
+      "name": "mt.link-spray.notification.mail.sender",
+      "type": "java.lang.String",
+      "description": "The sender email address of the notification mail, eg: my.link.spray@address.com."
+    },
+    {
+      "name": "mt.link-spray.notification.mail.receiver",
+      "type": "java.lang.String",
+      "description": "The receiver email address of the notification mail, eg:my.link.spray@address.com."
     }
   ]
 }

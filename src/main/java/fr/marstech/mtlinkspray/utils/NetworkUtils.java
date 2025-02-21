@@ -1,10 +1,9 @@
 package fr.marstech.mtlinkspray.utils;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.apache.commons.lang3.StringUtils;
 
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-import java.net.URL;
+import java.net.URI;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -81,9 +80,8 @@ public class NetworkUtils {
 
     public static Boolean isValidUrl(String url) {
         try {
-            new URL(url).toURI();
-            return true;
-        } catch (MalformedURLException | URISyntaxException e) {
+            return StringUtils.isNotBlank(new URI(url).toURL().toString());
+        } catch (Exception e) {
             return false;
         }
     }

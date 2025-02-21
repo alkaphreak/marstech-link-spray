@@ -7,6 +7,7 @@ public enum ViewNameEnum {
     HOME("index", "Home"),
     SPRAY("spray", "Spray"),
     SHORTENER("shortener", "Shortener"),
+    ABUSE("abuse", "Abuse"),
     ;
 
     private final String viewName;
