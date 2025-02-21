@@ -36,10 +36,10 @@ public class ShortenerServiceImpl implements ShortenerService {
                 LinkItem savedLinkItem = linkItemRepository.save(linkItem);
                 return ShortenerService.getShortenedLink(httpServletRequest, savedLinkItem.getId());
             } else {
-                throw new MalformedURLException("Invalid URL: " + url);
+                throw new MalformedURLException("Invalid URL: %s".formatted(url));
             }
         } catch (MalformedURLException e) {
-            log.severe("Error while shortening URL: " + url);
+            log.severe("Error while shortening URL: %s".formatted(url));
             throw new RuntimeException(e);
         }
     }
