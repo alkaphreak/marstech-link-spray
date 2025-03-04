@@ -3,7 +3,6 @@ package fr.marstech.mtlinkspray.service;
 import fr.marstech.mtlinkspray.entity.LinkItem;
 import fr.marstech.mtlinkspray.repository.LinkItemRepository;
 import jakarta.servlet.http.HttpServletRequest;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,10 +58,6 @@ class ShortenerServiceTest {
         when(httpServletRequest.getServerName()).thenReturn("localhost");
         when(httpServletRequest.getServerPort()).thenReturn(8080);
         when(httpServletRequest.getScheme()).thenReturn("http");
-    }
-
-    @AfterEach
-    void tearDown() {
     }
 
     @Test

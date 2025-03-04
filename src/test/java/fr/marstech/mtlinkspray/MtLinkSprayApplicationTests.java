@@ -9,5 +9,4 @@ class MtLinkSprayApplicationTests {
 	@Test
 	void contextLoads() {
 	}
-
 }
