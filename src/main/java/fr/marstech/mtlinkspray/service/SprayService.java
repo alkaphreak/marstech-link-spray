@@ -6,11 +6,10 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.List;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 import static fr.marstech.mtlinkspray.utils.NetworkUtils.*;
-import static fr.marstech.mtlinkspray.utils.NetworkUtils.getPort;
 import static java.text.MessageFormat.format;
+import static java.util.stream.Collectors.toList;
 
 public interface SprayService {
 
@@ -21,7 +20,7 @@ public interface SprayService {
      * @return the list of links
      */
     static List<String> getLinkList(String inputLinkList) {
-        return inputLinkList.trim().lines().filter(Predicate.not(String::isBlank)).map(String::trim).collect(Collectors.toList());
+        return inputLinkList.trim().lines().filter(Predicate.not(String::isBlank)).map(String::trim).collect(toList());
     }
 
     /**
@@ -45,7 +44,7 @@ public interface SprayService {
         if (CollectionUtils.isNotEmpty(linkList)) {
             String host = getHost(httpServletRequest);
             String scheme = getScheme(httpServletRequest);
-            String port = getPort(httpServletRequest);
+            String port = filterDefaultPort(getPort(httpServletRequest));
             return UriComponentsBuilder.newInstance()
                     .scheme(scheme)
                     .host(host)
