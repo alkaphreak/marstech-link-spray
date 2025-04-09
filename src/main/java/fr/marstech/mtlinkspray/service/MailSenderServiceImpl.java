@@ -9,16 +9,18 @@ import org.springframework.stereotype.Service;
 @Service
 public class MailSenderServiceImpl implements MailSenderService {
 
-    @Value("${mt.link-spray.notification.mail.receiver}")
+    @Value("${mt.link-spray.notification.mail.receiver:}")
     private String receiver;
 
-    @Value("${mt.link-spray.notification.mail.sender}")
+    @Value("${mt.link-spray.notification.mail.sender:}")
     private String sender;
 
     private final JavaMailSender mailSender;
 
     @Autowired
-    public MailSenderServiceImpl(JavaMailSender mailSender) {
+    public MailSenderServiceImpl(
+            @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") JavaMailSender mailSender
+    ) {
         this.mailSender = mailSender;
     }
 
