@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{index.html :: html-head}">
+    <title></title>
+</head>
+<body>
+
+<header th:replace="~{index.html :: body-header}">
+    <!-- nav bar-->
+</header>
+
+<section class="intro-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col">
+                <h3>Dashboard</h3>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="content-section" th:with="view=${T(fr.marstech.mtlinkspray.enums.ViewNameEnum).DASHBOARD}">
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <form th:action="@{'/'+${view.getViewName()}}"
+                      action="/" method="post" accept-charset="UTF-8">
+                    <!-- Add your content here -->
+                    <div class="mb-3">
+                        <label class="form-label" for="input-dashboard-name">
+                            Dashboard name
+                        </label>
+                        <input class="form-control"
+                               name="input-dashboard-name"
+                               id="input-dashboard-name"
+                               type="text"
+                               placeholder="Enter dashboard name"
+                        />
+                    </div>
+                    <div class="mb-3">
+                        <button type="submit" class="btn btn-primary">Create</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer th:replace="~{index.html :: body-footer}" class="footer bg-black text-white">
+    <!-- footer -->
+</footer>
+
+<div th:replace="~{index.html :: footer-div-script}" class="d-none">
+    <!-- footer script -->
+</div>
+</body>
+</html>

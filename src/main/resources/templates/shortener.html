@@ -26,6 +26,7 @@
                 <form th:action="@{'/'+${view.getViewName()}}" action="/" method="post" accept-charset="UTF-8">
                     <div class="mb-3">
                         <label class="form-label" for="input-link">Target link</label>
+                        <!--/*@thymesVar id="inputLink" type="java.lang.String"*/-->
                         <input th:value="${inputLink?:''}"
                                class="form-control"
                                name="input-link"
@@ -38,6 +39,7 @@
                         <button type="submit" class="btn btn-primary">Get shortened link</button>
                     </div>
 
+                    <!--/*@thymesVar id="shortenedLink" type="java.lang.String"*/-->
                     <div class="mb-3" th:if="${shortenedLink}">
                         <label class="form-label" for="shortened-link">Shortened link</label>
                         <input id="shortened-link" class="form-control-plaintext user-select-all"

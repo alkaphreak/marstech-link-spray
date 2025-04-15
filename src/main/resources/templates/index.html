@@ -84,10 +84,17 @@
                             Abuse page
                         </a>
                     </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Features</a>
+                    <li class="nav-item"
+                        th:with="view=${T(fr.marstech.mtlinkspray.enums.ViewNameEnum).DASHBOARD}">
+                        <a class="nav-link"
+                           th:class="${viewNameEnum == view.name()} ? 'nav-link active' : 'nav-link'"
+                           th:text="${view.getViewPage()}"
+                           th:href="@{'/'+${view.getViewName()}}"
+                           href="/">
+                            Dashboard page
+                        </a>
                     </li>
+
                 </ul>
             </div>
         </div>

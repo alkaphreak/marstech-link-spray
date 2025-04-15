@@ -6,21 +6,16 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.experimental.SuperBuilder;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.UUID;
-
+import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
+@Accessors(chain = true)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Accessors(chain = true)
 @SuperBuilder
-@Document(collection = "mt-link-spray-collection")
-public class MtLinkSprayCollectionItem extends StandardEntity {
+public class DashboardCategory extends DashboardItem {
 
-    @Id
-    private String id = UUID.randomUUID().toString();
+    private List<DashboardLink> links = List.of();
 }
