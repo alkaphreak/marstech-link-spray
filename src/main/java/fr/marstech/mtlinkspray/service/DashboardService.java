@@ -9,4 +9,6 @@ public interface DashboardService {
     DashboardDto createDashboard(String dashboardName);
 
     DashboardDto getDashboard(String id);
+
+    DashboardDto updateDashboard(String id, DashboardDto dashboardDto);
 }

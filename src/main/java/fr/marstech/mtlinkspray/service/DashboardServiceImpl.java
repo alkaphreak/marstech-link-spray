@@ -31,4 +31,9 @@ public class DashboardServiceImpl implements DashboardService {
     public DashboardDto getDashboard(String id) {
         return dashboardMapper.toDto(dashboardRepository.findById(id).orElseThrow());
     }
+
+    @Override
+    public DashboardDto updateDashboard(String id, DashboardDto dashboardDto) {
+        return null;
+    }
 }
