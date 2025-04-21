@@ -32,7 +32,7 @@ class DashboardServiceTest {
     private DashboardService dashboardService;
 
     @Test
-    void createDashboard() {
+    void should_createDashboard() {
         // Given
         DashboardDto dashboardDto = DashboardDto.builder()
                 .name("Test Dashboard")
@@ -52,7 +52,21 @@ class DashboardServiceTest {
     }
 
     @Test
-    void getDashboard() {
+    void should_createDashboardWithName() {
+        // Given
+        String dashboardName = "Test Dashboard";
+
+        // When
+        DashboardDto createdDashboard = dashboardService.createDashboard(dashboardName);
+
+        // Then
+        assertNotNull(createdDashboard);
+        assertEquals(dashboardName, createdDashboard.getName());
+        assertNotNull(createdDashboard.getId());
+    }
+
+    @Test
+    void should_getDashboard() {
         // Given
         DashboardDto dashboardDto = DashboardDto.builder()
                 .name("Test Dashboard")
