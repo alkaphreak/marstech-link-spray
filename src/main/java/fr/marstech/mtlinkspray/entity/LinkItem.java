@@ -1,9 +1,6 @@
 package fr.marstech.mtlinkspray.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.SuperBuilder;
 import org.springframework.data.annotation.Id;
@@ -13,6 +10,7 @@ import org.springframework.data.util.Pair;
 import java.time.LocalDateTime;
 import java.util.Set;
 
+@EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
 @Data
 @NoArgsConstructor

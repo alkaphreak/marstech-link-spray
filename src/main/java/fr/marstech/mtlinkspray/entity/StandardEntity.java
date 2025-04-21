@@ -1,7 +1,6 @@
 package fr.marstech.mtlinkspray.entity;
 
 import lombok.*;
-import lombok.experimental.Accessors;
 import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
@@ -16,7 +15,6 @@ import java.util.Map;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Accessors(chain = true)
 @SuperBuilder
 public abstract class StandardEntity {
 

@@ -1,7 +1,6 @@
 package fr.marstech.mtlinkspray.entity;
 
 import lombok.*;
-import lombok.experimental.Accessors;
 import lombok.experimental.SuperBuilder;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -9,7 +8,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
-@Accessors(chain = true)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -22,5 +20,7 @@ public class DashboardEntity extends StandardEntity {
 
     @NonNull
     private String name;
+
+    @Builder.Default
     private List<DashboardItem> items = List.of();
 }

@@ -1,9 +1,6 @@
 package fr.marstech.mtlinkspray.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.SuperBuilder;
 
@@ -17,5 +14,6 @@ import java.util.List;
 @SuperBuilder
 public class DashboardCategory extends DashboardItem {
 
+    @Builder.Default
     private List<DashboardLink> links = List.of();
 }

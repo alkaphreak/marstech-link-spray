@@ -1,9 +1,6 @@
 package fr.marstech.mtlinkspray.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.SuperBuilder;
 import org.springframework.data.annotation.Id;
@@ -22,5 +19,6 @@ import java.util.UUID;
 public class MtLinkSprayCollectionItem extends StandardEntity {
 
     @Id
+    @Builder.Default
     private String id = UUID.randomUUID().toString();
 }
