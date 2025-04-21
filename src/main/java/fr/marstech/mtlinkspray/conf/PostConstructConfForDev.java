@@ -80,7 +80,7 @@ public class PostConstructConfForDev {
                 SECONDS.sleep(5);
             } catch (InterruptedException e) {
                 // Do nothing because we don't care.
-                log.warning("MongoDB connection test interrupted:" + e.getMessage());
+                log.warning("App version display interrupted: " + e.getMessage());
             }
 
             log.info("App version : %s".formatted(mtLinkSprayVersion));
