@@ -2,11 +2,10 @@ name: Maven build and push to Docker Hub
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, release/* ]
 
 jobs:
   build:
-    #    runs-on: ubuntu-20.04
     runs-on: self-hosted
     permissions:
       contents: read
@@ -21,13 +20,11 @@ jobs:
         with:
           java-version: '21'
           distribution: 'liberica'
-          # Value of the distributionManagement/repository/id field of the pom.xml file
           server-id: github
-          # location for the settings.xml file
           settings-path: ${{ github.workspace }}
 
       - name: Cache Maven dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
