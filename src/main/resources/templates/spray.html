@@ -33,6 +33,7 @@
                         <label class="form-label" for="inputLinkList">
                             Links
                         </label>
+                        <!--/*@thymesVar id="linkListText" type="java.lang.String"*/-->
                         <textarea aria-describedby="inputLinkListHelp" class="form-control"
                                   name="inputLinkList" id="inputLinkList" rows="5"
                                   th:text="${linkListText?:''}">
@@ -48,6 +49,7 @@
     </div>
 </section>
 
+<!--/*@thymesVar id="linkList" type="java.util.List<java.lang.String>"*/-->
 <section th:if="${linkList}" class="services">
     <div class="container">
         <div class="row align-items-center" th:if="${#lists.isEmpty(linkList)}">
@@ -56,6 +58,7 @@
             </div>
         </div>
 
+        <!--/*@thymesVar id="linkSpray" type="java.lang.String"*/-->
         <div class="row" th:unless="${#strings.isEmpty(linkSpray)}">
             <div class="col">
                 <p>
@@ -84,6 +87,7 @@
     </div>
 </section>
 
+<!--/*@thymesVar id="spray" type="java.lang.String"*/-->
 <section th:unless="${#lists.isEmpty(spray)}" class="d-none">
     <p>
         Spray :

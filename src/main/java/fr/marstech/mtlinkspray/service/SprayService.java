@@ -9,7 +9,6 @@ import java.util.function.Predicate;
 
 import static fr.marstech.mtlinkspray.utils.NetworkUtils.*;
 import static java.text.MessageFormat.format;
-import static java.util.stream.Collectors.toList;
 
 public interface SprayService {
 
@@ -20,7 +19,7 @@ public interface SprayService {
      * @return the list of links
      */
     static List<String> getLinkList(String inputLinkList) {
-        return inputLinkList.trim().lines().filter(Predicate.not(String::isBlank)).map(String::trim).collect(toList());
+        return inputLinkList.trim().lines().filter(Predicate.not(String::isBlank)).map(String::trim).toList();
     }
 
     /**
@@ -45,15 +44,7 @@ public interface SprayService {
             String host = getHost(httpServletRequest);
             String scheme = getScheme(httpServletRequest);
             String port = filterDefaultPort(getPort(httpServletRequest));
-            return UriComponentsBuilder.newInstance()
-                    .scheme(scheme)
-                    .host(host)
-                    .port(port)
-                    .path(format("{0}/open", httpServletRequest.getRequestURI()))
-                    .queryParam("spray", linkList)
-                    .build()
-                    .encode()
-                    .toString();
+            return UriComponentsBuilder.newInstance().scheme(scheme).host(host).port(port).path(format("{0}/open", httpServletRequest.getRequestURI())).queryParam("spray", linkList).build().encode().toString();
         }
         return null;
     }

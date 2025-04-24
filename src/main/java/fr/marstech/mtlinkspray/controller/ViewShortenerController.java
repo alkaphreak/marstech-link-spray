@@ -16,7 +16,7 @@ import static fr.marstech.mtlinkspray.enums.ViewNameEnum.SHORTENER;
 @Controller
 public class ViewShortenerController implements ThymeleafViewControllerInterface {
 
-    private final ViewNameEnum viewNameEnum = SHORTENER;
+    private static final ViewNameEnum viewNameEnum = SHORTENER;
 
     final ApiUrlShortenerController apiUrlShortenerController;
 

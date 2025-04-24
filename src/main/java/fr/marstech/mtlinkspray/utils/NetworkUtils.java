@@ -1,6 +1,7 @@
 package fr.marstech.mtlinkspray.utils;
 
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.StringUtils;
 
 import java.net.URI;
@@ -8,11 +9,8 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
-public abstract class NetworkUtils {
-
-    private NetworkUtils() {
-        // Prevent instantiation
-    }
+@UtilityClass
+public class NetworkUtils {
 
     public static Map<String, String> getHeadersAsMap(HttpServletRequest httpServletRequest) {
         Map<String, String> headers = new HashMap<>();
