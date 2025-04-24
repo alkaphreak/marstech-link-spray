@@ -145,6 +145,9 @@
                             <li th:with="view=${T(fr.marstech.mtlinkspray.enums.ViewNameEnum).ABUSE}">
                                 <a th:href="@{'/'+${view.getViewName()}}">Abuse report</a> page
                             </li>
+                            <li>
+                                Version: <span th:text="${@apiRootController.getVersion()}">App version</span>
+                            </li>
                         </ul>
                     </div>
                 </div>
