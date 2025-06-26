@@ -16,7 +16,7 @@
                 <h3>Open Multiple URLs at Once</h3>
 
                 <p>
-                    To open multiple URLs in one click just follow a few simple steps.
+                    To open multiple URLs in one click, follow a few simple steps.
                 </p>
             </div>
         </div>
@@ -66,7 +66,7 @@
                 </p>
 
                 <p>
-                    Test with the link : <a th:href="@{${linkSpray}}">Spray</a>
+                    Test with the link: <a th:href="@{${linkSpray}}">Spray</a>
                 </p>
             </div>
         </div>
@@ -80,7 +80,9 @@
                 <H5> Urls to open</H5>
                 <ul>
                     <!--/*@thymesVar id="link" type="java.lang.String"*/-->
-                    <li th:each="link: ${linkList}" th:text="${link}">The link</li>
+                    <li th:each="link: ${linkList}">
+                        <a class="link" th:href="@{${link}}" th:text="${link}">The link</a>
+                    </li>
                 </ul>
             </div>
         </div>
