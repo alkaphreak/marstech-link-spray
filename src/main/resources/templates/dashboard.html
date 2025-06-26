@@ -58,8 +58,13 @@
          th:with="view=${T(fr.marstech.mtlinkspray.enums.ViewNameEnum).DASHBOARD}">
     <div class="container">
         <div class="row">
-            <div class="col">
-                <!-- Add more dashboard details here -->
+            <div class="col" th:width="${dashboard}">
+                <div th:each="item ${dashboard.items}">
+                    <!--/*@thymesVar id="item" type="fr.marstech.mtlinkspray.entity.DashboardItem"*/-->
+                    <span th:text="${item.name}">Name</span>
+                    <span th:text="${item.description}">Description</span>
+                </div>
+
             </div>
         </div>
     </div>
