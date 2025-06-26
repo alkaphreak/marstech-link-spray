@@ -10,7 +10,6 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.EnableAsync;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -41,7 +40,7 @@ public class PostConstructConfForDev {
             try {
                 SECONDS.sleep(3);
             } catch (InterruptedException e) {
-                // Do nothing because we don't care.
+                log.warning("Server URL display interrupted:" + e.getMessage());
             }
 
             log.info(format("Local server : http://localhost:{0}", environment.getProperty("server.port")));
@@ -59,17 +58,15 @@ public class PostConstructConfForDev {
 
                 String uuid = UUID.randomUUID().toString();
                 mtLinkSprayCollectionRepository.save(
-                        new MtLinkSprayCollectionItem(
-                                uuid,
-                                format("Description : {0}", uuid),
-                                LocalDateTime.now()
-                        )
+                        MtLinkSprayCollectionItem.builder()
+                                .id(uuid)
+                                .description(format("Description : {0}", uuid))
+                                .build()
                 );
                 assert mtLinkSprayCollectionRepository.findById(uuid).isPresent();
-                //mtLinkSprayCollectionRepository.deleteById(uuid);
                 mtLinkSprayCollectionRepository.findAll().forEach(it -> log.info(it.toString()));
             } catch (InterruptedException e) {
-                // Do nothing because we don't care.
+                log.warning("MongoDB connection test interrupted: " + e.getMessage());
             }
 
             log.info("MongoDB connection test");
@@ -83,6 +80,7 @@ public class PostConstructConfForDev {
                 SECONDS.sleep(5);
             } catch (InterruptedException e) {
                 // Do nothing because we don't care.
+                log.warning("App version display interrupted: " + e.getMessage());
             }
 
             log.info("App version : %s".formatted(mtLinkSprayVersion));

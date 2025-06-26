@@ -1,24 +1,26 @@
 package fr.marstech.mtlinkspray.entity;
 
 import lombok.*;
-import lombok.experimental.Accessors;
 import lombok.experimental.SuperBuilder;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.UUID;
-
+import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Accessors(chain = true)
 @SuperBuilder
-@Document(collection = "mt-link-spray-collection")
-public class MtLinkSprayCollectionItem extends StandardEntity {
+@Document(collection = "mt-link-spray-dashboard-entity")
+public class DashboardEntity extends StandardEntity {
 
     @Id
+    private String id;
+
+    @NonNull
+    private String name;
+
     @Builder.Default
-    private String id = UUID.randomUUID().toString();
+    private List<DashboardItem> items = List.of();
 }
