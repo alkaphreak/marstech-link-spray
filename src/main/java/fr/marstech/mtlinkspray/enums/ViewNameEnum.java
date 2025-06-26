@@ -8,6 +8,7 @@ public enum ViewNameEnum {
     SPRAY("spray", "Spray"),
     SHORTENER("shortener", "Shortener"),
     ABUSE("abuse", "Abuse"),
+    DASHBOARD("dashboard", "Dashboard"),
     ;
 
     private final String viewName;
