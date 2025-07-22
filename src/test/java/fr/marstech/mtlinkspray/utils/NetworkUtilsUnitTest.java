@@ -40,7 +40,8 @@ class NetworkUtilsUnitTest {
 
     @Test
     void filterDefaultPort() {
-        assertNull(NetworkUtils.filterDefaultPort("   "));
+        assertNull(NetworkUtils.filterDefaultPort(""));
+        assertNull(NetworkUtils.filterDefaultPort(" "));
         assertNull(NetworkUtils.filterDefaultPort(null));
         assertNull(NetworkUtils.filterDefaultPort("80"));
         assertNull(NetworkUtils.filterDefaultPort("443"));
