@@ -8,5 +8,5 @@ enum class ViewNameEnum( val viewName: String,  val viewPage: String) {
     SPRAY("spray", "Spray"),
     SHORTENER("shortener", "Shortener"),
     ABUSE("abuse", "Abuse"),
-    DASHBOARD("dashboard", "Dashboard"), ;
+    DASHBOARD("dashboard", "Dashboard")
 }
