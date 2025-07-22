@@ -42,7 +42,9 @@ public interface ShortenerService {
                     .build()
                     .encode()
                     .toString();
-        } else return null;
+        } else {
+            return null;
+        }
     }
 
     /**
