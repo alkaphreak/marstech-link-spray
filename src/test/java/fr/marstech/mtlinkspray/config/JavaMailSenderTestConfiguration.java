@@ -11,7 +11,10 @@ public class JavaMailSenderTestConfiguration {
     @Bean
     JavaMailSender mockMailSender() {
         JavaMailSender javaMailSender = Mockito.mock(JavaMailSender.class);
-        Mockito.when(javaMailSender.createMimeMessage()).thenAnswer(invocation -> new jakarta.mail.internet.MimeMessage((jakarta.mail.Session) null));
+        Mockito.when(javaMailSender.createMimeMessage()).thenAnswer(invocation -> {
+            jakarta.mail.Session mockSession = Mockito.mock(jakarta.mail.Session.class);
+            return new jakarta.mail.internet.MimeMessage(mockSession);
+        });
         return javaMailSender;
     }
 }
