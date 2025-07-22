@@ -34,7 +34,14 @@ public interface ShortenerService {
             String host = getHost(httpServletRequest);
             String scheme = getScheme(httpServletRequest);
             String port = getFilteredPort(httpServletRequest);
-            return UriComponentsBuilder.newInstance().scheme(scheme).host(host).port(port).path(format("{0}", uid)).build().encode().toString();
+            return UriComponentsBuilder.newInstance()
+                    .scheme(scheme)
+                    .host(host)
+                    .port(port)
+                    .path(format("{0}", uid))
+                    .build()
+                    .encode()
+                    .toString();
         } else return null;
     }
 
