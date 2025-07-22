@@ -54,7 +54,7 @@ object NetworkUtils {
         "x-forwarded-server", headers.getOrDefault(
             "x-forwarded-host", headers.getOrDefault("host", httpServletRequest.serverName)
         )
-    ).split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[0]
+    ).split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray().firstOrNull() ?: ""
 
     @JvmStatic
     fun isValidUrl(url: String): Boolean = try {
