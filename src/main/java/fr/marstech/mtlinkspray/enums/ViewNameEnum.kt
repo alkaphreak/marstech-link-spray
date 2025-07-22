@@ -1,21 +1,12 @@
-package fr.marstech.mtlinkspray.enums;
+package fr.marstech.mtlinkspray.enums
 
-import lombok.Getter;
+import lombok.Getter
 
 @Getter
-public enum ViewNameEnum {
+enum class ViewNameEnum( val viewName: String,  val viewPage: String) {
     HOME("index", "Home"),
     SPRAY("spray", "Spray"),
     SHORTENER("shortener", "Shortener"),
     ABUSE("abuse", "Abuse"),
-    DASHBOARD("dashboard", "Dashboard"),
-    ;
-
-    private final String viewName;
-    private final String viewPage;
-
-    ViewNameEnum(String viewName, String viewPage) {
-        this.viewName = viewName;
-        this.viewPage = viewPage;
-    }
+    DASHBOARD("dashboard", "Dashboard"), ;
 }

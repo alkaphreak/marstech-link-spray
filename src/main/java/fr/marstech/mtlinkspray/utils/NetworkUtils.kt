@@ -1,89 +1,65 @@
-package fr.marstech.mtlinkspray.utils;
+package fr.marstech.mtlinkspray.utils
 
-import jakarta.servlet.http.HttpServletRequest;
-import lombok.experimental.UtilityClass;
-import org.apache.commons.lang3.StringUtils;
-
-import java.net.URI;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
+import fr.marstech.mtlinkspray.enums.HttpDefaultPortEnum
+import jakarta.servlet.http.HttpServletRequest
+import lombok.experimental.UtilityClass
+import java.net.URI
 
 @UtilityClass
-public class NetworkUtils {
-
-    public static Map<String, String> getHeadersAsMap(HttpServletRequest httpServletRequest) {
-        Map<String, String> headers = new HashMap<>();
-        Enumeration<String> headerNames = httpServletRequest.getHeaderNames();
-        while (headerNames.hasMoreElements()) {
-            String key = headerNames.nextElement();
-            String value = httpServletRequest.getHeader(key);
-            headers.put(key, value);
+object NetworkUtils {
+    @JvmStatic
+    fun getHeadersAsMap(httpServletRequest: HttpServletRequest): Map<String, String> =
+        when (httpServletRequest.headerNames) {
+            null -> emptyMap()
+            else -> httpServletRequest.headerNames.toList().toSet().associateWith(httpServletRequest::getHeader)
         }
-        return headers;
+
+    @JvmStatic
+    fun filterDefaultPort(port: String?): String? = when {
+        port == null -> null
+        port.isBlank() -> null
+        HttpDefaultPortEnum.entries.any { entry -> entry.port == port } -> null
+        else -> port
     }
 
-    public static String filterDefaultPort(String port) {
-        if (port == null) {
-            return null;
-        }
-        if (port.equals("80") || port.equals("443")) {
-            return null;
-        }
-        return port;
+    @JvmStatic
+    fun getPort(httpServletRequest: HttpServletRequest): String =
+        getPort(httpServletRequest, getHeadersAsMap(httpServletRequest))
+
+    private fun getPort(httpServletRequest: HttpServletRequest, headers: Map<String, String>): String {
+        return headers.getOrDefault(
+            "x-forwarded-port", headers.getOrDefault("port", httpServletRequest.serverPort.toString())
+        )
     }
 
-    public static String getPort(HttpServletRequest httpServletRequest) {
-        return getPort(httpServletRequest, getHeadersAsMap(httpServletRequest));
-    }
+    @JvmStatic
+    fun getFilteredPort(httpServletRequest: HttpServletRequest): String? = filterDefaultPort(
+        getPort(httpServletRequest, getHeadersAsMap(httpServletRequest))
+    )
 
-    private static String getPort(HttpServletRequest httpServletRequest, Map<String, String> headers) {
-        String res = headers.getOrDefault("x-forwarded-port", null);
-        if (res == null) {
-            res = headers.getOrDefault("port", null);
-        }
-        if (res == null) {
-            res = String.valueOf(httpServletRequest.getServerPort());
-        }
-        return res;
-    }
+    @JvmStatic
+    fun getScheme(httpServletRequest: HttpServletRequest): String? =
+        getScheme(httpServletRequest, getHeadersAsMap(httpServletRequest))
 
-    public static String getScheme(HttpServletRequest httpServletRequest) {
-        return getScheme(httpServletRequest, getHeadersAsMap(httpServletRequest));
-    }
+    private fun getScheme(httpServletRequest: HttpServletRequest, headers: Map<String, String>): String? =
+        headers.getOrDefault("x-forwarded-proto", httpServletRequest.scheme)
 
-    private static String getScheme(HttpServletRequest httpServletRequest, Map<String, String> headers) {
-        String res = headers.getOrDefault("x-forwarded-proto", null);
-        if (res == null) {
-            res = httpServletRequest.getScheme();
-        }
-        return res;
-    }
+    @JvmStatic
+    fun getHost(httpServletRequest: HttpServletRequest): String? =
+        getHost(httpServletRequest, getHeadersAsMap(httpServletRequest))
 
-    public static String getHost(HttpServletRequest httpServletRequest) {
-        return getHost(httpServletRequest, getHeadersAsMap(httpServletRequest));
-    }
+    private fun getHost(
+        httpServletRequest: HttpServletRequest, headers: Map<String, String>
+    ): String? = headers.getOrDefault(
+        "x-forwarded-server", headers.getOrDefault(
+            "x-forwarded-host", headers.getOrDefault("host", httpServletRequest.serverName)
+        )
+    ).split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[0]
 
-    private static String getHost(HttpServletRequest httpServletRequest, Map<String, String> headers) {
-        String res;
-        res = headers.getOrDefault("x-forwarded-server", null);
-        if (res == null) {
-            res = headers.getOrDefault("x-forwarded-host", null);
-        }
-        if (res == null) {
-            res = headers.getOrDefault("host", null);
-        }
-        if (res == null) {
-            res = httpServletRequest.getServerName();
-        }
-        return res.split(":")[0];
-    }
-
-    public static Boolean isValidUrl(String url) {
-        try {
-            return StringUtils.isNotBlank(new URI(url).toURL().toString());
-        } catch (Exception e) {
-            return false;
-        }
+    @JvmStatic
+    fun isValidUrl(url: String): Boolean = try {
+        URI(url).toURL().toString().isNotBlank()
+    } catch (_: Exception) {
+        false
     }
 }

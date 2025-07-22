@@ -20,10 +20,7 @@ public class ShortenerServiceImpl implements ShortenerService {
 
     final LinkItemRepository linkItemRepository;
 
-    public ShortenerServiceImpl(
-            LinkItemRepository linkItemRepository,
-            RandomIdGeneratorService randomIdGeneratorService
-    ) {
+    public ShortenerServiceImpl(LinkItemRepository linkItemRepository, RandomIdGeneratorService randomIdGeneratorService) {
         this.linkItemRepository = linkItemRepository;
         this.randomIdGeneratorService = randomIdGeneratorService;
     }
