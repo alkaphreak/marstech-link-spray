@@ -73,10 +73,16 @@ class ShortenerServiceTest {
     }
 
     @Test
-    void shortenInvalidUrl() {
-        String invalidUrl = "invalid-url";
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> shortenerService.shorten(invalidUrl, httpServletRequest));
+    void shortenEmptyUrl() {
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> shortenerService.shorten(null, httpServletRequest));
         assertInstanceOf(IllegalArgumentException.class, exception);
-        assertEquals("Invalid URL: invalid-url",exception.getMessage());
+        assertEquals("URL must not be null or empty", exception.getMessage());
+    }
+
+    @Test
+    void shortenInvalidUrl() {
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> shortenerService.shorten("invalid-url", httpServletRequest));
+        assertInstanceOf(IllegalArgumentException.class, exception);
+        assertEquals("Invalid URL: invalid-url", exception.getMessage());
     }
 }

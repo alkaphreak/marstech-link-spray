@@ -2,6 +2,7 @@ package fr.marstech.mtlinkspray.service;
 
 import fr.marstech.mtlinkspray.entity.LinkItem;
 import fr.marstech.mtlinkspray.entity.LinkItemTarget;
+import fr.marstech.mtlinkspray.exception.UrlShorteningException;
 import fr.marstech.mtlinkspray.repository.LinkItemRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.java.Log;
@@ -44,7 +45,7 @@ public class ShortenerServiceImpl implements ShortenerService {
             return getShortenedLink(httpServletRequest, savedLinkItem.getId());
         } catch (Exception e) {
             log.severe("Error while shortening URL: %s, reason: %s".formatted(url, e.getMessage()));
-            throw new RuntimeException(e);
+            throw new UrlShorteningException("Failed to shorten URL: %s".formatted(url), e);
         }
     }
 
