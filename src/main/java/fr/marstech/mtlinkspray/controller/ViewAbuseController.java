@@ -17,7 +17,7 @@ import static fr.marstech.mtlinkspray.utils.NetworkUtils.getHeadersAsMap;
 @Log
 public class ViewAbuseController implements ThymeleafViewControllerInterface {
 
-    private final ViewNameEnum viewNameEnum = ABUSE;
+    private static final ViewNameEnum viewNameEnum = ABUSE;
 
     private final ReportAbuseService reportAbuseService;
 
@@ -26,22 +26,15 @@ public class ViewAbuseController implements ThymeleafViewControllerInterface {
     }
 
     @GetMapping("/abuse")
-    public ModelAndView getView(
-            HttpServletRequest httpServletRequest
-    ) {
-        return getModelAndView()
-                .addObject("headers", getHeadersAsMap(httpServletRequest));
+    public ModelAndView getView(HttpServletRequest httpServletRequest) {
+        return getModelAndView().addObject("headers", getHeadersAsMap(httpServletRequest));
     }
 
     @PostMapping("/abuse")
-    public ModelAndView getLink(
-            @RequestParam String inputAbuseDecsription,
-            HttpServletRequest httpServletRequest
-    ) {
+    public ModelAndView getLink(@RequestParam String inputAbuseDecsription, HttpServletRequest httpServletRequest) {
         reportAbuseService.reportAbuse(inputAbuseDecsription);
 
-        return getModelAndView()
-                .addObject("headers", getHeadersAsMap(httpServletRequest));
+        return getModelAndView().addObject("headers", getHeadersAsMap(httpServletRequest));
     }
 
     @Override
