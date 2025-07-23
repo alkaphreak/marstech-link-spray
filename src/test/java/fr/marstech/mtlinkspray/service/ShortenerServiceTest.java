@@ -14,7 +14,6 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
-import java.net.MalformedURLException;
 import java.util.Enumeration;
 import java.util.Optional;
 import java.util.UUID;
@@ -67,7 +66,7 @@ class ShortenerServiceTest {
     }
 
     @Test
-    void shortenValidUrl() throws MalformedURLException {
+    void shortenValidUrl() {
         String validUrl = "https://www.example.com";
         String result = shortenerService.shorten(validUrl, httpServletRequest);
         assertTrue(isValidUrl(result));
@@ -76,7 +75,8 @@ class ShortenerServiceTest {
     @Test
     void shortenInvalidUrl() {
         String invalidUrl = "invalid-url";
-        Exception exception = assertThrows(RuntimeException.class, () -> shortenerService.shorten(invalidUrl, httpServletRequest));
-        assertInstanceOf(MalformedURLException.class, exception.getCause());
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> shortenerService.shorten(invalidUrl, httpServletRequest));
+        assertInstanceOf(IllegalArgumentException.class, exception);
+        assertEquals("Invalid URL: invalid-url",exception.getMessage());
     }
 }

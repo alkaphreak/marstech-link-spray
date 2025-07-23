@@ -22,7 +22,9 @@ public class ApiUrlShortenerController {
     }
 
     @GetMapping("/api/url-shortener/shorten")
-    public String getShort(@RequestParam(name = "url") String inputUrl, HttpServletRequest httpServletRequest) {
+    public String getShort(
+            @RequestParam(name = "url") String inputUrl, HttpServletRequest httpServletRequest
+    ) {
         return shortenerService.shorten(inputUrl, httpServletRequest);
     }
 
