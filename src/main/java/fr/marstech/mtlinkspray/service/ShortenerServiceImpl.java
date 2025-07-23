@@ -37,9 +37,7 @@ public class ShortenerServiceImpl implements ShortenerService {
             throw new IllegalArgumentException("Invalid URL: %s".formatted(url));
         }
         try {
-            LinkItem linkItem = new LinkItem()
-                    .setTarget(new LinkItemTarget().setTargetUrl(url))
-                    .setId(getFreeUniqueId());
+            LinkItem linkItem = new LinkItem().setTarget(new LinkItemTarget().setTargetUrl(url)).setId(getFreeUniqueId());
             LinkItem savedLinkItem = linkItemRepository.save(linkItem);
             log.info("Shortened URL: %s to ID: %s".formatted(url, savedLinkItem.getId()));
             return getShortenedLink(httpServletRequest, savedLinkItem.getId());
@@ -51,11 +49,7 @@ public class ShortenerServiceImpl implements ShortenerService {
 
     @Override
     public String getTarget(String uid, HttpServletRequest httpServletRequest) throws ChangeSetPersister.NotFoundException {
-        LinkItem linkItem = linkItemRepository.findById(uid).orElseThrow(ChangeSetPersister.NotFoundException::new);
-
-        // TODO add target management
-
-        return linkItem.getTarget().getTargetUrl();
+        return linkItemRepository.findById(uid).orElseThrow(ChangeSetPersister.NotFoundException::new).getTarget().getTargetUrl();
     }
 
     private String getFreeUniqueId() {
