@@ -12,14 +12,11 @@ public interface ThymeleafViewControllerInterface {
     ModelAndView getModelAndView();
 
     default ModelAndView getModelAndView(ViewNameEnum viewNameEnum) {
-        return new ModelAndView(viewNameEnum.getViewName())
-                .addObject("viewNameEnum", viewNameEnum);
+        return new ModelAndView(viewNameEnum.getViewName()).addObject("viewNameEnum", viewNameEnum);
     }
 
     default ModelAndView getModelAndView(ViewNameEnum viewNameEnum, HttpServletRequest httpServletRequest) {
-        return new ModelAndView(viewNameEnum.getViewName())
-                .addObject("viewNameEnum", viewNameEnum)
-                .addObject("headers", getHeadersAsMap(httpServletRequest));
+        return new ModelAndView(viewNameEnum.getViewName()).addObject("viewNameEnum", viewNameEnum).addObject("headers", getHeadersAsMap(httpServletRequest));
     }
 
     default ModelAndView getModelAndViewToForward(String forwardUrl) {
