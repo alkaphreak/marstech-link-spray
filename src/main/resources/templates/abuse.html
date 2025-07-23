@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{index.html :: html-head}">
     <title></title>
 </head>
@@ -27,8 +27,8 @@
     <div class="container">
         <div class="row align-items-center">
             <div class="col">
-                <form th:action="@{'/'+${view.getViewName()}}"
-                      action="/" method="post" accept-charset="UTF-8">
+                <form accept-charset="UTF-8"
+                      action="/" method="post" th:action="@{'/'+${view.getViewName()}}">
                     <div class="mb-3">
                         <label class="form-label" for="inputAbuseDecsription">
                             Description of the abuse.
@@ -36,28 +36,28 @@
                         <textarea
                                 aria-describedby="inputAbuseDecsriptionHelp"
                                 class="form-control"
-                                name="inputAbuseDecsription"
                                 id="inputAbuseDecsription"
-                                rows="5"
+                                name="inputAbuseDecsription"
                                 required
+                                rows="5"
                         ></textarea>
                         <div class="form-text" id="inputAbuseDecsriptionHelp">
                             Please provide a detailed description of the abuse and your contact information if we need
                             to go further on the inspection.
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-primary">Send report</button>
+                    <button class="btn btn-primary" type="submit">Send report</button>
                 </form>
             </div>
         </div>
     </div>
 </section>
 
-<footer th:replace="~{index.html :: body-footer}" class="footer bg-black text-white">
+<footer class="footer bg-black text-white" th:replace="~{index.html :: body-footer}">
     <!-- footer -->
 </footer>
 
-<div th:replace="~{index.html :: footer-div-script}" class="d-none">
+<div class="d-none" th:replace="~{index.html :: footer-div-script}">
     <!-- footer script -->
 </div>
 </body>

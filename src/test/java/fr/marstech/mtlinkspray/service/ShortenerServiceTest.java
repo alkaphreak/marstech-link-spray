@@ -29,18 +29,15 @@ import static org.mockito.Mockito.when;
 @SpringBootTest
 class ShortenerServiceTest {
 
-    @Autowired
-    LinkItemRepository linkItemRepository;
-
-    @Autowired
-    ShortenerService shortenerService;
-
-    @MockitoBean
-    HttpServletRequest httpServletRequest;
-
     @Container
     @ServiceConnection
     static MongoDBContainer mongoDBContainer = new MongoDBContainer(DockerImageName.parse(MONGO_DB_DOCKER_IMAGE_NAME)).withReuse(true);
+    @Autowired
+    LinkItemRepository linkItemRepository;
+    @Autowired
+    ShortenerService shortenerService;
+    @MockitoBean
+    HttpServletRequest httpServletRequest;
 
     @BeforeEach
     void setUp() {

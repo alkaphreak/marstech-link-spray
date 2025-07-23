@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{index.html :: html-head}">
     <title></title>
 </head>
@@ -27,22 +27,22 @@
     <div class="container">
         <div class="row align-items-center">
             <div class="col">
-                <form th:action="@{'/'+${view.getViewName()}}"
-                      action="/" method="post" accept-charset="UTF-8">
+                <form accept-charset="UTF-8"
+                      action="/" method="post" th:action="@{'/'+${view.getViewName()}}">
                     <div class="mb-3">
                         <label class="form-label" for="inputLinkList">
                             Links
                         </label>
                         <!--/*@thymesVar id="linkListText" type="java.lang.String"*/-->
                         <textarea aria-describedby="inputLinkListHelp" class="form-control"
-                                  name="inputLinkList" id="inputLinkList" rows="5"
+                                  id="inputLinkList" name="inputLinkList" rows="5"
                                   th:text="${linkListText?:''}">
                         </textarea>
                         <div class="form-text" id="inputLinkListHelp">
                             Fill in the URLs you wish to open, one URL by line.
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-primary">Generate URL</button>
+                    <button class="btn btn-primary" type="submit">Generate URL</button>
                 </form>
             </div>
         </div>
@@ -50,7 +50,7 @@
 </section>
 
 <!--/*@thymesVar id="linkList" type="java.util.List<java.lang.String>"*/-->
-<section th:if="${linkList}" class="services">
+<section class="services" th:if="${linkList}">
     <div class="container">
         <div class="row align-items-center" th:if="${#lists.isEmpty(linkList)}">
             <div class="col">
@@ -90,7 +90,7 @@
 </section>
 
 <!--/*@thymesVar id="spray" type="java.lang.String"*/-->
-<section th:unless="${#lists.isEmpty(spray)}" class="d-none">
+<section class="d-none" th:unless="${#lists.isEmpty(spray)}">
     <p>
         Spray :
     </p>
@@ -100,11 +100,11 @@
     </ul>
 </section>
 
-<footer th:replace="~{index.html :: body-footer}" class="footer bg-black text-white">
+<footer class="footer bg-black text-white" th:replace="~{index.html :: body-footer}">
     <!-- footer -->
 </footer>
 
-<div th:replace="~{index.html :: footer-div-script}" class="d-none">
+<div class="d-none" th:replace="~{index.html :: footer-div-script}">
     <!-- footer script -->
 </div>
 </body>

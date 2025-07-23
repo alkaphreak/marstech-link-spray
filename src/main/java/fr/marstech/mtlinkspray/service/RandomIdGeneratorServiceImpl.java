@@ -7,7 +7,9 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -15,14 +17,10 @@ import java.util.stream.IntStream;
 @Service
 public class RandomIdGeneratorServiceImpl implements RandomIdGeneratorService {
 
-    @Value("${mt.link-spray.random-id.charset}")
-    private String charset;
+    final LinkItemRepository linkItemRepository;
 
     @Value("${mt.link-spray.random-id.length}")
     int length;
-
-    @Value("${mt.link-spray.random-id.prefix}")
-    private String prefix;
 
     @Value("${mt.link-spray.random-id.cache.enabled}")
     Boolean isCacheEnabled;
@@ -33,9 +31,13 @@ public class RandomIdGeneratorServiceImpl implements RandomIdGeneratorService {
     @Value("${mt.link-spray.random-id.cache.treshold}")
     Integer cacheTreshold;
 
-    final LinkItemRepository linkItemRepository;
+    final Deque<String> cacheIds = new ArrayDeque<>();
 
-    Deque<String> cacheIds = new ArrayDeque<>();
+    @Value("${mt.link-spray.random-id.charset}")
+    private String charset;
+
+    @Value("${mt.link-spray.random-id.prefix}")
+    private String prefix;
 
     public RandomIdGeneratorServiceImpl(LinkItemRepository linkItemRepository) {
         this.linkItemRepository = linkItemRepository;
@@ -43,7 +45,7 @@ public class RandomIdGeneratorServiceImpl implements RandomIdGeneratorService {
 
     @Override
     public String getGeneratedFreeId() {
-        return isCacheEnabled ? getGeneratedFreeIdWithCache() : getGeneratedFreeIdwithoutCache();
+        return Boolean.TRUE.equals(isCacheEnabled) ? getGeneratedFreeIdWithCache() : getGeneratedFreeIdwithoutCache();
     }
 
     @Override
@@ -60,9 +62,7 @@ public class RandomIdGeneratorServiceImpl implements RandomIdGeneratorService {
         if (cacheIds.size() < cacheTreshold) {
             Set<String> linkItemIds = linkItemRepository.findAllIds();
             while (cacheIds.size() < cacheTreshold) {
-                cacheIds.addAll(
-                        generateRandomIds(cacheDepth).stream().filter(s -> !linkItemIds.contains(s)).collect(Collectors.toSet())
-                );
+                cacheIds.addAll(generateRandomIds(cacheDepth).stream().filter(s -> !linkItemIds.contains(s)).collect(Collectors.toSet()));
             }
         }
         return cacheIds.pop();

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{index.html :: html-head}">
     <title></title>
 </head>
@@ -26,27 +26,27 @@
     </div>
 </section>
 
-<section th:unless="${dashboard}" class="content-section"
+<section class="content-section" th:unless="${dashboard}"
          th:with="view=${T(fr.marstech.mtlinkspray.enums.ViewNameEnum).DASHBOARD}">
     <div class="container">
         <div class="row">
             <div class="col">
-                <form th:action="@{'/'+${view.getViewName()}}"
-                      action="/" method="post" accept-charset="UTF-8">
+                <form accept-charset="UTF-8"
+                      action="/" method="post" th:action="@{'/'+${view.getViewName()}}">
                     <!-- Add your content here -->
                     <div class="mb-3">
                         <label class="form-label" for="input-dashboard-name">
                             Dashboard name
                         </label>
                         <input class="form-control"
-                               name="input-dashboard-name"
                                id="input-dashboard-name"
-                               type="text"
+                               name="input-dashboard-name"
                                placeholder="Enter dashboard name"
+                               type="text"
                         />
                     </div>
                     <div class="mb-3">
-                        <button type="submit" class="btn btn-primary">Create</button>
+                        <button class="btn btn-primary" type="submit">Create</button>
                     </div>
                 </form>
             </div>
@@ -54,7 +54,7 @@
     </div>
 </section>
 
-<section th:if="${dashboard}" class="content-section"
+<section class="content-section" th:if="${dashboard}"
          th:with="view=${T(fr.marstech.mtlinkspray.enums.ViewNameEnum).DASHBOARD}">
     <div class="container">
         <div class="row">
@@ -71,11 +71,11 @@
 
 </section>
 
-<footer th:replace="~{index.html :: body-footer}" class="footer bg-black text-white">
+<footer class="footer bg-black text-white" th:replace="~{index.html :: body-footer}">
     <!-- footer -->
 </footer>
 
-<div th:replace="~{index.html :: footer-div-script}" class="d-none">
+<div class="d-none" th:replace="~{index.html :: footer-div-script}">
     <!-- footer script -->
 </div>
 </body>

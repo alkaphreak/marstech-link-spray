@@ -13,7 +13,7 @@ import org.springframework.web.servlet.ModelAndView;
 import java.util.List;
 
 import static fr.marstech.mtlinkspray.enums.ViewNameEnum.SPRAY;
-import static fr.marstech.mtlinkspray.utils.NetworkUtils.*;
+import static fr.marstech.mtlinkspray.utils.NetworkUtils.getHeadersAsMap;
 
 @Controller
 @Log

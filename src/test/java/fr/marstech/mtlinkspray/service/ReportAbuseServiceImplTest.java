@@ -21,12 +21,10 @@ class ReportAbuseServiceImplTest {
     @Container
     @ServiceConnection
     static MongoDBContainer mongoDBContainer = new MongoDBContainer(DockerImageName.parse(MONGO_DB_DOCKER_IMAGE_NAME)).withReuse(true);
-
-    @Autowired
-    private ReportAbuseServiceImpl reportAbuseService;
-
     @Autowired
     public AbuseReportRepository abuseReportRepository;
+    @Autowired
+    private ReportAbuseServiceImpl reportAbuseService;
 
     ReportAbuseServiceImplTest() {
     }

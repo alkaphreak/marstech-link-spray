@@ -22,12 +22,12 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 @Profile("dev")
 public class PostConstructConfForDev {
 
-    @Value("${mt.link-spray.version}")
-    private String mtLinkSprayVersion;
-
     final MtLinkSprayCollectionRepository mtLinkSprayCollectionRepository;
 
     private final Environment environment;
+
+    @Value("${mt.link-spray.version}")
+    private String mtLinkSprayVersion;
 
     public PostConstructConfForDev(Environment environment, MtLinkSprayCollectionRepository mtLinkSprayCollectionRepository) {
         this.environment = environment;
@@ -57,12 +57,7 @@ public class PostConstructConfForDev {
                 log.info(format("MongoDB URI : {0}", mongoDbUriEnvVar));
 
                 String uuid = UUID.randomUUID().toString();
-                mtLinkSprayCollectionRepository.save(
-                        MtLinkSprayCollectionItem.builder()
-                                .id(uuid)
-                                .description(format("Description : {0}", uuid))
-                                .build()
-                );
+                mtLinkSprayCollectionRepository.save(MtLinkSprayCollectionItem.builder().id(uuid).description(format("Description : {0}", uuid)).build());
                 assert mtLinkSprayCollectionRepository.findById(uuid).isPresent();
                 mtLinkSprayCollectionRepository.findAll().forEach(it -> log.info(it.toString()));
             } catch (InterruptedException e) {
