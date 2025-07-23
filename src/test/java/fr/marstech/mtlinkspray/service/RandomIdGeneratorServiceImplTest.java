@@ -55,7 +55,7 @@ class RandomIdGeneratorServiceImplTest {
 
         // without cache
         start = System.currentTimeMillis();
-        IntStream.range(0, testRange).forEach(i -> randomIdGeneratorService.getGeneratedFreeIdwithoutCache());
+        IntStream.range(0, testRange).forEach(i -> randomIdGeneratorService.getGeneratedFreeIdWithoutCache());
         end = System.currentTimeMillis();
         withoutCache = end - start;
 

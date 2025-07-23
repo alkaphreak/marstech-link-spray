@@ -13,6 +13,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static java.lang.Boolean.TRUE;
+
 @Log
 @Service
 public class RandomIdGeneratorServiceImpl implements RandomIdGeneratorService {
@@ -45,11 +47,11 @@ public class RandomIdGeneratorServiceImpl implements RandomIdGeneratorService {
 
     @Override
     public String getGeneratedFreeId() {
-        return Boolean.TRUE.equals(isCacheEnabled) ? getGeneratedFreeIdWithCache() : getGeneratedFreeIdwithoutCache();
+        return TRUE.equals(isCacheEnabled) ? getGeneratedFreeIdWithCache() : getGeneratedFreeIdWithoutCache();
     }
 
     @Override
-    public @NotNull String getGeneratedFreeIdwithoutCache() {
+    public @NotNull String getGeneratedFreeIdWithoutCache() {
         String id;
         do {
             id = generate();

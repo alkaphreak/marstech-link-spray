@@ -6,7 +6,7 @@ public interface RandomIdGeneratorService {
 
     String getGeneratedFreeId();
 
-    @NotNull String getGeneratedFreeIdwithoutCache();
+    @NotNull String getGeneratedFreeIdWithoutCache();
 
     String getGeneratedFreeIdWithCache();
 
