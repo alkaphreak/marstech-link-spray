@@ -1,29 +1,49 @@
 package fr.marstech.mtlinkspray.controller;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+import fr.marstech.mtlinkspray.controller.api.ApiRootController;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
+@WebMvcTest(ViewSprayController.class)
 class ViewSprayControllerTest {
 
-    @BeforeEach
-    void setUp() {
-    }
+    @Autowired
+    private MockMvc mockMvc;
 
-    @AfterEach
-    void tearDown() {
+    @Test
+    void getHome() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.get("/spray")).andExpect(MockMvcResultMatchers.status().isOk());
     }
 
     @Test
-    void getHome() {
+    void getLink() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.post("/spray").param("inputLinkList", "test")).andExpect(MockMvcResultMatchers.status().isOk());
     }
 
     @Test
-    void getLink() {
-
+    void getSpray() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.get("/spray/open").param("spray", "test")).andExpect(MockMvcResultMatchers.status().isOk());
     }
 
-    @Test
-    void getSpray() {
+    @TestConfiguration
+    static class ApiRootControllerTestConfig {
+        @Bean(name = "apiRootController")
+        public ApiRootController apiRootController() {
+            ApiRootController mock = mock(ApiRootController.class);
+            when(mock.getVersion()).thenReturn("test-version");
+            return mock;
+        }
     }
 }

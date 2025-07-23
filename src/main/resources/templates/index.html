@@ -1,55 +1,55 @@
 <!--/*@thymesVar id="viewNameEnum" type="fr.marstech.mtlinkspray.enums.ViewNameEnum"*/-->
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head th:fragment="html-head">
     <meta charset="UTF-8">
     <title th:text="${T(fr.marstech.mtlinkspray.objects.CommonConfs).SITE_TITLE}">Marstech - Link Spray</title>
 
     <!-- Bootstrap CSS - https://getbootstrap.com/docs/5.3/getting-started/introduction/ -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
-          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link crossorigin="anonymous" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" rel="stylesheet">
 
     <!-- Bootstrap Icons - https://icons.getbootstrap.com/ -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 
     <!-- https://bootswatch.com/pulse/ -->
-    <link rel="stylesheet" href="../static/assets/css/style.css"
+    <link href="../static/assets/css/style.css" rel="stylesheet"
           th:href="@{'/assets/css/style.css'}">
 
     <!--  Marstech -->
-    <link rel="stylesheet" href="../static/assets/css/mt-style.css"
+    <link href="../static/assets/css/mt-style.css" rel="stylesheet"
           th:href="@{'/assets/css/mt-style.css'}">
 
-    <link rel="apple-touch-icon" sizes="180x180"
-          href="../static/assets/img/favicons/apple-touch-icon.png"
+    <link href="../static/assets/img/favicons/apple-touch-icon.png" rel="apple-touch-icon"
+          sizes="180x180"
           th:href="@{'/assets/img/favicons/apple-touch-icon.png'}"/>
-    <link rel="icon" type="image/png" sizes="48x48"
-          href="../static/assets/img/favicons/favicon-48.png"
+    <link href="../static/assets/img/favicons/favicon-48.png" rel="icon" sizes="48x48"
           th:href="@{'/assets/img/favicons/favicon-48.png'}"
+          type="image/png"
     />
-    <link rel="icon" type="image/png" sizes="32x32"
-          href="../static/assets/img/favicons/favicon-32.png"
+    <link href="../static/assets/img/favicons/favicon-32.png" rel="icon" sizes="32x32"
           th:href="@{'/assets/img/favicons/favicon-32.png'}"
+          type="image/png"
     />
-    <link rel="icon" type="image/png" sizes="16x16"
-          href="../static/assets/img/favicons/favicon-16.png"
+    <link href="../static/assets/img/favicons/favicon-16.png" rel="icon" sizes="16x16"
           th:href="@{'/assets/img/favicons/favicon-16.png'}"
+          type="image/png"
     />
-    <link rel="manifest"
-          href="../static/assets/img/favicons/manifest.json"
+    <link href="../static/assets/img/favicons/manifest.json"
+          rel="manifest"
           th:href="@{'/assets/img/favicons/manifest.json'}"
     />
-    <meta name="msapplication-TileColor" content="#da532c"/>
-    <meta name="theme-color" content="#ffffff"/>
+    <meta content="#da532c" name="msapplication-TileColor"/>
+    <meta content="#ffffff" name="theme-color"/>
 </head>
 <body>
 <header th:fragment="body-header">
     <nav class="navbar navbar-expand-lg bg-primary" data-bs-theme="dark">
         <div class="container-fluid">
             <a class="navbar-brand" href="/">Marstech - Link Spray</a>
-            <button class="navbar-toggler collapsed" type="button" data-bs-toggle="collapse"
-                    data-bs-target="#navbarColor01" aria-controls="navbarColor01" aria-expanded="false"
-                    aria-label="Toggle navigation">
+            <button aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation"
+                    class="navbar-toggler collapsed" data-bs-target="#navbarColor01" data-bs-toggle="collapse"
+                    type="button">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="navbar-collapse collapse" id="navbarColor01" style="">
@@ -57,40 +57,40 @@
                     <li class="nav-item"
                         th:with="view=${T(fr.marstech.mtlinkspray.enums.ViewNameEnum).SPRAY}">
                         <a class="nav-link"
+                           href="/"
                            th:class="${viewNameEnum == view.name()} ? 'nav-link active' : 'nav-link'"
-                           th:text="${view.getViewPage()}"
                            th:href="@{'/'+${view.getViewName()}}"
-                           href="/">
+                           th:text="${view.getViewPage()}">
                             Spray page
                         </a>
                     </li>
                     <li class="nav-item"
                         th:with="view=${T(fr.marstech.mtlinkspray.enums.ViewNameEnum).SHORTENER}">
                         <a class="nav-link"
+                           href="/"
                            th:class="${viewNameEnum == view.name()} ? 'nav-link active' : 'nav-link'"
-                           th:text="${view.getViewPage()}"
                            th:href="@{'/'+${view.getViewName()}}"
-                           href="/">
+                           th:text="${view.getViewPage()}">
                             Shortener page
                         </a>
                     </li>
                     <li class="nav-item"
                         th:with="view=${T(fr.marstech.mtlinkspray.enums.ViewNameEnum).ABUSE}">
                         <a class="nav-link"
+                           href="/"
                            th:class="${viewNameEnum == view.name()} ? 'nav-link active' : 'nav-link'"
-                           th:text="${view.getViewPage()}"
                            th:href="@{'/'+${view.getViewName()}}"
-                           href="/">
+                           th:text="${view.getViewPage()}">
                             Abuse page
                         </a>
                     </li>
                     <li class="nav-item"
                         th:with="view=${T(fr.marstech.mtlinkspray.enums.ViewNameEnum).DASHBOARD}">
                         <a class="nav-link"
+                           href="/"
                            th:class="${viewNameEnum == view.name()} ? 'nav-link active' : 'nav-link'"
-                           th:text="${view.getViewPage()}"
                            th:href="@{'/'+${view.getViewName()}}"
-                           href="/">
+                           th:text="${view.getViewPage()}">
                             Dashboard page
                         </a>
                     </li>
@@ -126,7 +126,7 @@
     </div>
 </section>
 
-<footer th:fragment="body-footer" class="footer bg-black text-white">
+<footer class="footer bg-black text-white" th:fragment="body-footer">
     <div class="container">
         <div class="row">
             <div class="col">
@@ -163,11 +163,11 @@
     </div>
 </footer>
 
-<div th:fragment="footer-div-script" class="d-none">
+<div class="d-none" th:fragment="footer-div-script">
     <!-- Bootstrap JavaScript Bundle with Popper -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+    <script crossorigin="anonymous"
             integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-            crossorigin="anonymous"></script>
+            src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <!-- static/assets/js/mt-script.js -->
     <script th:src="@{'/assets/js/mt-script.js'}"></script>

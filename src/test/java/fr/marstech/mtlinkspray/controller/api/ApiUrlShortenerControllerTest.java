@@ -30,16 +30,11 @@ class ApiUrlShortenerControllerTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        when(shortenerServiceImpl.shorten(anyString(), any()))
-                .thenReturn(URI.create("https://short.url").toURL().toString());
+        when(shortenerServiceImpl.shorten(anyString(), any())).thenReturn(URI.create("https://short.url").toURL().toString());
     }
 
     @Test
     void getShort() throws Exception {
-        mockMvc.perform(
-                        get("/api/url-shortener/shorten").param("url", "https://www.example.com")
-                )
-                .andExpect(status().isOk())
-                .andExpect(content().string("https://short.url"));
+        mockMvc.perform(get("/api/url-shortener/shorten").param("url", "https://www.example.com")).andExpect(status().isOk()).andExpect(content().string("https://short.url"));
     }
 }

@@ -14,7 +14,6 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
-import java.net.MalformedURLException;
 import java.util.Enumeration;
 import java.util.Optional;
 import java.util.UUID;
@@ -29,18 +28,15 @@ import static org.mockito.Mockito.when;
 @SpringBootTest
 class ShortenerServiceTest {
 
-    @Autowired
-    LinkItemRepository linkItemRepository;
-
-    @Autowired
-    ShortenerService shortenerService;
-
-    @MockitoBean
-    HttpServletRequest httpServletRequest;
-
     @Container
     @ServiceConnection
     static MongoDBContainer mongoDBContainer = new MongoDBContainer(DockerImageName.parse(MONGO_DB_DOCKER_IMAGE_NAME)).withReuse(true);
+    @Autowired
+    LinkItemRepository linkItemRepository;
+    @Autowired
+    ShortenerService shortenerService;
+    @MockitoBean
+    HttpServletRequest httpServletRequest;
 
     @BeforeEach
     void setUp() {
@@ -70,16 +66,23 @@ class ShortenerServiceTest {
     }
 
     @Test
-    void shortenValidUrl() throws MalformedURLException {
+    void shortenValidUrl() {
         String validUrl = "https://www.example.com";
         String result = shortenerService.shorten(validUrl, httpServletRequest);
         assertTrue(isValidUrl(result));
     }
 
     @Test
+    void shortenEmptyUrl() {
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> shortenerService.shorten(null, httpServletRequest));
+        assertInstanceOf(IllegalArgumentException.class, exception);
+        assertEquals("URL must not be null or empty", exception.getMessage());
+    }
+
+    @Test
     void shortenInvalidUrl() {
-        String invalidUrl = "invalid-url";
-        Exception exception = assertThrows(RuntimeException.class, () -> shortenerService.shorten(invalidUrl, httpServletRequest));
-        assertInstanceOf(MalformedURLException.class, exception.getCause());
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> shortenerService.shorten("invalid-url", httpServletRequest));
+        assertInstanceOf(IllegalArgumentException.class, exception);
+        assertEquals("Invalid URL: invalid-url", exception.getMessage());
     }
 }

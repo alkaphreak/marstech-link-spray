@@ -22,12 +22,12 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 @Profile("dev")
 public class PostConstructConfForDev {
 
-    @Value("${mt.link-spray.version}")
-    private String mtLinkSprayVersion;
-
     final MtLinkSprayCollectionRepository mtLinkSprayCollectionRepository;
 
     private final Environment environment;
+
+    @Value("${mt.link-spray.version}")
+    private String mtLinkSprayVersion;
 
     public PostConstructConfForDev(Environment environment, MtLinkSprayCollectionRepository mtLinkSprayCollectionRepository) {
         this.environment = environment;
@@ -41,8 +41,8 @@ public class PostConstructConfForDev {
                 SECONDS.sleep(3);
             } catch (InterruptedException e) {
                 log.warning("Server URL display interrupted:" + e.getMessage());
+                Thread.currentThread().interrupt();
             }
-
             log.info(format("Local server : http://localhost:{0}", environment.getProperty("server.port")));
         });
     }
@@ -57,18 +57,13 @@ public class PostConstructConfForDev {
                 log.info(format("MongoDB URI : {0}", mongoDbUriEnvVar));
 
                 String uuid = UUID.randomUUID().toString();
-                mtLinkSprayCollectionRepository.save(
-                        MtLinkSprayCollectionItem.builder()
-                                .id(uuid)
-                                .description(format("Description : {0}", uuid))
-                                .build()
-                );
+                mtLinkSprayCollectionRepository.save(MtLinkSprayCollectionItem.builder().id(uuid).description(format("Description : {0}", uuid)).build());
                 assert mtLinkSprayCollectionRepository.findById(uuid).isPresent();
-                mtLinkSprayCollectionRepository.findAll().forEach(it -> log.info(it.toString()));
+                mtLinkSprayCollectionRepository.findAll().stream().map(MtLinkSprayCollectionItem::toString).forEach(log::info);
             } catch (InterruptedException e) {
                 log.warning("MongoDB connection test interrupted: " + e.getMessage());
+                Thread.currentThread().interrupt();
             }
-
             log.info("MongoDB connection test");
         });
     }
@@ -79,10 +74,9 @@ public class PostConstructConfForDev {
             try {
                 SECONDS.sleep(5);
             } catch (InterruptedException e) {
-                // Do nothing because we don't care.
                 log.warning("App version display interrupted: " + e.getMessage());
+                Thread.currentThread().interrupt();
             }
-
             log.info("App version : %s".formatted(mtLinkSprayVersion));
         });
     }

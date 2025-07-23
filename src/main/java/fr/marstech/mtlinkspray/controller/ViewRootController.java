@@ -12,7 +12,7 @@ import static fr.marstech.mtlinkspray.enums.ViewNameEnum.HOME;
 @Controller
 public class ViewRootController implements ThymeleafViewControllerInterface {
 
-    private final ViewNameEnum viewNameEnum = HOME;
+    private static final ViewNameEnum viewNameEnum = HOME;
 
     @Override
     public ModelAndView getModelAndView() {
