@@ -3,7 +3,6 @@ package fr.marstech.mtlinkspray.controller;
 import fr.marstech.mtlinkspray.controller.api.ApiRootController;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -13,15 +12,15 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 @ExtendWith(MockitoExtension.class)
 @WebMvcTest(ViewSprayController.class)
 class ViewSprayControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
-
-    @Mock
-    private ApiRootController apiRootController;
 
     @Test
     void getHome() throws Exception {
@@ -42,8 +41,8 @@ class ViewSprayControllerTest {
     static class ApiRootControllerTestConfig {
         @Bean(name = "apiRootController")
         public ApiRootController apiRootController() {
-            ApiRootController mock = org.mockito.Mockito.mock(ApiRootController.class);
-            org.mockito.Mockito.when(mock.getVersion()).thenReturn("test-version");
+            ApiRootController mock = mock(ApiRootController.class);
+            when(mock.getVersion()).thenReturn("test-version");
             return mock;
         }
     }
