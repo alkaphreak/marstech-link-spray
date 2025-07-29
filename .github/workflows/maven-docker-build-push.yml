@@ -61,10 +61,12 @@ jobs:
           echo "Docker login"
           echo $DOCKER_HUB_ACCESS_TOKEN | docker login $DOCKER_HUB_REGISTRY -u $DOCKER_HUB_USERNAME --password-stdin  
           
-          echo "Maven build"
+          echo "Maven build (with tests and multi-arch support)"
           mvn spring-boot:build-image \
             -Dspring-boot.build-image.imageName="$MY_ORGANISATION/$APP_NAME:$TAGNAME" \
-            -DskipTests \
+            -Dspring-boot.build-image.builder=paketobuildpacks/builder:base \
+            -Dspring-boot.build-image.publish=true \
+            -Dspring-boot.build-image.publish=true \
             -Dtimestamp="$TIMESTAMP" \
             -f "pom.xml"  
           
@@ -73,3 +75,6 @@ jobs:
           
           echo "Docker image push"
           docker push "$DOCKER_HUB_REGISTRY/$DOCKER_REPO:$TAGNAME"
+
+          echo "Cleanup local images"
+          docker image prune -f
