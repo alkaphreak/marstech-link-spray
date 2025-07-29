@@ -64,8 +64,8 @@ jobs:
           echo "Maven build (with tests and multi-arch support)"
           mvn spring-boot:build-image \
             -Dspring-boot.build-image.imageName="$MY_ORGANISATION/$APP_NAME:$TAGNAME" \
-            -DskipTests=false \
             -Dspring-boot.build-image.builder=paketobuildpacks/builder:base \
+            -Dspring-boot.build-image.publish=true \
             -Dspring-boot.build-image.publish=true \
             -Dtimestamp="$TIMESTAMP" \
             -f "pom.xml"  
