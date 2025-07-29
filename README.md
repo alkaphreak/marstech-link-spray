@@ -3,6 +3,11 @@
 **Marstech - Link Spray** is a web application that allows you to open multiple URLs with a single click. Follow a few
 simple steps to generate a unique link that will open all the specified URLs.
 
+## Badges
+
+[![SonarQube](https://github.com/alkaphreak/marstech-link-spray/actions/workflows/maven-sonar.yml/badge.svg)](https://github.com/alkaphreak/marstech-link-spray/actions/workflows/maven-sonar.yml)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=alkaphreak_marstech-link-spray&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=alkaphreak_marstech-link-spray)
+
 ## Features
 
 - **Unique link generation**: Enter multiple URLs and generate a single link to open them all at once.
