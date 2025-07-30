@@ -60,3 +60,4 @@ replay_pid*
 ### Project purpose ###
 /.env
 /pom.xml.versionsBackup
+/local-docs/
