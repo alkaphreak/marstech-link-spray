@@ -54,9 +54,9 @@
             </button>
             <div class="navbar-collapse collapse" id="navbarColor01">
                 <ul class="navbar-nav me-auto">
-                    <li class="nav-item" th:each="view : ${T(fr.marstech.mtlinkspray.enums.ViewNameEnum).values()}">
+                    <li class="nav-item" th:each="view : ${T(fr.marstech.mtlinkspray.enums.ViewNameEnum).inMenu()}">
                         <a class="nav-link"
-                           th:classappend="${viewNameEnum.name() == view.name()} ? 'active' : ''"
+                           th:classappend="${null != viewNameEnum && viewNameEnum.name() == view.name()} ? 'active' : ''"
                            th:href="@{'/' + ${view.getViewName()}}"
                            th:text="${view.getViewPage()}">
                             <!-- fallback text if th:text fails -->
