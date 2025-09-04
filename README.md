@@ -90,7 +90,7 @@ If you experience message like this:
 > To enable reuse of containers, you must set 'testcontainers.reuse.enable=true' in a file located at $
 > HOME/.testcontainers.properties
 
-Run this in shell or do it manualy:
+Run this in shell or do it manually:
 
 ```shell
 echo "testcontainers.reuse.enable=true" >> $HOME/.testcontainers.properties
