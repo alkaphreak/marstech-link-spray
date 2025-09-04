@@ -294,7 +294,7 @@
                     </annotationProcessorPaths>
                 </configuration>
             </plugin>
-            <!-- pom.xml -->
+            <!-- JaCoCo plugin: generates code coverage reports for unit tests -->
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
