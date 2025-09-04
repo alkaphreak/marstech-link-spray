@@ -82,6 +82,20 @@ A simple test to retrieve 10 000 ids with and without the cache.
 - Cache depth: 100
 - Cache treshold: 10
 
+## Test containers
+
+If you experience message like this:
+
+> Reuse was requested but the environment does not support the reuse of containers
+> To enable reuse of containers, you must set 'testcontainers.reuse.enable=true' in a file located at $
+> HOME/.testcontainers.properties
+
+Run this in shell or do it manualy:
+
+```shell
+echo "testcontainers.reuse.enable=true" >> $HOME/.testcontainers.properties
+```
+
 ## Contributing
 
 Contributions are welcome! To contribute:

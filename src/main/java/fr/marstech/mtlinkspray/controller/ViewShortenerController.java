@@ -9,38 +9,35 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
-import java.net.MalformedURLException;
-
 import static fr.marstech.mtlinkspray.enums.ViewNameEnum.SHORTENER;
 
 @Controller
 public class ViewShortenerController implements ThymeleafViewControllerInterface {
 
-    private static final ViewNameEnum viewNameEnum = SHORTENER;
+  private static final ViewNameEnum viewNameEnum = SHORTENER;
 
-    final ApiUrlShortenerController apiUrlShortenerController;
+  final ApiUrlShortenerController apiUrlShortenerController;
 
-    public ViewShortenerController(ApiUrlShortenerController apiUrlShortenerController) {
-        this.apiUrlShortenerController = apiUrlShortenerController;
-    }
+  public ViewShortenerController(ApiUrlShortenerController apiUrlShortenerController) {
+    this.apiUrlShortenerController = apiUrlShortenerController;
+  }
 
-    @Override
-    public ModelAndView getModelAndView() {
-        return getModelAndView(viewNameEnum);
-    }
+  @Override
+  public ModelAndView getModelAndView() {
+    return getModelAndView(viewNameEnum);
+  }
 
-    @GetMapping("/shortener")
-    public ModelAndView getView() {
-        return getModelAndView();
-    }
+  @GetMapping("/shortener")
+  public ModelAndView getView() {
+    return getModelAndView();
+  }
 
-    @PostMapping("/shortener")
-    public ModelAndView postView(
-            @RequestParam(name = "input-link") String inputLink,
-            HttpServletRequest httpServletRequest
-    ) throws MalformedURLException {
-        return getModelAndView()
-                .addObject("inputLink", inputLink)
-                .addObject("shortenedLink", apiUrlShortenerController.getShort(inputLink, httpServletRequest));
-    }
+  @PostMapping("/shortener")
+  public ModelAndView postView(
+      @RequestParam(name = "input-link") String inputLink, HttpServletRequest httpServletRequest) {
+    return getModelAndView()
+        .addObject("inputLink", inputLink)
+        .addObject(
+            "shortenedLink", apiUrlShortenerController.getShort(inputLink, httpServletRequest));
+  }
 }
