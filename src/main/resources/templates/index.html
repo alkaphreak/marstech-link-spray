@@ -54,47 +54,15 @@
             </button>
             <div class="navbar-collapse collapse" id="navbarColor01" style="">
                 <ul class="navbar-nav me-auto">
-                    <li class="nav-item"
-                        th:with="view=${T(fr.marstech.mtlinkspray.enums.ViewNameEnum).SPRAY}">
+                    <li class="nav-item" th:each="view : ${T(fr.marstech.mtlinkspray.enums.ViewNameEnum).values()}">
                         <a class="nav-link"
-                           href="/"
-                           th:class="${viewNameEnum == view.name()} ? 'nav-link active' : 'nav-link'"
-                           th:href="@{'/'+${view.getViewName()}}"
+                           th:classappend="${viewNameEnum.name() == view.name()} ? 'active' : ''"
+                           th:href="@{'/' + ${view.getViewName()}}"
                            th:text="${view.getViewPage()}">
-                            Spray page
+                            <!-- fallback text if th:text fails -->
+                            [[${view.getViewPage()}]]
                         </a>
                     </li>
-                    <li class="nav-item"
-                        th:with="view=${T(fr.marstech.mtlinkspray.enums.ViewNameEnum).SHORTENER}">
-                        <a class="nav-link"
-                           href="/"
-                           th:class="${viewNameEnum == view.name()} ? 'nav-link active' : 'nav-link'"
-                           th:href="@{'/'+${view.getViewName()}}"
-                           th:text="${view.getViewPage()}">
-                            Shortener page
-                        </a>
-                    </li>
-                    <li class="nav-item"
-                        th:with="view=${T(fr.marstech.mtlinkspray.enums.ViewNameEnum).ABUSE}">
-                        <a class="nav-link"
-                           href="/"
-                           th:class="${viewNameEnum == view.name()} ? 'nav-link active' : 'nav-link'"
-                           th:href="@{'/'+${view.getViewName()}}"
-                           th:text="${view.getViewPage()}">
-                            Abuse page
-                        </a>
-                    </li>
-                    <li class="nav-item"
-                        th:with="view=${T(fr.marstech.mtlinkspray.enums.ViewNameEnum).DASHBOARD}">
-                        <a class="nav-link"
-                           href="/"
-                           th:class="${viewNameEnum == view.name()} ? 'nav-link active' : 'nav-link'"
-                           th:href="@{'/'+${view.getViewName()}}"
-                           th:text="${view.getViewPage()}">
-                            Dashboard page
-                        </a>
-                    </li>
-
                 </ul>
             </div>
         </div>

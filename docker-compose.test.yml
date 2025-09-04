@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  mongodb-test:
+    image: mongo:8
+    container_name: marstech-mongodb-test
+    restart: unless-stopped
+    ports:
+      - "27018:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: testuser
+      MONGO_INITDB_ROOT_PASSWORD: testpass
+      MONGO_INITDB_DATABASE: link-spray-test
+    volumes:
+      - mongodb_test_data:/data/db
+      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+    networks:
+      - test-network
+
+volumes:
+  mongodb_test_data:
+
+networks:
+  test-network:
+    driver: bridge
