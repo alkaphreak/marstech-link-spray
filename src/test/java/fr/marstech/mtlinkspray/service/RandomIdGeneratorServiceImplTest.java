@@ -25,46 +25,53 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @SpringBootTest
 class RandomIdGeneratorServiceImplTest {
 
-    @Container
-    @ServiceConnection
-    static MongoDBContainer mongoDBContainer = new MongoDBContainer(DockerImageName.parse(MONGO_DB_DOCKER_IMAGE_NAME)).withReuse(true);
+  @Container @ServiceConnection
+  static MongoDBContainer mongoDBContainer =
+      new MongoDBContainer(DockerImageName.parse(MONGO_DB_DOCKER_IMAGE_NAME)).withReuse(true);
 
-    @Autowired
-    private RandomIdGeneratorServiceImpl randomIdGeneratorService;
+  @Autowired private RandomIdGeneratorServiceImpl randomIdGeneratorService;
 
-    @Autowired
-    private Environment environment;
+  @Autowired private Environment environment;
 
-    RandomIdGeneratorServiceImplTest() {
-    }
+  RandomIdGeneratorServiceImplTest() {}
 
-    @Test
-    void generateRandomId() {
-        String randomId = randomIdGeneratorService.generateRandomId();
-        assertNotNull(randomId);
-        assertEquals(randomIdGeneratorService.length, randomId.length());
-    }
+  @Test
+  void generateRandomId() {
+    String randomId = randomIdGeneratorService.generateRandomId();
+    assertNotNull(randomId);
+    assertEquals(randomIdGeneratorService.length, randomId.length());
+  }
 
-    @Test
-    void benchmarkWithAndWithoutCache() {
-        int testRange = 1;
-        long start;
-        long end;
-        long withCache;
-        long withoutCache;
+  @Test
+  void benchmarkWithAndWithoutCache() {
+    int testRange = 1;
+    long start;
+    long end;
+    long withCache;
+    long withoutCache;
 
-        // without cache
-        start = System.currentTimeMillis();
-        IntStream.range(0, testRange).forEach(i -> randomIdGeneratorService.getGeneratedFreeIdWithoutCache());
-        end = System.currentTimeMillis();
-        withoutCache = end - start;
+    // without cache
+    start = System.currentTimeMillis();
+    IntStream.range(0, testRange)
+        .forEach(i -> randomIdGeneratorService.getGeneratedFreeIdWithoutCache());
+    end = System.currentTimeMillis();
+    withoutCache = end - start;
 
-        // with cache
-        start = System.currentTimeMillis();
-        IntStream.range(0, testRange).forEach(i -> randomIdGeneratorService.getGeneratedFreeIdWithCache());
-        end = System.currentTimeMillis();
-        withCache = end - start;
+    // with cache
+    start = System.currentTimeMillis();
+    IntStream.range(0, testRange)
+        .forEach(i -> randomIdGeneratorService.getGeneratedFreeIdWithCache());
+    end = System.currentTimeMillis();
+    withCache = end - start;
 
-        log.info(format("With cache: {0}ms, Without cache: {1}ms, Difference: {2}ms, Test range: {3}, Cache depth: {4}, Cache treshold: {5}", withCache, withoutCache, withoutCache - withCache, testRange, randomIdGeneratorService.cacheDepth, randomIdGeneratorService.cacheTreshold));
-    }
+    log.info(
+        format(
+            "With cache: {0}ms, Without cache: {1}ms, Difference: {2}ms, Test range: {3}, Cache depth: {4}, Cache treshold: {5}",
+            withCache,
+            withoutCache,
+            withoutCache - withCache,
+            testRange,
+            randomIdGeneratorService.cacheDepth,
+            randomIdGeneratorService.cacheTreshold));
+  }
 }

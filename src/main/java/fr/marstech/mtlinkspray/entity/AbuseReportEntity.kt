@@ -5,8 +5,8 @@ import org.springframework.data.mongodb.core.mapping.Document
 import java.time.LocalDateTime
 import java.util.*
 
-@Document(collection = "mt-link-spray-dashboard-entity")
-data class DashboardEntity(
+@Document(collection = "mt-link-spray-abuse-reports")
+data class AbuseReportEntity(
     @Id override val id: String = UUID.randomUUID().toString(),
     override val creationDate: LocalDateTime = LocalDateTime.now(),
     override val expiresAt: LocalDateTime? = null,
@@ -15,7 +15,4 @@ data class DashboardEntity(
     override var metadata: MutableMap<String, String> = mutableMapOf(),
     override var author: HistoryItem,
     override var historyItems: MutableList<HistoryItem> = mutableListOf(),
-
-    val name: String? = null,
-    val items: MutableList<DashboardItem> = mutableListOf(),
 ) : StandardEntity

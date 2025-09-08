@@ -1,5 +1,6 @@
 package fr.marstech.mtlinkspray.service;
 
+import fr.marstech.mtlinkspray.entity.HistoryItem;
 import fr.marstech.mtlinkspray.entity.LinkItem;
 import fr.marstech.mtlinkspray.entity.LinkItemTarget;
 import fr.marstech.mtlinkspray.exception.UrlShorteningException;
@@ -8,6 +9,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.java.Log;
 import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 
 import static fr.marstech.mtlinkspray.service.ShortenerService.getShortenedLink;
 import static fr.marstech.mtlinkspray.utils.NetworkUtils.isValidUrl;
@@ -22,8 +27,7 @@ public class ShortenerServiceImpl implements ShortenerService {
   final LinkItemRepository linkItemRepository;
 
   public ShortenerServiceImpl(
-          LinkItemRepository linkItemRepository,
-          RandomIdGeneratorService randomIdGeneratorService) {
+      LinkItemRepository linkItemRepository, RandomIdGeneratorService randomIdGeneratorService) {
     this.linkItemRepository = linkItemRepository;
     this.randomIdGeneratorService = randomIdGeneratorService;
   }
@@ -39,8 +43,18 @@ public class ShortenerServiceImpl implements ShortenerService {
       throw new IllegalArgumentException("Invalid URL: %s".formatted(url));
     }
     try {
-      LinkItem linkItem =
-          new LinkItem().setTarget(new LinkItemTarget().setTargetUrl(url)).setId(getFreeUniqueId());
+      LinkItemTarget target = new LinkItemTarget(url);
+      LinkItem linkItem = new LinkItem(
+              getFreeUniqueId(),
+              LocalDateTime.now(),
+                null,
+              true,
+                null,
+              Map.of(),
+                new HistoryItem(),
+              List.of(),
+              target
+      );
       LinkItem savedLinkItem = linkItemRepository.save(linkItem);
       log.info("Shortened URL: %s to ID: %s".formatted(url, savedLinkItem.getId()));
       return getShortenedLink(httpServletRequest, savedLinkItem.getId());

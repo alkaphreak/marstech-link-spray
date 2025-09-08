@@ -1,19 +1,11 @@
-package fr.marstech.mtlinkspray.entity;
+package fr.marstech.mtlinkspray.entity
 
-import lombok.*;
-import lombok.experimental.Accessors;
-import lombok.experimental.SuperBuilder;
+import java.util.*
 
-import java.util.List;
+data class DashboardCategory(
+    override var id: String = UUID.randomUUID().toString(),
+    override var name: String,
+    override var description: String?,
 
-@EqualsAndHashCode(callSuper = true)
-@Accessors(chain = true)
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@SuperBuilder
-public class DashboardCategory extends DashboardItem {
-
-    @Builder.Default
-    private List<DashboardLink> links = List.of();
-}
+    val links: MutableList<DashboardLink?> = mutableListOf<DashboardLink?>()
+) : DashboardItem

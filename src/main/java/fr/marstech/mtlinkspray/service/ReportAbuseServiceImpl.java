@@ -1,31 +1,54 @@
 package fr.marstech.mtlinkspray.service;
 
-import fr.marstech.mtlinkspray.entity.AbuseReport;
+import fr.marstech.mtlinkspray.entity.AbuseReportEntity;
+import fr.marstech.mtlinkspray.entity.HistoryItem;
 import fr.marstech.mtlinkspray.repository.AbuseReportRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.java.Log;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @Log
 @Service
 public class ReportAbuseServiceImpl implements ReportAbuseService {
 
-    private final AbuseReportRepository abuseReportRepository;
-    private final MailSenderService mailSenderService;
+  private final AbuseReportRepository abuseReportRepository;
+  private final MailSenderService mailSenderService;
 
-    public ReportAbuseServiceImpl(AbuseReportRepository abuseReportRepository, MailSenderService mailSenderService) {
-        this.abuseReportRepository = abuseReportRepository;
-        this.mailSenderService = mailSenderService;
-    }
+  public ReportAbuseServiceImpl(
+      AbuseReportRepository abuseReportRepository, MailSenderService mailSenderService) {
+    this.abuseReportRepository = abuseReportRepository;
+    this.mailSenderService = mailSenderService;
+  }
 
-    @Override
-    public void reportAbuse(String inputAbuseDecsription) {
+  @Override
+  public void reportAbuse(String inputAbuseDecsription, HttpServletRequest httpServletRequest) {
 
-        log.info("reportAbuse:%s".formatted(inputAbuseDecsription));
+    String action = "reportAbuse";
+    String report = "%s:%s".formatted(action, inputAbuseDecsription);
+    log.info(report);
 
-        AbuseReport abuseReport = new AbuseReport();
-        abuseReport.setAbuseDescription(inputAbuseDecsription);
-        abuseReport = abuseReportRepository.save(abuseReport);
+    HistoryItem historyItem =
+        new HistoryItem(httpServletRequest.getRemoteAddr(), LocalDateTime.now(), action);
 
-        mailSenderService.sendMail(" MarsTech Link-Spray - Abuse report", abuseReport.toString());
-    }
+    AbuseReportEntity abuseReportEntity =
+        new AbuseReportEntity(
+            UUID.randomUUID().toString(),
+            LocalDateTime.now(),
+            null,
+            true,
+            null,
+            Map.of(),
+            new HistoryItem(),
+            List.of());
+    abuseReportEntity.setDescription(report);
+    abuseReportEntity.setAuthor(historyItem);
+    abuseReportEntity = abuseReportRepository.save(abuseReportEntity);
+
+    mailSenderService.sendMail(" MarsTech Link-Spray - Abuse report", abuseReportEntity.toString());
+  }
 }

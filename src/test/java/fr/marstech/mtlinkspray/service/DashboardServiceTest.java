@@ -13,6 +13,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
 import java.util.List;
+import java.util.UUID;
 
 import static fr.marstech.mtlinkspray.config.TestConfig.MONGO_DB_DOCKER_IMAGE_NAME;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -24,65 +25,60 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @SpringBootTest
 class DashboardServiceTest {
 
-    @Container
-    @ServiceConnection
-    static MongoDBContainer mongoDBContainer = new MongoDBContainer(DockerImageName.parse(MONGO_DB_DOCKER_IMAGE_NAME)).withReuse(true);
+  @Container @ServiceConnection
+  static MongoDBContainer mongoDBContainer =
+      new MongoDBContainer(DockerImageName.parse(MONGO_DB_DOCKER_IMAGE_NAME)).withReuse(true);
 
-    @Autowired
-    private DashboardService dashboardService;
+  @Autowired private DashboardService dashboardService;
 
-    @Test
-    void should_createDashboard() {
-        // Given
-        DashboardDto dashboardDto = DashboardDto.builder()
-                .name("Test Dashboard")
-                .description("This is a test dashboard")
-                .items(List.of())
-                .build();
+  @Test
+  void should_createDashboard() {
+    // Given
+    DashboardDto dashboardDto =
+        new DashboardDto(
+            UUID.randomUUID().toString(), "Test Dashboard", List.of(), "This is a test dashboard");
 
-        // When
-        DashboardDto createdDashboard = dashboardService.createDashboard(dashboardDto);
+    // When
+    DashboardDto createdDashboard = dashboardService.createDashboard(dashboardDto);
 
-        // Then
-        assertNotNull(createdDashboard);
-        assertEquals(dashboardDto.getName(), createdDashboard.getName());
-        assertEquals(dashboardDto.getDescription(), createdDashboard.getDescription());
-        assertEquals(dashboardDto.getItems(), createdDashboard.getItems());
-        assertNotNull(createdDashboard.getId());
-    }
+    // Then
+    assertNotNull(createdDashboard);
+    assertEquals(dashboardDto.getName(), createdDashboard.getName());
+    assertEquals(dashboardDto.getDescription(), createdDashboard.getDescription());
+    assertEquals(dashboardDto.getItems(), createdDashboard.getItems());
+    assertNotNull(createdDashboard.getId());
+  }
 
-    @Test
-    void should_createDashboardWithName() {
-        // Given
-        String dashboardName = "Test Dashboard";
+  @Test
+  void should_createDashboardWithName() {
+    // Given
+    String dashboardName = "Test Dashboard";
 
-        // When
-        DashboardDto createdDashboard = dashboardService.createDashboard(dashboardName);
+    // When
+    DashboardDto createdDashboard = dashboardService.createDashboard(dashboardName);
 
-        // Then
-        assertNotNull(createdDashboard);
-        assertEquals(dashboardName, createdDashboard.getName());
-        assertNotNull(createdDashboard.getId());
-    }
+    // Then
+    assertNotNull(createdDashboard);
+    assertEquals(dashboardName, createdDashboard.getName());
+    assertNotNull(createdDashboard.getId());
+  }
 
-    @Test
-    void should_getDashboard() {
-        // Given
-        DashboardDto dashboardDto = DashboardDto.builder()
-                .name("Test Dashboard")
-                .description("This is a test dashboard")
-                .items(List.of())
-                .build();
-        DashboardDto createdDashboard = dashboardService.createDashboard(dashboardDto);
+  @Test
+  void should_getDashboard() {
+    // Given
+    DashboardDto dashboardDto =
+        new DashboardDto(
+            UUID.randomUUID().toString(), "Test Dashboard", List.of(), "This is a test dashboard");
+    DashboardDto createdDashboard = dashboardService.createDashboard(dashboardDto);
 
-        // When
-        DashboardDto retrievedDashboard = dashboardService.getDashboard(createdDashboard.getId());
+    // When
+    DashboardDto retrievedDashboard = dashboardService.getDashboard(createdDashboard.getId());
 
-        // Then
-        assertNotNull(retrievedDashboard);
-        assertEquals(createdDashboard.getId(), retrievedDashboard.getId());
-        assertEquals(createdDashboard.getName(), retrievedDashboard.getName());
-        assertEquals(createdDashboard.getDescription(), retrievedDashboard.getDescription());
-        assertEquals(createdDashboard.getItems(), retrievedDashboard.getItems());
-    }
+    // Then
+    assertNotNull(retrievedDashboard);
+    assertEquals(createdDashboard.getId(), retrievedDashboard.getId());
+    assertEquals(createdDashboard.getName(), retrievedDashboard.getName());
+    assertEquals(createdDashboard.getDescription(), retrievedDashboard.getDescription());
+    assertEquals(createdDashboard.getItems(), retrievedDashboard.getItems());
+  }
 }

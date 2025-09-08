@@ -1,19 +1,9 @@
-package fr.marstech.mtlinkspray.entity;
+package fr.marstech.mtlinkspray.entity
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.experimental.Accessors;
-import lombok.experimental.SuperBuilder;
+data class DashboardLink(
+    override var id: String = java.util.UUID.randomUUID().toString(),
+    override var name: String,
+    override var description: String? = null,
 
-@EqualsAndHashCode(callSuper = true)
-@Accessors(chain = true)
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@SuperBuilder
-public class DashboardLink extends DashboardItem {
-
-    private String url;
-}
+    private var url: String? = null
+) : DashboardItem
