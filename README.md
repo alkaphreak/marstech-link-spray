@@ -76,17 +76,17 @@ The application can be configured using through the `application.properties` fil
 A simple test to retrieve 10 000 ids with and without the cache.
 
 - With cache: 473ms
-- Without cache: 11 327ms
-- Difference: 10 854ms
+- Without cache: 11 327 ms
+- Difference: 10 854 ms
 - Test range: 10 000
 - Cache depth: 100
 - Cache treshold: 10
 
 ## Test containers
 
-If you experience message like this:
+If you experience a message like this:
 
-> Reuse was requested but the environment does not support the reuse of containers
+> Reuse was requested, but the environment does not support the reuse of containers
 > To enable reuse of containers, you must set 'testcontainers.reuse.enable=true' in a file located at $
 > HOME/.testcontainers.properties
 

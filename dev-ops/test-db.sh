@@ -1,32 +1,34 @@
-#!/bin/bash
-
 # Test Database Management Script for Marstech Link Spray
+
+project_root_dir=$(dirname "$(dirname "$(realpath "$0")")")
+cd "$project_root_dir" || { echo "Failed to change directory to project root"; exit 1; }
+docker_compose_file="docker-compose.test.yml"
 
 case "$1" in
     start)
         echo "Starting test MongoDB database..."
-        docker-compose -f docker-compose.test.yml up -d
+        docker-compose -f $docker_compose_file up -d
         echo "Waiting for MongoDB to be ready..."
         sleep 5
         echo "Test database is ready at mongodb://testuser:testpass@localhost:27018/link-spray-test"
         ;;
     stop)
         echo "Stopping test MongoDB database..."
-        docker-compose -f docker-compose.test.yml down
+        docker-compose -f $docker_compose_file down
         ;;
     restart)
         echo "Restarting test MongoDB database..."
-        docker-compose -f docker-compose.test.yml restart
+        docker-compose -f $docker_compose_file restart
         ;;
     clean)
         echo "Cleaning test database (removing volumes)..."
-        docker-compose -f docker-compose.test.yml down -v
+        docker-compose -f $docker_compose_file down -v
         ;;
     logs)
-        docker-compose -f docker-compose.test.yml logs -f mongodb-test
+        docker-compose -f $docker_compose_file logs -f marstech-mongodb-test
         ;;
     status)
-        docker-compose -f docker-compose.test.yml ps
+        docker-compose -f $docker_compose_file ps
         ;;
     run-app)
         echo "Starting application with test profile..."
