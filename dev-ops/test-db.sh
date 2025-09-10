@@ -7,28 +7,28 @@ docker_compose_file="docker-compose.test.yml"
 case "$1" in
     start)
         echo "Starting test MongoDB database..."
-        docker-compose -f $docker_compose_file up -d
+        docker compose -f $docker_compose_file up -d
         echo "Waiting for MongoDB to be ready..."
         sleep 5
         echo "Test database is ready at mongodb://testuser:testpass@localhost:27018/link-spray-test"
         ;;
     stop)
         echo "Stopping test MongoDB database..."
-        docker-compose -f $docker_compose_file down
+        docker compose -f $docker_compose_file down
         ;;
     restart)
         echo "Restarting test MongoDB database..."
-        docker-compose -f $docker_compose_file restart
+        docker compose -f $docker_compose_file restart
         ;;
     clean)
         echo "Cleaning test database (removing volumes)..."
-        docker-compose -f $docker_compose_file down -v
+        docker compose -f $docker_compose_file down -v
         ;;
     logs)
-        docker-compose -f $docker_compose_file logs -f marstech-mongodb-test
+        docker compose -f $docker_compose_file logs -f marstech-mongodb-test
         ;;
     status)
-        docker-compose -f $docker_compose_file ps
+        docker compose -f $docker_compose_file ps
         ;;
     run-app)
         echo "Starting application with test profile..."

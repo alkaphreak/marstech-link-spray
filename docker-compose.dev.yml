@@ -18,7 +18,7 @@ services:
       - test-network
 
 volumes:
-  mongodb_test_data:
+  mongodb_dev_data:
 
 networks:
   test-network:

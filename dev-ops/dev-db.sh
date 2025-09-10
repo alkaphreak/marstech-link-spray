@@ -1,33 +1,34 @@
 #  Dev Database Management Script for Marstech Link Spray
 project_root_dir=$(dirname "$(dirname "$(realpath "$0")")")
-cd "$project_root_dir" || { echo "Failed to change directory to project root"; exit
+# shellcheck disable=SC2164
+cd "$project_root_dir"
 docker_compose_file="docker-compose.dev.yml"
 
 case "$1" in
     start)
         echo "Starting dev MongoDB database..."
-        docker-compose -f $docker_compose_file up -d
+        docker compose -f $docker_compose_file up -d
         echo "Waiting for MongoDB to be ready..."
         sleep 5
         echo "Dev database is ready at mongodb://devuser:devpass@localhost:27019/link-spray-dev"
         ;;
     stop)
         echo "Stopping dev MongoDB database..."
-        docker-compose -f $docker_compose_file down
+        docker compose -f $docker_compose_file down
         ;;
     restart)
         echo "Restarting dev MongoDB database..."
-        docker-compose -f $docker_compose_file restart
+        docker compose -f $docker_compose_file restart
         ;;
     clean)
         echo "Cleaning dev database (removing volumes)..."
-        docker-compose -f $docker_compose_file down -v
+        docker compose -f $docker_compose_file down -v
         ;;
     logs)
-        docker-compose -f $docker_compose_file logs -f marstech-mongodb-dev
+        docker compose -f $docker_compose_file logs -f marstech-mongodb-dev
         ;;
     status)
-        docker-compose -f $docker_compose_file ps
+        docker compose -f $docker_compose_file ps
         ;;
     run-app)
         echo "Starting application with dev profile..."
@@ -47,3 +48,5 @@ case "$1" in
         exit 1
         ;;
 esac
+
+exit 0;
