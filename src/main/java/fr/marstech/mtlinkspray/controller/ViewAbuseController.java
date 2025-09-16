@@ -32,7 +32,7 @@ public class ViewAbuseController implements ThymeleafViewControllerInterface {
 
     @PostMapping("/abuse")
     public ModelAndView getLink(@RequestParam String inputAbuseDecsription, HttpServletRequest httpServletRequest) {
-        reportAbuseService.reportAbuse(inputAbuseDecsription,httpServletRequest);
+        reportAbuseService.reportAbuse(inputAbuseDecsription, httpServletRequest);
 
         return getModelAndView().addObject("headers", getHeadersAsMap(httpServletRequest));
     }

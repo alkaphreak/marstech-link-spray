@@ -6,8 +6,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest
 class MtLinkSprayApplicationTests {
 
-    @Test
-    void contextLoads() {
-        assert true;
-    }
+  @Test
+  void contextLoads() {
+    assert true;
+  }
+
+  @Test
+  void testMain() {
+    MtLinkSprayApplication.main(new String[] {"args"});
+  }
 }

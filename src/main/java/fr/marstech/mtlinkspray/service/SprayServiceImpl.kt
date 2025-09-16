@@ -1,7 +1,6 @@
-package fr.marstech.mtlinkspray.service;
+package fr.marstech.mtlinkspray.service
 
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Service
 
 @Service
-public class SprayServiceImpl implements SprayService {
-}
+class SprayServiceImpl : SprayService

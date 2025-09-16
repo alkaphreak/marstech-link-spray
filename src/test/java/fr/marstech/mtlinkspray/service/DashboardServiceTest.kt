@@ -1,84 +1,101 @@
-package fr.marstech.mtlinkspray.service;
+package fr.marstech.mtlinkspray.service
 
-import fr.marstech.mtlinkspray.dto.DashboardDto;
-import lombok.extern.java.Log;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
-import org.springframework.test.context.ActiveProfiles;
-import org.testcontainers.containers.MongoDBContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
-
-import java.util.List;
-import java.util.UUID;
-
-import static fr.marstech.mtlinkspray.config.TestConfig.MONGO_DB_DOCKER_IMAGE_NAME;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import fr.marstech.mtlinkspray.config.TestConfig
+import fr.marstech.mtlinkspray.dto.DashboardDto
+import fr.marstech.mtlinkspray.entity.DashboardItem
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection
+import org.springframework.test.context.ActiveProfiles
+import org.testcontainers.containers.MongoDBContainer
+import org.testcontainers.junit.jupiter.Container
+import org.testcontainers.junit.jupiter.Testcontainers
+import org.testcontainers.utility.DockerImageName
+import java.util.*
 
 @ActiveProfiles("test")
-@Log
 @Testcontainers
 @SpringBootTest
 class DashboardServiceTest {
 
-  @Container @ServiceConnection
-  static MongoDBContainer mongoDBContainer =
-      new MongoDBContainer(DockerImageName.parse(MONGO_DB_DOCKER_IMAGE_NAME)).withReuse(true);
+    companion object {
+        @Container
+        @ServiceConnection
+        @JvmStatic
+        val mongoDBContainer = MongoDBContainer(DockerImageName.parse(TestConfig.MONGO_DB_DOCKER_IMAGE_NAME)).withReuse(true)
+    }
 
-  @Autowired private DashboardService dashboardService;
+    @Autowired
+    lateinit var dashboardService: DashboardService
 
-  @Test
-  void should_createDashboard() {
-    // Given
-    DashboardDto dashboardDto =
-        new DashboardDto(
-            UUID.randomUUID().toString(), "Test Dashboard", List.of(), "This is a test dashboard");
+    @Test
+    fun `should create dashboard`() {
+        val items: MutableList<DashboardItem> = mutableListOf()
+        val dashboardDto =
+            DashboardDto(
+                id = UUID.randomUUID().toString(),
+                name = "Test Dashboard",
+                items = items,
+                description = "This is a test dashboard"
+            )
+        val createdDashboard = dashboardService.createDashboard(dashboardDto)
+        assertNotNull(createdDashboard)
+        assertEquals(dashboardDto.name, createdDashboard.name)
+        assertEquals(dashboardDto.description, createdDashboard.description)
+        assertEquals(dashboardDto.items, createdDashboard.items)
+        assertNotNull(createdDashboard.id)
+    }
 
-    // When
-    DashboardDto createdDashboard = dashboardService.createDashboard(dashboardDto);
+    @Test
+    fun `should create dashboard with name`() {
+        val dashboardName = "Test Dashboard"
+        val createdDashboard = dashboardService.createDashboard(dashboardName)
+        assertNotNull(createdDashboard)
+        assertEquals(dashboardName, createdDashboard.name)
+        assertNotNull(createdDashboard.id)
+    }
 
-    // Then
-    assertNotNull(createdDashboard);
-    assertEquals(dashboardDto.getName(), createdDashboard.getName());
-    assertEquals(dashboardDto.getDescription(), createdDashboard.getDescription());
-    assertEquals(dashboardDto.getItems(), createdDashboard.getItems());
-    assertNotNull(createdDashboard.getId());
-  }
+    @Test
+    fun `should get dashboard`() {
+        val items: MutableList<DashboardItem> = mutableListOf()
+        val dashboardDto =
+            DashboardDto(
+                id = UUID.randomUUID().toString(),
+                name = "Test Dashboard",
+                items = items,
+                description = "This is a test dashboard"
+            )
+        val createdDashboard = dashboardService.createDashboard(dashboardDto)
+        val retrievedDashboard = dashboardService.getDashboard(createdDashboard.id)
+        assertNotNull(retrievedDashboard)
+        assertEquals(createdDashboard.id, retrievedDashboard.id)
+        assertEquals(createdDashboard.name, retrievedDashboard.name)
+        assertEquals(createdDashboard.description, retrievedDashboard.description)
+        assertEquals(createdDashboard.items, retrievedDashboard.items)
+    }
 
-  @Test
-  void should_createDashboardWithName() {
-    // Given
-    String dashboardName = "Test Dashboard";
+    @Test
+    fun `should throw when dashboard not found`() {
+        assertThrows<NoSuchElementException> {
+            dashboardService.getDashboard("non-existent-id")
+        }
+    }
 
-    // When
-    DashboardDto createdDashboard = dashboardService.createDashboard(dashboardName);
-
-    // Then
-    assertNotNull(createdDashboard);
-    assertEquals(dashboardName, createdDashboard.getName());
-    assertNotNull(createdDashboard.getId());
-  }
-
-  @Test
-  void should_getDashboard() {
-    // Given
-    DashboardDto dashboardDto =
-        new DashboardDto(
-            UUID.randomUUID().toString(), "Test Dashboard", List.of(), "This is a test dashboard");
-    DashboardDto createdDashboard = dashboardService.createDashboard(dashboardDto);
-
-    // When
-    DashboardDto retrievedDashboard = dashboardService.getDashboard(createdDashboard.getId());
-
-    // Then
-    assertNotNull(retrievedDashboard);
-    assertEquals(createdDashboard.getId(), retrievedDashboard.getId());
-    assertEquals(createdDashboard.getName(), retrievedDashboard.getName());
-    assertEquals(createdDashboard.getDescription(), retrievedDashboard.getDescription());
-    assertEquals(createdDashboard.getItems(), retrievedDashboard.getItems());
-  }
+    @Test
+    fun `should return null when updating dashboard`() {
+        val items: MutableList<DashboardItem> = mutableListOf()
+        val dashboardDto =
+            DashboardDto(
+                id = UUID.randomUUID().toString(),
+                name = "Test Dashboard",
+                items = items,
+                description = "This is a test dashboard"
+            )
+        val createdDashboard = dashboardService.createDashboard(dashboardDto)
+        val updatedDashboard = dashboardService.updateDashboard(createdDashboard.id, dashboardDto)
+        assertNull(updatedDashboard)
+    }
 }

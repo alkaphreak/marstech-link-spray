@@ -1,112 +1,81 @@
-package fr.marstech.mtlinkspray.conf;
+package fr.marstech.mtlinkspray.conf
 
-import fr.marstech.mtlinkspray.entity.HistoryItem;
-import fr.marstech.mtlinkspray.entity.MtLinkSprayCollectionItem;
-import fr.marstech.mtlinkspray.repository.MtLinkSprayCollectionRepository;
-import lombok.extern.java.Log;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
-import org.springframework.context.event.EventListener;
-import org.springframework.core.env.Environment;
-import org.springframework.scheduling.annotation.EnableAsync;
+import fr.marstech.mtlinkspray.entity.HistoryItem
+import fr.marstech.mtlinkspray.entity.MtLinkSprayCollectionItem
+import fr.marstech.mtlinkspray.repository.MtLinkSprayCollectionRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.context.event.ApplicationReadyEvent
+import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Profile
+import org.springframework.context.event.EventListener
+import org.springframework.core.env.Environment
+import java.time.LocalDateTime
+import java.util.*
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import static java.text.MessageFormat.format;
-import static java.util.concurrent.TimeUnit.SECONDS;
-
-@EnableAsync
 @Configuration
-@Log
 @Profile("dev")
-public class ApplicationReadyEventHanlderForDev {
+open class ApplicationReadyEventHandlerForDev(
+    private val environment: Environment, private val mtLinkSprayCollectionRepository: MtLinkSprayCollectionRepository
+) {
+    @Value($$"${mt.link-spray.version}")
+    private lateinit var mtLinkSprayVersion: String
 
-  final MtLinkSprayCollectionRepository mtLinkSprayCollectionRepository;
+    private val scope = CoroutineScope(Dispatchers.Default)
 
-  private final Environment environment;
+    @EventListener(ApplicationReadyEvent::class)
+    internal fun displayServerUrlInConsole() = scope.launch {
+        kotlinx.coroutines.delay(3000)
+        log.info("Local server : http://localhost:${environment.getProperty("server.port")}")
+    }
 
-  @Value("${mt.link-spray.version}")
-  private String mtLinkSprayVersion;
+    @EventListener(ApplicationReadyEvent::class)
+    internal fun testMongoDbConnection() = scope.launch {
+        kotlinx.coroutines.delay(4000)
+        val mongoDbUriEnvVar = environment.getProperty("spring.data.mongodb.uri")
+        log.info("MongoDB URI : $mongoDbUriEnvVar")
 
-  public ApplicationReadyEventHanlderForDev(
-      Environment environment, MtLinkSprayCollectionRepository mtLinkSprayCollectionRepository) {
-    this.environment = environment;
-    this.mtLinkSprayCollectionRepository = mtLinkSprayCollectionRepository;
-  }
+        val uuid = UUID.randomUUID().toString()
+        val item = MtLinkSprayCollectionItem(
+            id = uuid,
+            creationDate = LocalDateTime.now(),
+            expiresAt = null,
+            isEnabled = true,
+            description = "Test item for MongoDB connection",
+            metadata = mutableMapOf("testKey" to "testValue"),
+            author = HistoryItem(
+                ipAddress = null,
+                dateTime = LocalDateTime.now(),
+                action = "Created for MongoDB connection test"
+            ),
+            historyItems = mutableListOf()
+        )
 
-  @EventListener(ApplicationReadyEvent.class)
-  private void displayServerUrlInConsole() {
-    Thread.ofVirtual()
-        .start(
-            () -> {
-              try {
-                SECONDS.sleep(3);
-              } catch (InterruptedException e) {
-                log.warning("Server URL display interrupted:" + e.getMessage());
-                Thread.currentThread().interrupt();
-              }
-              log.info(
-                  format(
-                      "Local server : http://localhost:{0}",
-                      environment.getProperty("server.port")));
-            });
-  }
+        try {
+            mtLinkSprayCollectionRepository.save(item)
+            val found = mtLinkSprayCollectionRepository.findById(uuid)
+            if (found.isPresent) {
+                log.info("MongoDB test item found: $found")
+            } else {
+                log.warn("MongoDB test item not found")
+            }
+            mtLinkSprayCollectionRepository.findAll().forEach { log.info(it.toString()) }
+        } catch (e: Exception) {
+            log.error("MongoDB connection test failed: ${e.message}", e)
+        }
+        log.info("MongoDB connection test completed")
+    }
 
-  @EventListener(ApplicationReadyEvent.class)
-  private void testMongoDbConnection() {
-    Thread.ofVirtual()
-        .start(
-            () -> {
-              try {
-                SECONDS.sleep(4);
+    @EventListener(ApplicationReadyEvent::class)
+    internal fun displayAppVersion() = scope.launch {
+        kotlinx.coroutines.delay(5000)
+        log.info("App version : $mtLinkSprayVersion")
+    }
 
-                String mongoDbUriEnvVar = environment.getProperty("spring.data.mongodb.uri");
-                log.info(format("MongoDB URI : {0}", mongoDbUriEnvVar));
-
-                String uuid = UUID.randomUUID().toString();
-                MtLinkSprayCollectionItem item =
-                    new MtLinkSprayCollectionItem(
-                        uuid,
-                        LocalDateTime.now(),
-                        null,
-                        true,
-                        "Test item for MongoDB connection",
-                        Map.of(),
-                        new HistoryItem(),
-                        List.of());
-
-                mtLinkSprayCollectionRepository.save(item);
-                assert mtLinkSprayCollectionRepository.findById(uuid).isPresent();
-
-                mtLinkSprayCollectionRepository.findAll().stream()
-                    .map(MtLinkSprayCollectionItem::toString)
-                    .forEach(log::info);
-
-              } catch (InterruptedException e) {
-                log.warning("MongoDB connection test interrupted: " + e.getMessage());
-                Thread.currentThread().interrupt();
-              }
-              log.info("MongoDB connection test");
-            });
-  }
-
-  @EventListener(ApplicationReadyEvent.class)
-  private void displayAppVersion() {
-    Thread.ofVirtual()
-        .start(
-            () -> {
-              try {
-                SECONDS.sleep(5);
-              } catch (InterruptedException e) {
-                log.warning("App version display interrupted: " + e.getMessage());
-                Thread.currentThread().interrupt();
-              }
-              log.info("App version : %s".formatted(mtLinkSprayVersion));
-            });
-  }
+    companion object {
+        private val log = LoggerFactory.getLogger(ApplicationReadyEventHandlerForDev::class.java)
+    }
 }
