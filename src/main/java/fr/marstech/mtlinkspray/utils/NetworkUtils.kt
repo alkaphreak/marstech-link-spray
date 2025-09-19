@@ -2,10 +2,8 @@ package fr.marstech.mtlinkspray.utils
 
 import fr.marstech.mtlinkspray.enums.HttpDefaultPortEnum
 import jakarta.servlet.http.HttpServletRequest
-import lombok.experimental.UtilityClass
 import java.net.URI
 
-@UtilityClass
 object NetworkUtils {
     @JvmStatic
     fun getHeadersAsMap(httpServletRequest: HttpServletRequest): Map<String, String> =
@@ -16,9 +14,8 @@ object NetworkUtils {
 
     @JvmStatic
     fun filterDefaultPort(port: String?): String? = when {
-        port == null -> null
-        port.isBlank() -> null
-        HttpDefaultPortEnum.entries.any { entry -> entry.port == port } -> null
+        port.isNullOrBlank() -> null
+        HttpDefaultPortEnum.entries.any { it.port == port } -> null
         else -> port
     }
 
@@ -26,11 +23,10 @@ object NetworkUtils {
     fun getPort(httpServletRequest: HttpServletRequest): String =
         getPort(httpServletRequest, getHeadersAsMap(httpServletRequest))
 
-    private fun getPort(httpServletRequest: HttpServletRequest, headers: Map<String, String>): String {
-        return headers.getOrDefault(
+    private fun getPort(httpServletRequest: HttpServletRequest, headers: Map<String, String>): String =
+        headers.getOrDefault(
             "x-forwarded-port", headers.getOrDefault("port", httpServletRequest.serverPort.toString())
         )
-    }
 
     @JvmStatic
     fun getFilteredPort(httpServletRequest: HttpServletRequest): String? = filterDefaultPort(
@@ -38,19 +34,19 @@ object NetworkUtils {
     )
 
     @JvmStatic
-    fun getScheme(httpServletRequest: HttpServletRequest): String? =
+    fun getScheme(httpServletRequest: HttpServletRequest): String =
         getScheme(httpServletRequest, getHeadersAsMap(httpServletRequest))
 
-    private fun getScheme(httpServletRequest: HttpServletRequest, headers: Map<String, String>): String? =
+    private fun getScheme(httpServletRequest: HttpServletRequest, headers: Map<String, String>): String =
         headers.getOrDefault("x-forwarded-proto", httpServletRequest.scheme)
 
     @JvmStatic
-    fun getHost(httpServletRequest: HttpServletRequest): String? =
+    fun getHost(httpServletRequest: HttpServletRequest): String =
         getHost(httpServletRequest, getHeadersAsMap(httpServletRequest))
 
     private fun getHost(
         httpServletRequest: HttpServletRequest, headers: Map<String, String>
-    ): String? = headers.getOrDefault(
+    ): String = headers.getOrDefault(
         "x-forwarded-server", headers.getOrDefault(
             "x-forwarded-host", headers.getOrDefault("host", httpServletRequest.serverName)
         )
@@ -62,4 +58,9 @@ object NetworkUtils {
     } catch (_: Exception) {
         false
     }
+
+    @JvmStatic
+    fun getIpAddress(request: HttpServletRequest): String? =
+        request.getHeader("X-Forwarded-For")?.split(",")?.firstOrNull() ?: request.remoteAddr
+
 }

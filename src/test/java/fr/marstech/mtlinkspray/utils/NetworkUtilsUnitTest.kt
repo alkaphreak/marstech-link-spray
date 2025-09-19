@@ -1,81 +1,91 @@
-package fr.marstech.mtlinkspray.utils;
+package fr.marstech.mtlinkspray.utils
 
-import jakarta.servlet.http.HttpServletRequest;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import fr.marstech.mtlinkspray.utils.NetworkUtils.filterDefaultPort
+import fr.marstech.mtlinkspray.utils.NetworkUtils.isValidUrl
+import jakarta.servlet.http.HttpServletRequest
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.mockito.Mockito
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
+import java.util.*
 
-import java.util.Enumeration;
+internal class NetworkUtilsUnitTest {
+    private var mockRequest: HttpServletRequest? = null
 
-import static java.util.Collections.enumeration;
-import static java.util.List.of;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+    @BeforeEach
+    fun setUp() {
+        this.mockRequest = mock(HttpServletRequest::class.java)
+    }
 
-class NetworkUtilsUnitTest {
+    @Test
+    fun getHeadersAsMap() {
+        val headerNames = Collections.enumeration<String?>(mutableListOf<String?>("X-Test-Header", "Another-Header"))
+        `when`(mockRequest!!.headerNames).thenReturn(headerNames)
+        `when`(mockRequest!!.getHeader("X-Test-Header")).thenReturn("test-value")
+        `when`(mockRequest!!.getHeader("Another-Header")).thenReturn("another-value")
 
-  private HttpServletRequest mockRequest;
+        val result: Map<String, String> = NetworkUtils.getHeadersAsMap(mockRequest!!)
+        Assertions.assertEquals(2, result.size)
+        Assertions.assertEquals("test-value", result["X-Test-Header"])
+        Assertions.assertEquals("another-value", result["Another-Header"])
+    }
 
-  @BeforeEach
-  void setUp() {
-    this.mockRequest = mock(HttpServletRequest.class);
-  }
+    @Test
+    fun getHeadersAsMap_nullHeaderNamesShouldNotFail() {
+        `when`(mockRequest!!.headerNames).thenReturn(null)
+        val result: Map<String, String> = NetworkUtils.getHeadersAsMap(mockRequest!!)
+        Assertions.assertEquals(0, result.size)
+    }
 
-  @Test
-  void getHeadersAsMap() {
-    Enumeration<String> headerNames = enumeration(of("X-Test-Header", "Another-Header"));
-    when(mockRequest.getHeaderNames()).thenReturn(headerNames);
-    when(mockRequest.getHeader("X-Test-Header")).thenReturn("test-value");
-    when(mockRequest.getHeader("Another-Header")).thenReturn("another-value");
+    @Test
+    fun filterDefaultPort() {
+        Assertions.assertNull(filterDefaultPort(""))
+        Assertions.assertNull(filterDefaultPort(" "))
+        Assertions.assertNull(filterDefaultPort(null))
+        Assertions.assertNull(filterDefaultPort("80"))
+        Assertions.assertNull(filterDefaultPort("443"))
+        Assertions.assertEquals("8080", filterDefaultPort("8080"))
+    }
 
-    var result = NetworkUtils.getHeadersAsMap(mockRequest);
-    assertEquals(2, result.size());
-    assertEquals("test-value", result.get("X-Test-Header"));
-    assertEquals("another-value", result.get("Another-Header"));
-  }
+    @Test
+    fun getPort() {
+        `when`(mockRequest!!.headerNames).thenReturn(
+            Collections.enumeration<String?>(
+                mutableListOf<String?>()
+            )
+        )
+        `when`(mockRequest!!.serverPort).thenReturn(8080)
+        Assertions.assertEquals("8080", NetworkUtils.getPort(mockRequest!!))
+    }
 
-  @Test
-  void getHeadersAsMap_nullHeaderNamesShouldNotFail() {
-    when(mockRequest.getHeaderNames()).thenReturn(null);
-    var result = NetworkUtils.getHeadersAsMap(mockRequest);
-    assertEquals(0, result.size());
-  }
+    @Test
+    fun getScheme() {
+        `when`(mockRequest!!.headerNames).thenReturn(
+            Collections.enumeration<String?>(
+                mutableListOf<String?>()
+            )
+        )
+        `when`(mockRequest!!.scheme).thenReturn("https")
+        Assertions.assertEquals("https", NetworkUtils.getScheme(mockRequest!!))
+    }
 
-  @Test
-  void filterDefaultPort() {
-    assertNull(NetworkUtils.filterDefaultPort(""));
-    assertNull(NetworkUtils.filterDefaultPort(" "));
-    assertNull(NetworkUtils.filterDefaultPort(null));
-    assertNull(NetworkUtils.filterDefaultPort("80"));
-    assertNull(NetworkUtils.filterDefaultPort("443"));
-    assertEquals("8080", NetworkUtils.filterDefaultPort("8080"));
-  }
+    @Test
+    fun getHost() {
+        `when`(mockRequest!!.headerNames).thenReturn(
+            Collections.enumeration<String?>(
+                mutableListOf<String?>()
+            )
+        )
+        `when`(mockRequest!!.serverName).thenReturn("localhost")
+        Assertions.assertEquals("localhost", NetworkUtils.getHost(mockRequest!!))
+    }
 
-  @Test
-  void getPort() {
-    when(mockRequest.getHeaderNames()).thenReturn(enumeration(of()));
-    when(mockRequest.getServerPort()).thenReturn(8080);
-    assertEquals("8080", NetworkUtils.getPort(mockRequest));
-  }
-
-  @Test
-  void getScheme() {
-    when(mockRequest.getHeaderNames()).thenReturn(enumeration(of()));
-    when(mockRequest.getScheme()).thenReturn("https");
-    assertEquals("https", NetworkUtils.getScheme(mockRequest));
-  }
-
-  @Test
-  void getHost() {
-    when(mockRequest.getHeaderNames()).thenReturn(enumeration(of()));
-    when(mockRequest.getServerName()).thenReturn("localhost");
-    assertEquals("localhost", NetworkUtils.getHost(mockRequest));
-  }
-
-  @Test
-  void isValidUrl() {
-    assertTrue(NetworkUtils.isValidUrl("https://www.example.com"));
-    assertFalse(NetworkUtils.isValidUrl("not-a-url"));
-    assertFalse(NetworkUtils.isValidUrl(""));
-  }
+    @Test
+    fun isValidUrl() {
+        Assertions.assertTrue(isValidUrl("https://www.example.com"))
+        Assertions.assertFalse(isValidUrl("not-a-url"))
+        Assertions.assertFalse(isValidUrl(""))
+    }
 }

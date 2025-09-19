@@ -1,8 +1,9 @@
 import fr.marstech.mtlinkspray.dto.PasteRequest
 import fr.marstech.mtlinkspray.entity.HistoryItem
-import fr.marstech.mtlinkspray.entity.Paste
+import fr.marstech.mtlinkspray.entity.PasteEntity
 import fr.marstech.mtlinkspray.repository.PasteRepository
 import fr.marstech.mtlinkspray.service.PasteServiceImpl
+import jakarta.servlet.http.HttpServletRequest
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -24,11 +25,8 @@ class PasteServiceImplTest {
             password = "secret",
             expiration = "10m",
             isPrivate = false,
-            author = HistoryItem(
-                ipAddress = "user", dateTime = LocalDateTime.now()
-            )
         )
-        val savedPaste = Paste(
+        val savedPasteEntity = PasteEntity(
             id = "id123",
             title = request.title,
             content = request.content,
@@ -37,18 +35,21 @@ class PasteServiceImplTest {
             expiresAt = null,
             isPrivate = false,
             isPasswordProtected = true,
-            author = request.author
+            author = HistoryItem(
+                ipAddress = "user", dateTime = LocalDateTime.now()
+            )
         )
-        `when`(pasteRepository.save(any(Paste::class.java))).thenReturn(savedPaste)
+        `when`(pasteRepository.save(any(PasteEntity::class.java))).thenReturn(savedPasteEntity)
 
-        val id = pasteService.createPaste(request)
+        val httpServletRequest: HttpServletRequest = mock(HttpServletRequest::class.java)
+        val id = pasteService.createPaste(request, httpServletRequest)
         assertEquals("id123", id)
-        verify(pasteRepository).save(any(Paste::class.java))
+        verify(pasteRepository).save(any(PasteEntity::class.java))
     }
 
     @Test
     fun getPaste_withCorrectPassword_returnsPaste() {
-        val paste = Paste(
+        val pasteEntity = PasteEntity(
             id = "id123",
             title = "Test",
             content = "Hello",
@@ -59,15 +60,15 @@ class PasteServiceImplTest {
                 ipAddress = "user", dateTime = LocalDateTime.now()
             )
         )
-        `when`(pasteRepository.findById("id123")).thenReturn(Optional.of(paste))
+        `when`(pasteRepository.findById("id123")).thenReturn(Optional.of(pasteEntity))
 
         val result = pasteService.getPaste("id123", "secret")
-        assertEquals(paste, result)
+        assertEquals(pasteEntity, result)
     }
 
     @Test
     fun getPaste_withWrongPassword_throwsException() {
-        val paste = Paste(
+        val pasteEntity = PasteEntity(
             id = "id123",
             title = "Test",
             content = "Hello",
@@ -76,7 +77,7 @@ class PasteServiceImplTest {
             isPasswordProtected = true,
             author = HistoryItem(ipAddress = "user", dateTime = LocalDateTime.now())
         )
-        `when`(pasteRepository.findById("id123")).thenReturn(Optional.of(paste))
+        `when`(pasteRepository.findById("id123")).thenReturn(Optional.of(pasteEntity))
 
         assertThrows<IllegalAccessException> {
             pasteService.getPaste("id123", "wrong")

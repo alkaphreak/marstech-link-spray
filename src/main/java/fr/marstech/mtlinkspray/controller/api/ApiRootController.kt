@@ -7,8 +7,9 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/api")
-class ApiRootController {
-    @get:GetMapping("/version")
-    @Value("\${mt.link-spray.version}")
-    val version: String? = null
+class ApiRootController(
+    @Value("\${mt.link-spray.version}") val version: String
+) {
+    @GetMapping("/version")
+    fun version(): String = version
 }

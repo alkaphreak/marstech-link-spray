@@ -9,5 +9,4 @@ data class PasteRequest(
     val password: String?,
     val expiration: String,
     val isPrivate: Boolean,
-    val author: HistoryItem
 )

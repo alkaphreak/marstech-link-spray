@@ -16,11 +16,11 @@ import static java.text.MessageFormat.format;
 
 @Validated
 @RestController
-public class ApiUrlShortenerController {
+public class ApiShortenerController {
 
   final ShortenerService shortenerService;
 
-  public ApiUrlShortenerController(ShortenerService shortenerService) {
+  public ApiShortenerController(ShortenerService shortenerService) {
     this.shortenerService = shortenerService;
   }
 

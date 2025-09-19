@@ -1,29 +1,39 @@
-package fr.marstech.mtlinkspray.controller;
+package fr.marstech.mtlinkspray.controller
 
-import fr.marstech.mtlinkspray.enums.ViewNameEnum;
-import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.web.servlet.ModelAndView;
+import fr.marstech.mtlinkspray.enums.ViewNameEnum
+import fr.marstech.mtlinkspray.utils.NetworkUtils.getHeadersAsMap
+import jakarta.servlet.http.HttpServletRequest
+import org.springframework.web.servlet.ModelAndView
 
-import static fr.marstech.mtlinkspray.utils.NetworkUtils.getHeadersAsMap;
-import static java.text.MessageFormat.format;
+/**
+ * Interface for controllers returning Thymeleaf views.
+ */
+interface ThymeleafViewControllerInterface {
 
-public interface ThymeleafViewControllerInterface {
+    fun getModelAndView(): ModelAndView?
 
-    ModelAndView getModelAndView();
+    /**
+     * Returns a ModelAndView for the given view name.
+     */
+    fun getModelAndView(viewNameEnum: ViewNameEnum): ModelAndView =
+        ModelAndView(viewNameEnum.viewName).addObject("viewNameEnum", viewNameEnum)
 
-    default ModelAndView getModelAndView(ViewNameEnum viewNameEnum) {
-        return new ModelAndView(viewNameEnum.getViewName()).addObject("viewNameEnum", viewNameEnum);
-    }
+    /**
+     * Returns a ModelAndView for the given view name and request headers.
+     */
+    fun getModelAndView(viewNameEnum: ViewNameEnum, httpServletRequest: HttpServletRequest): ModelAndView =
+        ModelAndView(viewNameEnum.viewName)
+            .addObject("viewNameEnum", viewNameEnum)
+            .addObject("headers", getHeadersAsMap(httpServletRequest))
 
-    default ModelAndView getModelAndView(ViewNameEnum viewNameEnum, HttpServletRequest httpServletRequest) {
-        return new ModelAndView(viewNameEnum.getViewName()).addObject("viewNameEnum", viewNameEnum).addObject("headers", getHeadersAsMap(httpServletRequest));
-    }
+    /**
+     * Returns a ModelAndView to forward to the given URL.
+     */
+    fun getModelAndViewToForward(forwardUrl: String): ModelAndView =
+        ModelAndView("forward:$forwardUrl")
 
-    default ModelAndView getModelAndViewToForward(String forwardUrl) {
-        return new ModelAndView(format("forward:{0}", forwardUrl));
-    }
-
-    default String getRedirectUrl(String url) {
-        return format("redirect:{0}", url);
-    }
+    /**
+     * Returns a redirect URL string.
+     */
+    fun getRedirectUrl(url: String): String = "redirect:$url"
 }

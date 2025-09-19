@@ -1,6 +1,6 @@
 package fr.marstech.mtlinkspray.controller;
 
-import fr.marstech.mtlinkspray.controller.api.ApiUrlShortenerController;
+import fr.marstech.mtlinkspray.controller.api.ApiShortenerController;
 import fr.marstech.mtlinkspray.enums.ViewNameEnum;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.constraints.NotBlank;
@@ -19,10 +19,10 @@ public class ViewShortenerController implements ThymeleafViewControllerInterface
 
   private static final ViewNameEnum viewNameEnum = SHORTENER;
 
-  final ApiUrlShortenerController apiUrlShortenerController;
+  final ApiShortenerController apiShortenerController;
 
-  public ViewShortenerController(ApiUrlShortenerController apiUrlShortenerController) {
-    this.apiUrlShortenerController = apiUrlShortenerController;
+  public ViewShortenerController(ApiShortenerController apiShortenerController) {
+    this.apiShortenerController = apiShortenerController;
   }
 
   @Override
@@ -42,6 +42,6 @@ public class ViewShortenerController implements ThymeleafViewControllerInterface
     return getModelAndView()
         .addObject("inputLink", inputLink)
         .addObject(
-            "shortenedLink", apiUrlShortenerController.getShort(inputLink, httpServletRequest));
+            "shortenedLink", apiShortenerController.getShort(inputLink, httpServletRequest));
   }
 }

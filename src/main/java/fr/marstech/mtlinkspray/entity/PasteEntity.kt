@@ -6,7 +6,7 @@ import java.time.LocalDateTime
 import java.util.*
 
 @Document(collection = "pastes")
-data class Paste(
+data class PasteEntity(
     @Id override val id: String = UUID.randomUUID().toString(),
     override val creationDate: LocalDateTime = LocalDateTime.now(),
     override val expiresAt: LocalDateTime? = null,
