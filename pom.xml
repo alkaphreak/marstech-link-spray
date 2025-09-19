@@ -156,6 +156,12 @@
             <artifactId>spring-security-crypto</artifactId>
         </dependency>
 
+        <!-- Kotlin coroutines library -->
+        <dependency>
+            <groupId>org.jetbrains.kotlinx</groupId>
+            <artifactId>kotlinx-coroutines-core</artifactId>
+            <version>1.7.3</version>
+        </dependency>
     </dependencies>
 
     <build>

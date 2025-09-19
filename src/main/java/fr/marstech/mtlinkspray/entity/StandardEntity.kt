@@ -1,8 +1,6 @@
 package fr.marstech.mtlinkspray.entity
 
-import org.springframework.data.mongodb.core.mapping.Field
 import java.time.LocalDateTime
-import java.util.UUID
 
 /**
  * Abstract class representing a standard entity with common properties.

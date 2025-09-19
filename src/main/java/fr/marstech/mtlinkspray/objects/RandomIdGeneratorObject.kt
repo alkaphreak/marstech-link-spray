@@ -6,6 +6,7 @@ import java.util.concurrent.ThreadLocalRandom
  * Utility object for generating random IDs with optional prefix and custom charset.
  */
 object RandomIdGeneratorObject {
+
     /** Default character set: a-z, A-Z, 0-9 */
     const val DEFAULT_SIZE: Int = 6
     val DEFAULT_CHARSET: String = (('a'..'z') + ('A'..'Z') + ('0'..'9')).joinToString("")
