@@ -24,7 +24,7 @@
         <dependency.details.enabled>false</dependency.details.enabled>
         <timestamp>${maven.build.timestamp}</timestamp>
         <maven.build.timestamp.format>yyyyMMdd-HHmmss</maven.build.timestamp.format>
-        <kotlin.version>2.2.10</kotlin.version>
+        <kotlin.version>2.2.20</kotlin.version>
         <mapstruct.version>1.6.3</mapstruct.version>
         <lombok.mapstruct.binding.version>0.2.0</lombok.mapstruct.binding.version>
         <!--suppress XmlUnresolvedReference -->
@@ -156,11 +156,11 @@
             <artifactId>spring-security-crypto</artifactId>
         </dependency>
 
-        <!-- Kotlin coroutines library -->
+        <!-- https://mvnrepository.com/artifact/org.jetbrains.kotlinx/kotlinx-coroutines-core -->
         <dependency>
             <groupId>org.jetbrains.kotlinx</groupId>
             <artifactId>kotlinx-coroutines-core</artifactId>
-            <version>1.7.3</version>
+            <version>1.10.2</version>
         </dependency>
     </dependencies>
 
@@ -237,7 +237,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <jvmTarget>1.8</jvmTarget>
+                    <jvmTarget>${java.version}</jvmTarget>
                 </configuration>
             </plugin>
             <plugin>
