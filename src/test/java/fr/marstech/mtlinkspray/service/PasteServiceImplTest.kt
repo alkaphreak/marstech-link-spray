@@ -1,10 +1,12 @@
+package fr.marstech.mtlinkspray.service
+
 import fr.marstech.mtlinkspray.dto.PasteRequest
 import fr.marstech.mtlinkspray.entity.HistoryItem
 import fr.marstech.mtlinkspray.entity.PasteEntity
+import fr.marstech.mtlinkspray.enums.PastebinTextLanguageEnum
 import fr.marstech.mtlinkspray.repository.PasteRepository
-import fr.marstech.mtlinkspray.service.PasteServiceImpl
 import jakarta.servlet.http.HttpServletRequest
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito.*
@@ -21,7 +23,7 @@ class PasteServiceImplTest {
         val request = PasteRequest(
             title = "Test",
             content = "Hello",
-            language = "text",
+            language = PastebinTextLanguageEnum.TEXT.name,
             password = "secret",
             expiration = "10m",
             isPrivate = false,
@@ -30,7 +32,7 @@ class PasteServiceImplTest {
             id = "id123",
             title = request.title,
             content = request.content,
-            language = request.language,
+            language = PastebinTextLanguageEnum.fromName(request.language)!!,
             passwordHash = "hashed",
             expiresAt = null,
             isPrivate = false,
@@ -53,7 +55,7 @@ class PasteServiceImplTest {
             id = "id123",
             title = "Test",
             content = "Hello",
-            language = "text",
+            language = PastebinTextLanguageEnum.TEXT,
             passwordHash = pasteService.hashPassword("secret"),
             isPasswordProtected = true,
             author = HistoryItem(
@@ -72,7 +74,7 @@ class PasteServiceImplTest {
             id = "id123",
             title = "Test",
             content = "Hello",
-            language = "text",
+            language = PastebinTextLanguageEnum.TEXT,
             passwordHash = pasteService.hashPassword("secret"),
             isPasswordProtected = true,
             author = HistoryItem(ipAddress = "user", dateTime = LocalDateTime.now())

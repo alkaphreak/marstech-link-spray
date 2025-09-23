@@ -9,14 +9,14 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-class ApiUuidControllerTest {
-  ApiUuidController apiUuidController = new ApiUuidController();
+class UuidApiControllerTest {
+  UuidApiController uuidApiController = new UuidApiController();
 
   @Test
   void testGetUuid() {
     // Basic test: two UUIDs should be different and valid
-    String uuid1 = apiUuidController.getUuid();
-    String uuid2 = apiUuidController.getUuid();
+    String uuid1 = uuidApiController.getUuid();
+    String uuid2 = uuidApiController.getUuid();
     Assertions.assertNotNull(uuid1);
     Assertions.assertNotNull(uuid2);
     Assertions.assertNotEquals(uuid1, uuid2);
@@ -26,7 +26,7 @@ class ApiUuidControllerTest {
 
   @Test
   void testUuidFormat() {
-    String uuid = apiUuidController.getUuid();
+    String uuid = uuidApiController.getUuid();
     Pattern uuidPattern =
         Pattern.compile(
             "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
@@ -39,7 +39,7 @@ class ApiUuidControllerTest {
     int count = 100;
     Set<String> uuids =
         IntStream.range(0, count)
-            .mapToObj(i -> apiUuidController.getUuid())
+            .mapToObj(i -> uuidApiController.getUuid())
             .collect(Collectors.toSet());
     Assertions.assertEquals(count, uuids.size(), "All UUIDs should be unique");
   }

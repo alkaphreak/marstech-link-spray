@@ -29,7 +29,7 @@ package fr.marstech.mtlinkspray.service
                     linkList?.takeIf { it.isNotEmpty() }?.joinToString("\n")
 
                 /**
-                 * Builds a spray page URL with the provided links, or returns null if the list is empty/null.
+                 * Builds a spray page URL with the provided links or returns null if the list is empty/null.
                  */
                 @JvmStatic
                 fun getLinkSpray(

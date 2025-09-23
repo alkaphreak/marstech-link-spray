@@ -1,10 +1,9 @@
-package fr.marstech.mtlinkspray.controller;
+package fr.marstech.mtlinkspray.controller.view;
 
 import fr.marstech.mtlinkspray.dto.DashboardDto;
 import fr.marstech.mtlinkspray.enums.ViewNameEnum;
 import fr.marstech.mtlinkspray.service.DashboardService;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.extern.java.Log;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,14 +15,13 @@ import static fr.marstech.mtlinkspray.enums.ViewNameEnum.DASHBOARD;
 import static java.text.MessageFormat.format;
 
 @Controller
-@Log
-public class DashboardController implements ThymeleafViewControllerInterface {
+public class DashboardViewController implements ThymeleafViewControllerInterface {
 
     private static final ViewNameEnum viewNameEnum = DASHBOARD;
 
     final DashboardService dashboardService;
 
-    public DashboardController(DashboardService dashboardService) {
+    public DashboardViewController(DashboardService dashboardService) {
         this.dashboardService = dashboardService;
     }
 

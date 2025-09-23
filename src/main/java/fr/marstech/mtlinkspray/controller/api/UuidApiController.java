@@ -8,7 +8,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api")
-public class ApiUuidController {
+public class UuidApiController {
 
   @GetMapping("/uuid")
   public String getUuid() {

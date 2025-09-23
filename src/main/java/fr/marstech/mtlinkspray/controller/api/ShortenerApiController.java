@@ -2,6 +2,7 @@ package fr.marstech.mtlinkspray.controller.api;
 
 import fr.marstech.mtlinkspray.service.ShortenerService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.annotation.Validated;
@@ -10,17 +11,16 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
-import jakarta.validation.constraints.NotBlank;
 
 import static java.text.MessageFormat.format;
 
 @Validated
 @RestController
-public class ApiShortenerController {
+public class ShortenerApiController {
 
   final ShortenerService shortenerService;
 
-  public ApiShortenerController(ShortenerService shortenerService) {
+  public ShortenerApiController(ShortenerService shortenerService) {
     this.shortenerService = shortenerService;
   }
 

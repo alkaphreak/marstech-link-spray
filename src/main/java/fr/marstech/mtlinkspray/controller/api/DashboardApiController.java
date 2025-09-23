@@ -5,11 +5,11 @@ import fr.marstech.mtlinkspray.service.DashboardService;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-public class ApiDashboardController {
+public class DashboardApiController {
 
     private final DashboardService dashboardService;
 
-    public ApiDashboardController(DashboardService dashboardService) {
+    public DashboardApiController(DashboardService dashboardService) {
         this.dashboardService = dashboardService;
     }
 

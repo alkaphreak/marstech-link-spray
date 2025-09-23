@@ -1,13 +1,20 @@
-package fr.marstech.mtlinkspray.controller.api
+package fr.marstech.mtlinkspray.controller.commons
 
+import org.springframework.core.Ordered
+import org.springframework.core.annotation.Order
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ExceptionHandler
-import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.bind.annotation.RestControllerAdvice
 
+@Order(Ordered.HIGHEST_PRECEDENCE)
 @RestControllerAdvice
 class GlobalRestExceptionHandler {
+
+    @ExceptionHandler(RuntimeException::class)
+    fun handleRuntimeException(ex: RuntimeException): ResponseEntity<Map<String, String>> =
+        ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body(mapOf("error" to (ex.message ?: "Internal server error")))
 
     @ExceptionHandler(Exception::class)
     fun handleException(e: Exception): ResponseEntity<Map<String, String?>> =

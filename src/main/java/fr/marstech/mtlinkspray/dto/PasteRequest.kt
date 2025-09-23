@@ -1,12 +1,13 @@
 package fr.marstech.mtlinkspray.dto
 
-import fr.marstech.mtlinkspray.entity.HistoryItem
+import fr.marstech.mtlinkspray.enums.ExpirationEnum
+import fr.marstech.mtlinkspray.enums.PastebinTextLanguageEnum
 
 data class PasteRequest(
-    val title: String?,
+    val title: String? = null,
     val content: String,
-    val language: String,
-    val password: String?,
-    val expiration: String,
-    val isPrivate: Boolean,
+    val language: String = PastebinTextLanguageEnum.TEXT.name,
+    val password: String? = null,
+    val expiration: String = ExpirationEnum.NEVER.expiration,
+    val isPrivate: Boolean = false,
 )

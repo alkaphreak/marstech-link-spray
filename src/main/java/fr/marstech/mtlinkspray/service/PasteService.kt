@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest
 
 interface PasteService {
     fun createPaste(request: PasteRequest, httpServletRequest: HttpServletRequest): String
+    fun isPassordProtected(id: String): Boolean
     fun getPaste(id: String, password: String?): PasteEntity
     fun deletePaste(id: String)
 }

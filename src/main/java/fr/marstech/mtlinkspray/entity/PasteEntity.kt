@@ -1,5 +1,6 @@
 package fr.marstech.mtlinkspray.entity
 
+import fr.marstech.mtlinkspray.enums.PastebinTextLanguageEnum
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 import java.time.LocalDateTime
@@ -16,10 +17,10 @@ data class PasteEntity(
     override var author: HistoryItem,
     override var historyItems: MutableList<HistoryItem> = mutableListOf(),
 
-    val title: String?,
+    val title: String? = null,
     val content: String,
-    val language: String,
-    val passwordHash: String?,
+    val language: PastebinTextLanguageEnum = PastebinTextLanguageEnum.TEXT,
+    val passwordHash: String? = null,
     val isPrivate: Boolean = false,
     val isPasswordProtected: Boolean = false,
     val viewHistory: MutableList<HistoryItem> = mutableListOf(),

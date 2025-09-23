@@ -3,6 +3,7 @@ package fr.marstech.mtlinkspray.service
 import fr.marstech.mtlinkspray.dto.PasteRequest
 import fr.marstech.mtlinkspray.entity.HistoryItem
 import fr.marstech.mtlinkspray.entity.PasteEntity
+import fr.marstech.mtlinkspray.enums.PastebinTextLanguageEnum
 import fr.marstech.mtlinkspray.repository.PasteRepository
 import fr.marstech.mtlinkspray.utils.NetworkUtils
 import jakarta.servlet.http.HttpServletRequest
@@ -24,7 +25,7 @@ class PasteServiceImpl(private val pasteRepository: PasteRepository) : PasteServ
                 id = UUID.randomUUID().toString(),
                 title = request.title,
                 content = request.content,
-                language = request.language,
+                language = PastebinTextLanguageEnum.fromName(request.language)!!,
                 passwordHash = request.password?.let { hashPassword(it) },
                 expiresAt = calculateExpiration(request.expiration),
                 isPrivate = request.isPrivate,
@@ -35,10 +36,14 @@ class PasteServiceImpl(private val pasteRepository: PasteRepository) : PasteServ
             )
         ).id
 
-    override fun getPaste(id: String, password: String?): PasteEntity =
-        pasteRepository.findById(id).orElseThrow { NoSuchElementException("Paste not found") }.also {
-            if (!checkPassword(password, it)) throw IllegalAccessException("Invalid password")
-        }
+    override fun isPassordProtected(id: String): Boolean = getPaste(id).isPasswordProtected
+
+    override fun getPaste(id: String, password: String?): PasteEntity = getPaste(id).also {
+        if (!checkPassword(password, it)) throw IllegalAccessException("Invalid password")
+    }
+
+    private fun getPaste(id: String): PasteEntity =
+        pasteRepository.findById(id).orElseThrow { NoSuchElementException("Paste not found") }
 
     override fun deletePaste(id: String) {
         pasteRepository.deleteById(id)

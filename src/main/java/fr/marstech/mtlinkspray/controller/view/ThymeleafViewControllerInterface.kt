@@ -1,4 +1,4 @@
-package fr.marstech.mtlinkspray.controller
+package fr.marstech.mtlinkspray.controller.view
 
 import fr.marstech.mtlinkspray.enums.ViewNameEnum
 import fr.marstech.mtlinkspray.utils.NetworkUtils.getHeadersAsMap

@@ -17,7 +17,7 @@ object RandomIdGeneratorObject {
      * @param charset Characters to use for random generation
      * @return Random string
      */
-    private fun generate(length: Int = DEFAULT_SIZE, charset: String = DEFAULT_CHARSET): String = buildString {
+    fun generate(length: Int = DEFAULT_SIZE, charset: String = DEFAULT_CHARSET): String = buildString {
         require(length >= 0) { "Length must be non-negative" }
         repeat(times = length) {
             append(charset[ThreadLocalRandom.current().nextInt(charset.length)])

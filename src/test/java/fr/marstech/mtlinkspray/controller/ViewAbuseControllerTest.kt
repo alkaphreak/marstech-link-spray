@@ -1,9 +1,11 @@
 package fr.marstech.mtlinkspray.controller
 
+import fr.marstech.mtlinkspray.controller.view.ViewAbuseController
 import fr.marstech.mtlinkspray.enums.ViewNameEnum
 import fr.marstech.mtlinkspray.service.ReportAbuseService
 import jakarta.servlet.http.HttpServletRequest
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mockito.mock
@@ -27,7 +29,7 @@ class ViewAbuseControllerTest {
     @Test
     fun `getLink should call reportAbuse and return ModelAndView with correct view and headers`() {
         val inputAbuseDescription = "test abuse"
-        val modelAndView = controller.getLink(inputAbuseDescription, httpServletRequest)
+        val modelAndView = controller.postAbuseForm(inputAbuseDescription, httpServletRequest)
         verify(reportAbuseService).reportAbuse(eq(inputAbuseDescription), eq(httpServletRequest))
         assertEquals(ViewNameEnum.ABUSE.viewName, modelAndView.viewName)
         assertTrue(modelAndView.model.containsKey("headers"))

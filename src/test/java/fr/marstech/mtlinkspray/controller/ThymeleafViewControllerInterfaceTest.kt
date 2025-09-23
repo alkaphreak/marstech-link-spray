@@ -1,10 +1,13 @@
 package fr.marstech.mtlinkspray.controller
 
+import fr.marstech.mtlinkspray.controller.view.ThymeleafViewControllerInterface
 import fr.marstech.mtlinkspray.enums.ViewNameEnum
 import jakarta.servlet.http.HttpServletRequest
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito.*
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
 import org.springframework.web.servlet.ModelAndView
 
 class ThymeleafViewControllerInterfaceTest {

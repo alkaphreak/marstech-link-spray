@@ -1,23 +1,25 @@
-import fr.marstech.mtlinkspray.controller.DashboardController
+import fr.marstech.mtlinkspray.controller.view.DashboardViewController
 import fr.marstech.mtlinkspray.dto.DashboardDto
 import fr.marstech.mtlinkspray.service.DashboardService
-import org.junit.jupiter.api.Assertions.*
+import jakarta.servlet.http.HttpServletRequest
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito.*
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
 import org.springframework.web.servlet.ModelAndView
-import jakarta.servlet.http.HttpServletRequest
 
-class DashboardControllerTest {
+class DashboardViewControllerTest {
 
     private lateinit var dashboardService: DashboardService
-    private lateinit var controller: DashboardController
+    private lateinit var controller: DashboardViewController
     private lateinit var request: HttpServletRequest
 
     @BeforeEach
     fun setUp() {
         dashboardService = mock(DashboardService::class.java)
-        controller = DashboardController(dashboardService)
+        controller = DashboardViewController(dashboardService)
         request = mock(HttpServletRequest::class.java)
     }
 

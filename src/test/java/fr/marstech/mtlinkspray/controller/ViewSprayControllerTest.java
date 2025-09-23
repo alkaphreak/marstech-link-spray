@@ -1,6 +1,7 @@
 package fr.marstech.mtlinkspray.controller;
 
-import fr.marstech.mtlinkspray.controller.api.ApiRootController;
+import fr.marstech.mtlinkspray.controller.api.RootApiController;
+import fr.marstech.mtlinkspray.controller.view.ViewSprayController;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -23,7 +24,7 @@ class ViewSprayControllerTest {
     private MockMvc mockMvc;
 
     @Test
-    void getHome() throws Exception {
+    void getSprayPage() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.get("/spray")).andExpect(MockMvcResultMatchers.status().isOk());
     }
 
@@ -40,8 +41,8 @@ class ViewSprayControllerTest {
     @TestConfiguration
     static class ApiRootControllerTestConfig {
         @Bean(name = "apiRootController")
-        public ApiRootController apiRootController() {
-            ApiRootController mock = mock(ApiRootController.class);
+        public RootApiController apiRootController() {
+            RootApiController mock = mock(RootApiController.class);
             when(mock.getVersion()).thenReturn("test-version");
             return mock;
         }

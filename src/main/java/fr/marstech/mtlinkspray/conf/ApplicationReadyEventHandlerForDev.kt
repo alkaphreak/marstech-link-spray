@@ -6,6 +6,7 @@ import fr.marstech.mtlinkspray.repository.MtLinkSprayCollectionRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.context.event.ApplicationReadyEvent
@@ -19,7 +20,8 @@ import java.util.*
 @Configuration
 @Profile("dev")
 open class ApplicationReadyEventHandlerForDev(
-    private val environment: Environment, private val mtLinkSprayCollectionRepository: MtLinkSprayCollectionRepository
+    private val environment: Environment,
+    private val mtLinkSprayCollectionRepository: MtLinkSprayCollectionRepository,
 ) {
     @Value($$"${mt.link-spray.version}")
     private lateinit var mtLinkSprayVersion: String
@@ -27,14 +29,22 @@ open class ApplicationReadyEventHandlerForDev(
     private val scope = CoroutineScope(Dispatchers.Default)
 
     @EventListener(ApplicationReadyEvent::class)
-    internal fun displayServerUrlInConsole() = scope.launch {
-        kotlinx.coroutines.delay(3000)
+    fun displayServerUrlInConsole() = scope.launch {
+        kotlinx.coroutines.delay(1000)
+        displayLocalServerInfo()
+    }
+
+    private fun displayLocalServerInfo() {
         log.info("Local server : http://localhost:${environment.getProperty("server.port")}")
     }
 
     @EventListener(ApplicationReadyEvent::class)
-    internal fun testMongoDbConnection() = scope.launch {
-        kotlinx.coroutines.delay(4000)
+    fun testMongoDbConnection() = scope.launch {
+        kotlinx.coroutines.delay(2000)
+        testMongoDb()
+    }
+
+    internal fun testMongoDb() {
         val mongoDbUriEnvVar = environment.getProperty("spring.data.mongodb.uri")
         log.info("MongoDB URI : $mongoDbUriEnvVar")
 
@@ -55,14 +65,17 @@ open class ApplicationReadyEventHandlerForDev(
         )
 
         try {
-            mtLinkSprayCollectionRepository.save(item)
-            val found = mtLinkSprayCollectionRepository.findById(uuid)
-            if (found.isPresent) {
-                log.info("MongoDB test item found: $found")
-            } else {
-                log.warn("MongoDB test item not found")
+            mtLinkSprayCollectionRepository.save(item).let {
+                log.info("MongoDB test item saved: $it")
+                mtLinkSprayCollectionRepository.findById(uuid)
+            }.let {
+                when {
+                    it.isPresent -> log.info("MongoDB test item found: $it")
+                    else -> log.warn("MongoDB test item not found")
+                }
             }
-            mtLinkSprayCollectionRepository.findAll().forEach { log.info(it.toString()) }
+            mtLinkSprayCollectionRepository.findAll()
+                .forEach { log.info(it.toString()) }
         } catch (e: Exception) {
             log.error("MongoDB connection test failed: ${e.message}", e)
         }
@@ -70,12 +83,12 @@ open class ApplicationReadyEventHandlerForDev(
     }
 
     @EventListener(ApplicationReadyEvent::class)
-    internal fun displayAppVersion() = scope.launch {
-        kotlinx.coroutines.delay(5000)
+    fun displayAppVersion() = scope.launch {
+        kotlinx.coroutines.delay(3000)
         log.info("App version : $mtLinkSprayVersion")
     }
 
-    companion object {
-        private val log = LoggerFactory.getLogger(ApplicationReadyEventHandlerForDev::class.java)
+    companion object Companion {
+        val log: Logger = LoggerFactory.getLogger(ApplicationReadyEventHandlerForDev::class.java)
     }
 }

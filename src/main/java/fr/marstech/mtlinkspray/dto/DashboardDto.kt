@@ -1,11 +1,7 @@
 package fr.marstech.mtlinkspray.dto
 
 import fr.marstech.mtlinkspray.entity.DashboardItem
-import lombok.AllArgsConstructor
-import lombok.Data
-import lombok.NoArgsConstructor
-import lombok.experimental.SuperBuilder
-import java.util.UUID
+import java.util.*
 
 data class DashboardDto(
     val id: String = UUID.randomUUID().toString(),

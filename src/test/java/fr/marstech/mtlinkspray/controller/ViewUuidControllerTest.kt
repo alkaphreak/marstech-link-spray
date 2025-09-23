@@ -1,19 +1,20 @@
 package fr.marstech.mtlinkspray.controller
 
-import fr.marstech.mtlinkspray.controller.api.ApiUuidController
+import fr.marstech.mtlinkspray.controller.api.UuidApiController
+import fr.marstech.mtlinkspray.controller.view.ViewUuidController
 import fr.marstech.mtlinkspray.enums.ViewNameEnum
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.Mockito.*
+import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
 
 class ViewUuidControllerTest {
 
     @Mock
-    lateinit var apiUuidController: ApiUuidController
+    lateinit var uuidApiController: UuidApiController
 
     @InjectMocks
     lateinit var viewUuidController: ViewUuidController
@@ -25,7 +26,7 @@ class ViewUuidControllerTest {
 
     @Test
     fun testGetHome() {
-        `when`(apiUuidController.uuid).thenReturn("getUuidResponse")
+        `when`(uuidApiController.uuid).thenReturn("getUuidResponse")
         val result = viewUuidController.home()
         assertEquals(ViewNameEnum.UUID.viewName, result.viewName)
         assertEquals("getUuidResponse", result.model["uuid"])

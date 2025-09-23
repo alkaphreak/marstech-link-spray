@@ -1,6 +1,7 @@
 package fr.marstech.mtlinkspray.controller
 
-import fr.marstech.mtlinkspray.controller.api.ApiRootController
+import fr.marstech.mtlinkspray.controller.api.RootApiController
+import fr.marstech.mtlinkspray.controller.view.ViewRootController
 import fr.marstech.mtlinkspray.enums.ViewNameEnum
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
@@ -17,8 +18,8 @@ class ViewRootControllerTest(@Autowired val mockMvc: MockMvc) {
     @TestConfiguration
     open class MockApiRootControllerConfig {
         @Bean(name = ["apiRootController"])
-        open fun apiRootController(): ApiRootController {
-            val mock = Mockito.mock(ApiRootController::class.java)
+        open fun apiRootController(): RootApiController {
+            val mock = Mockito.mock(RootApiController::class.java)
             Mockito.`when`(mock.version).thenReturn("1.0.0")
             return mock
         }

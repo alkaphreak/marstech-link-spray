@@ -1,9 +1,8 @@
-package fr.marstech.mtlinkspray.controller;
+package fr.marstech.mtlinkspray.controller.view;
 
 import fr.marstech.mtlinkspray.enums.ViewNameEnum;
 import fr.marstech.mtlinkspray.service.ReportAbuseService;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.extern.java.Log;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,7 +13,6 @@ import static fr.marstech.mtlinkspray.enums.ViewNameEnum.ABUSE;
 import static fr.marstech.mtlinkspray.utils.NetworkUtils.getHeadersAsMap;
 
 @Controller
-@Log
 public class ViewAbuseController implements ThymeleafViewControllerInterface {
 
     private static final ViewNameEnum viewNameEnum = ABUSE;
@@ -31,7 +29,9 @@ public class ViewAbuseController implements ThymeleafViewControllerInterface {
     }
 
     @PostMapping("/abuse")
-    public ModelAndView getLink(@RequestParam String inputAbuseDecsription, HttpServletRequest httpServletRequest) {
+    public ModelAndView postAbuseForm(
+            @RequestParam String inputAbuseDecsription,
+            HttpServletRequest httpServletRequest) {
         reportAbuseService.reportAbuse(inputAbuseDecsription, httpServletRequest);
 
         return getModelAndView().addObject("headers", getHeadersAsMap(httpServletRequest));

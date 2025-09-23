@@ -19,7 +19,7 @@ data class PasteResponse(
                 id = pasteEntity.id,
                 title = pasteEntity.title,
                 content = pasteEntity.content,
-                language = pasteEntity.language,
+                language = pasteEntity.language.name,
                 createdAt = pasteEntity.creationDate,
                 expiresAt = pasteEntity.expiresAt,
                 isPrivate = pasteEntity.isPrivate,
