@@ -1,0 +1,9 @@
+@baseUrl = http://localhost:8096
+
+### Generate UUID
+GET {{baseUrl}}/api/uuid
+Accept: application/json
+
+### Get server info
+GET {{baseUrl}}/api/info
+Accept: application/json

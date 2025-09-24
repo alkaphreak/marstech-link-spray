@@ -1,0 +1,17 @@
+@baseUrl = http://localhost:8096
+
+### Create a new paste
+POST {{baseUrl}}/api/paste
+Content-Type: application/json
+
+{
+  "content": "Hello, world!",
+  "expiration": "2024-12-31T23:59:59"
+}
+
+### Get paste by ID
+GET {{baseUrl}}/api/paste/1
+Accept: application/json
+
+### Delete paste
+DELETE {{baseUrl}}/api/paste/1
