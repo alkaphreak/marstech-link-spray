@@ -3,6 +3,7 @@ package fr.marstech.mtlinkspray.controller
 import fr.marstech.mtlinkspray.controller.api.RootApiController
 import fr.marstech.mtlinkspray.controller.view.ViewRootController
 import fr.marstech.mtlinkspray.enums.ViewNameEnum
+import fr.marstech.mtlinkspray.enums.ViewNameEnum.HOME
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
@@ -17,8 +18,8 @@ class ViewRootControllerTest(@Autowired val mockMvc: MockMvc) {
 
     @TestConfiguration
     open class MockApiRootControllerConfig {
-        @Bean(name = ["apiRootController"])
-        open fun apiRootController(): RootApiController {
+        @Bean(name = ["rootApiController"])
+        open fun rootApiController(): RootApiController {
             val mock = Mockito.mock(RootApiController::class.java)
             Mockito.`when`(mock.version).thenReturn("1.0.0")
             return mock
@@ -29,7 +30,7 @@ class ViewRootControllerTest(@Autowired val mockMvc: MockMvc) {
     fun `GET home returns expected view`() {
         mockMvc.get("/").andExpect {
             status { isOk() }
-            view { name(ViewNameEnum.HOME.viewName) }
+            view { name(HOME.viewName) }
         }
     }
 
@@ -37,7 +38,7 @@ class ViewRootControllerTest(@Autowired val mockMvc: MockMvc) {
     fun `GET index returns expected view`() {
         mockMvc.get("/index").andExpect {
             status { isOk() }
-            view { name(ViewNameEnum.HOME.viewName) }
+            view { name(HOME.viewName) }
         }
     }
 }
