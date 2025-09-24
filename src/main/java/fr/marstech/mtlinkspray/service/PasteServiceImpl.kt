@@ -3,6 +3,7 @@ package fr.marstech.mtlinkspray.service
 import fr.marstech.mtlinkspray.dto.PasteRequest
 import fr.marstech.mtlinkspray.entity.HistoryItem
 import fr.marstech.mtlinkspray.entity.PasteEntity
+import fr.marstech.mtlinkspray.enums.ExpirationEnum
 import fr.marstech.mtlinkspray.enums.PastebinTextLanguageEnum
 import fr.marstech.mtlinkspray.repository.PasteRepository
 import fr.marstech.mtlinkspray.utils.NetworkUtils
@@ -27,7 +28,10 @@ class PasteServiceImpl(private val pasteRepository: PasteRepository) : PasteServ
                 content = request.content,
                 language = PastebinTextLanguageEnum.fromName(request.language)!!,
                 passwordHash = request.password?.let { hashPassword(it) },
-                expiresAt = calculateExpiration(request.expiration),
+                expiresAt = ExpirationEnum.fromExpiration(request.expiration).let {
+                    if (it == null) throw IllegalArgumentException("Invalid expiration value")
+                    else LocalDateTime.now().plus(it.temporalAmount)
+                },
                 isPrivate = request.isPrivate,
                 isPasswordProtected = !request.password.isNullOrBlank(),
                 author = HistoryItem(
@@ -48,18 +52,6 @@ class PasteServiceImpl(private val pasteRepository: PasteRepository) : PasteServ
     override fun deletePaste(id: String) {
         pasteRepository.deleteById(id)
     }
-
-    private fun calculateExpiration(expiration: String): LocalDateTime = LocalDateTime.now().plus(
-        when (expiration) {
-            "10m" -> Duration.ofMinutes(10)
-            "1h" -> Duration.ofHours(1)
-            "1d" -> Duration.ofDays(1)
-            "1w" -> Period.ofWeeks(1)
-            "1m" -> Period.ofMonths(1)
-            "never" -> Period.ofYears(100) // Effectively never
-            else -> throw IllegalArgumentException("Invalid expiration value")
-        }
-    )
 
     fun hashPassword(password: String): String = passwordEncoder.encode(password)
 

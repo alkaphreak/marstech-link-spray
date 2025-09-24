@@ -3,6 +3,7 @@ package fr.marstech.mtlinkspray.service
 import fr.marstech.mtlinkspray.dto.PasteRequest
 import fr.marstech.mtlinkspray.entity.HistoryItem
 import fr.marstech.mtlinkspray.entity.PasteEntity
+import fr.marstech.mtlinkspray.enums.ExpirationEnum
 import fr.marstech.mtlinkspray.enums.PastebinTextLanguageEnum
 import fr.marstech.mtlinkspray.repository.PasteRepository
 import jakarta.servlet.http.HttpServletRequest
@@ -25,7 +26,7 @@ class PasteServiceImplTest {
             content = "Hello",
             language = PastebinTextLanguageEnum.TEXT.name,
             password = "secret",
-            expiration = "10m",
+            expiration = ExpirationEnum.ONE_HOUR.expiration,
             isPrivate = false,
         )
         val savedPasteEntity = PasteEntity(
@@ -47,6 +48,23 @@ class PasteServiceImplTest {
         val id = pasteService.createPaste(request, httpServletRequest)
         assertEquals("id123", id)
         verify(pasteRepository).save(any(PasteEntity::class.java))
+    }
+
+    @Test
+    fun createPasteWithBadExpirationLeadShouldLeadToError() {
+        val request = PasteRequest(
+            title = "Test",
+            content = "Hello",
+            language = PastebinTextLanguageEnum.TEXT.name,
+            password = "secret",
+            expiration = "10m", // invalid expiration
+            isPrivate = false,
+        )
+        val httpServletRequest: HttpServletRequest = mock(HttpServletRequest::class.java)
+
+        assertThrows<IllegalArgumentException> {
+            pasteService.createPaste(request, httpServletRequest)
+        }
     }
 
     @Test
