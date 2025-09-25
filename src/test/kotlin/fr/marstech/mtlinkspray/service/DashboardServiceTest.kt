@@ -1,39 +1,33 @@
 package fr.marstech.mtlinkspray.service
 
-import fr.marstech.mtlinkspray.config.TestConfig
 import fr.marstech.mtlinkspray.dto.DashboardDto
+import fr.marstech.mtlinkspray.entity.DashboardEntity
 import fr.marstech.mtlinkspray.entity.DashboardItem
-import org.junit.jupiter.api.Assertions.*
+import fr.marstech.mtlinkspray.entity.DashboardLink
+import fr.marstech.mtlinkspray.entity.HistoryItem
+import fr.marstech.mtlinkspray.repository.DashboardRepository
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.springframework.beans.factory.annotation.Autowired
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection
 import org.springframework.test.context.ActiveProfiles
-import org.testcontainers.containers.MongoDBContainer
-import org.testcontainers.junit.jupiter.Container
-import org.testcontainers.junit.jupiter.Testcontainers
-import org.testcontainers.utility.DockerImageName
+import java.time.LocalDateTime
 import java.util.*
 
 @ActiveProfiles("test")
-@Testcontainers
 @SpringBootTest
 class DashboardServiceTest {
-
-    companion object {
-        @Container
-        @ServiceConnection
-        @JvmStatic
-        val mongoDBContainer = MongoDBContainer(DockerImageName.parse(TestConfig.MONGO_DB_DOCKER_IMAGE_NAME)).withReuse(true)
-    }
-
-    @Autowired
-    lateinit var dashboardService: DashboardService
+    private val dashboardRepository = mock(DashboardRepository::class.java)
+    private val dashboardService = DashboardServiceImpl(dashboardRepository)
 
     @Test
     fun `should create dashboard`() {
-        val items: MutableList<DashboardItem> = mutableListOf()
+        val items: MutableList<DashboardItem> = mutableListOf(
+            DashboardLink(name = "Link 1", description = "desc", url = "http://example.com")
+        )
         val dashboardDto =
             DashboardDto(
                 id = UUID.randomUUID().toString(),
@@ -41,6 +35,16 @@ class DashboardServiceTest {
                 items = items,
                 description = "This is a test dashboard"
             )
+        val dashboardEntity = DashboardEntity(
+            id = dashboardDto.id,
+            creationDate = LocalDateTime.now(),
+            author = HistoryItem("author"),
+            name = dashboardDto.name,
+            items = items,
+            description = dashboardDto.description
+        )
+        `when`(dashboardRepository.save(org.mockito.kotlin.any())).thenReturn(dashboardEntity)
+        `when`(dashboardRepository.findById(dashboardDto.id)).thenReturn(Optional.of(dashboardEntity))
         val createdDashboard = dashboardService.createDashboard(dashboardDto)
         assertNotNull(createdDashboard)
         assertEquals(dashboardDto.name, createdDashboard.name)
@@ -52,6 +56,13 @@ class DashboardServiceTest {
     @Test
     fun `should create dashboard with name`() {
         val dashboardName = "Test Dashboard"
+        val dashboardEntity = DashboardEntity(
+            id = UUID.randomUUID().toString(),
+            creationDate = LocalDateTime.now(),
+            author = HistoryItem("author"),
+            name = dashboardName
+        )
+        `when`(dashboardRepository.save(org.mockito.kotlin.any())).thenReturn(dashboardEntity)
         val createdDashboard = dashboardService.createDashboard(dashboardName)
         assertNotNull(createdDashboard)
         assertEquals(dashboardName, createdDashboard.name)
@@ -68,6 +79,16 @@ class DashboardServiceTest {
                 items = items,
                 description = "This is a test dashboard"
             )
+        val dashboardEntity = DashboardEntity(
+            id = dashboardDto.id,
+            creationDate = LocalDateTime.now(),
+            author = HistoryItem("author"),
+            name = dashboardDto.name,
+            items = items,
+            description = dashboardDto.description
+        )
+        `when`(dashboardRepository.save(org.mockito.kotlin.any())).thenReturn(dashboardEntity)
+        `when`(dashboardRepository.findById(dashboardDto.id)).thenReturn(Optional.of(dashboardEntity))
         val createdDashboard = dashboardService.createDashboard(dashboardDto)
         val retrievedDashboard = dashboardService.getDashboard(createdDashboard.id)
         assertNotNull(retrievedDashboard)
@@ -85,7 +106,7 @@ class DashboardServiceTest {
     }
 
     @Test
-    fun `should return null when updating dashboard`() {
+    fun `should update dashboard`() {
         val items: MutableList<DashboardItem> = mutableListOf()
         val dashboardDto =
             DashboardDto(
@@ -94,8 +115,22 @@ class DashboardServiceTest {
                 items = items,
                 description = "This is a test dashboard"
             )
+        val dashboardEntity = DashboardEntity(
+            id = dashboardDto.id,
+            creationDate = LocalDateTime.now(),
+            author = HistoryItem("author"),
+            name = dashboardDto.name,
+            items = items,
+            description = dashboardDto.description
+        )
+        `when`(dashboardRepository.save(org.mockito.kotlin.any())).thenReturn(dashboardEntity)
+        `when`(dashboardRepository.findById(dashboardDto.id)).thenReturn(Optional.of(dashboardEntity))
         val createdDashboard = dashboardService.createDashboard(dashboardDto)
         val updatedDashboard = dashboardService.updateDashboard(createdDashboard.id, dashboardDto)
-        assertNull(updatedDashboard)
+        assertNotNull(updatedDashboard)
+        assertEquals(createdDashboard.id, updatedDashboard.id)
+        assertEquals(createdDashboard.name, updatedDashboard.name)
+        assertEquals(createdDashboard.description, updatedDashboard.description)
+        assertEquals(createdDashboard.items, updatedDashboard.items)
     }
 }

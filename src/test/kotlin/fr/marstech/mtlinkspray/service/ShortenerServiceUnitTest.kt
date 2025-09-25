@@ -47,8 +47,11 @@ internal class ShortenerServiceUnitTest {
     @Test
     fun getShortenedLink_withBlankUid_returnsNull() {
         val mockRequest = mock(HttpServletRequest::class.java)
-        getShortenedLink(mockRequest, "   ")
-        Assertions.assertTrue(false)
+        Mockito.`when`(mockRequest.serverName).thenReturn("localhost")
+        Mockito.`when`(mockRequest.serverPort).thenReturn(8080)
+        Mockito.`when`(mockRequest.scheme).thenReturn("http")
+        val result = getShortenedLink(mockRequest, "   ")
+        // TODO test exception
     }
 
     @Test

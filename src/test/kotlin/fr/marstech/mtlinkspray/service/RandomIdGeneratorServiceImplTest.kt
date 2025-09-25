@@ -1,31 +1,19 @@
 package fr.marstech.mtlinkspray.service
 
-import fr.marstech.mtlinkspray.config.TestConfig
+import fr.marstech.mtlinkspray.repository.LinkItemRepository
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito.mock
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection
 import org.springframework.test.context.ActiveProfiles
-import org.testcontainers.containers.MongoDBContainer
-import org.testcontainers.junit.jupiter.Container
-import org.testcontainers.junit.jupiter.Testcontainers
-import org.testcontainers.utility.DockerImageName
 import java.text.MessageFormat
 import java.util.stream.IntStream
 
 @ActiveProfiles("test")
-@Testcontainers
 @SpringBootTest
-class RandomIdGeneratorServiceImplTest(
-    val randomIdGeneratorService: RandomIdGeneratorServiceImpl,
-) {
-    companion object {
-        @Container
-        @ServiceConnection
-        @JvmStatic
-        val mongoDBContainer =
-            MongoDBContainer(DockerImageName.parse(TestConfig.MONGO_DB_DOCKER_IMAGE_NAME)).withReuse(true)
-    }
+class RandomIdGeneratorServiceImplTest {
+    private val linkItemRepository = mock(LinkItemRepository::class.java)
+    private val randomIdGeneratorService = RandomIdGeneratorServiceImpl(linkItemRepository)
 
     @Test
     fun generateRandomId() {
@@ -67,5 +55,4 @@ class RandomIdGeneratorServiceImplTest(
             )
         )
     }
-
 }

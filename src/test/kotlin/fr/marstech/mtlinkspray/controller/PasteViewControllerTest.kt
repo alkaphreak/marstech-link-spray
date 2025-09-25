@@ -7,12 +7,12 @@ import fr.marstech.mtlinkspray.entity.PasteEntity
 import fr.marstech.mtlinkspray.enums.ViewNameEnum
 import fr.marstech.mtlinkspray.service.PasteService
 import jakarta.servlet.http.HttpServletRequest
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.`when`
+import org.mockito.Mockito.*
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.any
 import org.springframework.test.web.servlet.MockMvc
@@ -41,6 +41,11 @@ class PasteViewControllerTest {
         mockMvc = MockMvcBuilders.standaloneSetup(pasteViewController)
             .setViewResolvers(viewResolver)
             .build()
+    }
+
+    @AfterEach
+    fun tearDown() {
+        reset(pasteService)
     }
 
     @Test

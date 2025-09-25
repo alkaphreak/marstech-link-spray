@@ -4,6 +4,7 @@ import fr.marstech.mtlinkspray.utils.NetworkUtils.getFilteredPort
 import fr.marstech.mtlinkspray.utils.NetworkUtils.getHost
 import fr.marstech.mtlinkspray.utils.NetworkUtils.getScheme
 import jakarta.servlet.http.HttpServletRequest
+import jakarta.validation.constraints.NotBlank
 import org.springframework.web.util.UriComponentsBuilder
 
 interface ShortenerService {
@@ -35,7 +36,10 @@ interface ShortenerService {
          * @return the target URL
          */
         @JvmStatic
-        fun getShortenedLink(httpServletRequest: HttpServletRequest, uid: String): String =
+        fun getShortenedLink(
+            httpServletRequest: HttpServletRequest,
+            @NotBlank uid: String
+        ): String =
             UriComponentsBuilder.newInstance()
                 .scheme(getScheme(httpServletRequest))
                 .host(getHost(httpServletRequest))

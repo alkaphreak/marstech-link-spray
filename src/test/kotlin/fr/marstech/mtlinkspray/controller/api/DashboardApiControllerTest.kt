@@ -5,6 +5,7 @@ import fr.marstech.mtlinkspray.dto.DashboardDto
 import fr.marstech.mtlinkspray.service.DashboardService
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
@@ -16,9 +17,9 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 @WebMvcTest(DashboardApiController::class)
-class DashboardApiControllerTest @Autowired constructor(
-    val mockMvc: MockMvc
-) {
+class DashboardApiControllerTest {
+    @Autowired
+    lateinit var mockMvc: MockMvc
 
     @MockBean
     lateinit var dashboardService: DashboardService
@@ -38,8 +39,7 @@ class DashboardApiControllerTest @Autowired constructor(
     @Test
     fun `should create dashboard`() {
         val dashboard = DashboardDto()
-        whenever(dashboardService.createDashboard(any<DashboardDto>()))
-            .thenReturn(dashboard)
+        whenever(dashboardService.createDashboard(any<DashboardDto>())).thenReturn(dashboard)
 
         mockMvc.perform(
             post("/api/dashboard")
@@ -52,15 +52,13 @@ class DashboardApiControllerTest @Autowired constructor(
     @Test
     fun `should update dashboard`() {
         val dashboard = DashboardDto()
-        whenever(dashboardService.updateDashboard(any(), any()))
-            .thenReturn(dashboard)
+        whenever(dashboardService.updateDashboard(eq("1"), any<DashboardDto>())).thenReturn(dashboard)
 
         mockMvc.perform(
             put("/api/dashboard/1")
                 .contentType(APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dashboard))
-        )
-            .andExpect(status().isOk)
+        ).andExpect(status().isOk)
             .andExpect(content().json(objectMapper.writeValueAsString(dashboard)))
     }
 }
