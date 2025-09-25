@@ -1,0 +1,13 @@
+@baseUrl = http://localhost:8096
+
+### Spray links
+POST {{baseUrl}}/api/spray
+Content-Type: application/json
+
+{
+  "links": ["https://a.com", "https://b.com"]
+}
+
+### Get spray status
+GET {{baseUrl}}/api/spray/status
+Accept: application/json

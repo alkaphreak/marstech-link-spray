@@ -1,0 +1,18 @@
+@baseUrl = http://localhost:8096
+
+### Get dashboard data
+GET {{baseUrl}}/api/dashboard
+Accept: application/json
+
+### Update dashboard settings
+PUT {{baseUrl}}/api/dashboard/settings
+Content-Type: application/json
+
+{
+  "theme": "dark",
+  "notifications": true
+}
+
+### Check dashboard health
+GET {{baseUrl}}/actuator/health
+Accept: application/json

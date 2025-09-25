@@ -1,0 +1,13 @@
+@baseUrl = http://localhost:8096
+
+### Shorten a URL
+POST {{baseUrl}}/api/shortener
+Content-Type: application/json
+
+{
+  "url": "https://example.com"
+}
+
+### Get short URL info
+GET {{baseUrl}}/api/shortener/abc123
+Accept: application/json
