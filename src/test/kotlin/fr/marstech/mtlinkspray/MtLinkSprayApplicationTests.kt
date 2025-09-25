@@ -1,18 +1,18 @@
-package fr.marstech.mtlinkspray;
+package fr.marstech.mtlinkspray
 
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
+import fr.marstech.mtlinkspray.MtLinkSprayApplication.Companion.main
+import org.junit.jupiter.api.Test
+import org.springframework.boot.test.context.SpringBootTest
 
 @SpringBootTest
-class MtLinkSprayApplicationTests {
+internal class MtLinkSprayApplicationTests {
+    @Test
+    fun contextLoads() {
+        assert(true)
+    }
 
-  @Test
-  void contextLoads() {
-    assert true;
-  }
-
-  @Test
-  void testMain() {
-    MtLinkSprayApplication.main(new String[] {"args"});
-  }
+    @Test
+    fun testMain() {
+        main(arrayOf("args"))
+    }
 }

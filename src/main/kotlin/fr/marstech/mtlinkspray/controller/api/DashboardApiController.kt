@@ -1,30 +1,31 @@
-package fr.marstech.mtlinkspray.controller.api;
+package fr.marstech.mtlinkspray.controller.api
 
-import fr.marstech.mtlinkspray.dto.DashboardDto;
-import fr.marstech.mtlinkspray.service.DashboardService;
-import org.springframework.web.bind.annotation.*;
+import fr.marstech.mtlinkspray.dto.DashboardDto
+import fr.marstech.mtlinkspray.service.DashboardService
+import jakarta.validation.constraints.NotBlank
+import org.springframework.validation.annotation.Validated
+import org.springframework.web.bind.annotation.*
 
+@Validated
 @RestController
-public class DashboardApiController {
+@RequestMapping("/api/dashboard")
+open class DashboardApiController(
+    private val dashboardService: DashboardService
+) {
 
-    private final DashboardService dashboardService;
+    @GetMapping("/{id}")
+    fun getDashboard(
+        @PathVariable(name = "id") @NotBlank id: String
+    ): DashboardDto = dashboardService.getDashboard(id)
 
-    public DashboardApiController(DashboardService dashboardService) {
-        this.dashboardService = dashboardService;
-    }
+    @PostMapping
+    fun createDashboard(
+        dashboardDto: DashboardDto
+    ): DashboardDto = dashboardService.createDashboard(dashboardDto)
 
-    @GetMapping("/api/dashboard/{id}")
-    public DashboardDto getDashboard(@PathVariable(name = "id") String id) {
-        return dashboardService.getDashboard(id);
-    }
-
-    @PostMapping("/api/dashboard")
-    public DashboardDto createDashboard(DashboardDto dashboardDto) {
-        return dashboardService.createDashboard(dashboardDto);
-    }
-
-    @PutMapping("/api/dashboard/{id}")
-    public DashboardDto updateDashboard(@PathVariable(name = "id") String id, @RequestBody DashboardDto dashboardDto) {
-        return dashboardService.updateDashboard(id, dashboardDto);
-    }
+    @PutMapping("/{id}")
+    fun updateDashboard(
+        @PathVariable(name = "id") @NotBlank id: String,
+        @RequestBody dashboardDto: DashboardDto
+    ): DashboardDto = dashboardService.updateDashboard(id, dashboardDto)
 }

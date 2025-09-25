@@ -1,32 +1,12 @@
-package fr.marstech.mtlinkspray.service;
+package fr.marstech.mtlinkspray.service
 
-import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.data.crossstore.ChangeSetPersister;
-import org.springframework.web.util.UriComponentsBuilder;
+import fr.marstech.mtlinkspray.utils.NetworkUtils.getFilteredPort
+import fr.marstech.mtlinkspray.utils.NetworkUtils.getHost
+import fr.marstech.mtlinkspray.utils.NetworkUtils.getScheme
+import jakarta.servlet.http.HttpServletRequest
+import org.springframework.web.util.UriComponentsBuilder
 
-import static fr.marstech.mtlinkspray.utils.NetworkUtils.*;
-import static java.text.MessageFormat.format;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
-
-public interface ShortenerService {
-
-    /**
-     * Get the target URL from the shortened UID
-     *
-     * @param uid                the shortened UID
-     * @param httpServletRequest the request
-     * @return the target URL
-     */
-    static String getShortenedLink(HttpServletRequest httpServletRequest, String uid) {
-        if (isNotBlank(uid)) {
-            String host = getHost(httpServletRequest);
-            String scheme = getScheme(httpServletRequest);
-            String port = getFilteredPort(httpServletRequest);
-            return UriComponentsBuilder.newInstance().scheme(scheme).host(host).port(port).path(format("{0}", uid)).build().encode().toString();
-        } else {
-            return null;
-        }
-    }
+interface ShortenerService {
 
     /**
      * Get the shortened UID from the target URL
@@ -35,7 +15,7 @@ public interface ShortenerService {
      * @param httpServletRequest the request
      * @return the shortened UID
      */
-    String shorten(String url, HttpServletRequest httpServletRequest);
+    fun shorten(url: String, httpServletRequest: HttpServletRequest): String
 
     /**
      * Get the target URL from the shortened UID
@@ -44,5 +24,25 @@ public interface ShortenerService {
      * @param httpServletRequest the request
      * @return the target URL
      */
-    String getTarget(String uid, HttpServletRequest httpServletRequest) throws ChangeSetPersister.NotFoundException;
+    fun getTarget(uid: String, httpServletRequest: HttpServletRequest): String
+
+    companion object {
+        /**
+         * Get the target URL from the shortened UID
+         *
+         * @param uid                the shortened UID
+         * @param httpServletRequest the request
+         * @return the target URL
+         */
+        @JvmStatic
+        fun getShortenedLink(httpServletRequest: HttpServletRequest, uid: String): String =
+            UriComponentsBuilder.newInstance()
+                .scheme(getScheme(httpServletRequest))
+                .host(getHost(httpServletRequest))
+                .port(getFilteredPort(httpServletRequest))
+                .path(uid)
+                .build()
+                .encode()
+                .toString()
+    }
 }

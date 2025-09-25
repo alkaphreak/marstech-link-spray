@@ -1,84 +1,78 @@
-package fr.marstech.mtlinkspray.service;
+package fr.marstech.mtlinkspray.service
 
-import jakarta.servlet.http.HttpServletRequest;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.testcontainers.junit.jupiter.Testcontainers;
-
-import java.util.Enumeration;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.when;
+import fr.marstech.mtlinkspray.service.SprayService.Companion.getLinkList
+import jakarta.servlet.http.HttpServletRequest
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.mockito.Mockito
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.context.bean.override.mockito.MockitoBean
+import org.testcontainers.junit.jupiter.Testcontainers
+import java.util.*
 
 @Testcontainers
 @SpringBootTest
-class SprayServiceTest {
+internal class SprayServiceTest {
 
-  @Autowired SprayService sprayService;
+    @MockitoBean
+    lateinit var httpServletRequest: HttpServletRequest
 
-  @MockitoBean HttpServletRequest httpServletRequest;
+    @BeforeEach
+    fun setUp() {
+        Mockito.`when`(httpServletRequest.headerNames).thenReturn(object : Enumeration<String?> {
+                override fun hasMoreElements(): Boolean {
+                    return false
+                }
 
-  @BeforeEach
-  void setUp() {
-    when(httpServletRequest.getHeaderNames())
-        .thenReturn(
-            new Enumeration<>() {
-              @Override
-              public boolean hasMoreElements() {
-                return false;
-              }
+                override fun nextElement(): String {
+                    return ""
+                }
+            })
+        Mockito.`when`(httpServletRequest.serverName).thenReturn("localhost")
+        Mockito.`when`(httpServletRequest.serverPort).thenReturn(8080)
+        Mockito.`when`(httpServletRequest.scheme).thenReturn("http")
+        Mockito.`when`(httpServletRequest.requestURI).thenReturn("spray")
+    }
 
-              @Override
-              public String nextElement() {
-                return "";
-              }
-            });
-    when(httpServletRequest.getServerName()).thenReturn("localhost");
-    when(httpServletRequest.getServerPort()).thenReturn(8080);
-    when(httpServletRequest.getScheme()).thenReturn("http");
-    when(httpServletRequest.getRequestURI()).thenReturn("spray");
-  }
-
-  @Test
-  void testGetLinkList() {
-    String inputLinkList =
-        """
+    @Test
+    fun testGetLinkList() {
+        val inputLinkList = """
                 https://www.google.com
                 https://www.facebook.com
-                https://www.twitter.com""";
-    var linkList = SprayService.getLinkList(inputLinkList);
-    assertEquals(3, linkList.size());
-    assertEquals("https://www.google.com", linkList.get(0));
-    assertEquals("https://www.facebook.com", linkList.get(1));
-    assertEquals("https://www.twitter.com", linkList.get(2));
-  }
+                https://www.twitter.com
+                """.trimIndent()
+        val linkList: List<String> = getLinkList(inputLinkList)
+        Assertions.assertEquals(3, linkList.size)
+        Assertions.assertEquals("https://www.google.com", linkList[0])
+        Assertions.assertEquals("https://www.facebook.com", linkList[1])
+        Assertions.assertEquals("https://www.twitter.com", linkList[2])
+    }
 
-  @Test
-  void testGetLinkListText() {
-    String inputLinkList =
-        """
+    @Test
+    fun testGetLinkListText() {
+        val inputLinkList = """
                 https://www.google.com
                 https://www.facebook.com
-                https://www.twitter.com""";
-    var linkList = SprayService.getLinkList(inputLinkList);
-    var linkListText = SprayService.getLinkListText(linkList);
-    assertEquals(inputLinkList, linkListText);
-  }
+                https://www.twitter.com
+                """.trimIndent()
+        val linkList: List<String> = getLinkList(inputLinkList)
+        val linkListText = SprayService.getLinkListText(linkList)
+        Assertions.assertEquals(inputLinkList, linkListText)
+    }
 
-  @Test
-  void testGetLinkSpray() {
-    String inputLinkList =
-        """
+    @Test
+    fun testGetLinkSpray() {
+        val inputLinkList = """
                 https://www.google.com
                 https://www.facebook.com
-                https://www.twitter.com""";
-    var linkList = SprayService.getLinkList(inputLinkList);
-    var linkSpray = SprayService.getLinkSpray(httpServletRequest, linkList);
-    assertEquals(
-        "http://localhost:8080/spray/open?spray=https://www.google.com&spray=https://www.facebook.com&spray=https://www.twitter.com",
-        linkSpray);
-  }
+                https://www.twitter.com
+                """.trimIndent()
+        val linkList: List<String> = getLinkList(inputLinkList)
+        val linkSpray = SprayService.getLinkSpray(httpServletRequest, linkList)
+        Assertions.assertEquals(
+            "http://localhost:8080/spray/open?spray=https://www.google.com&spray=https://www.facebook.com&spray=https://www.twitter.com",
+            linkSpray
+        )
+    }
 }

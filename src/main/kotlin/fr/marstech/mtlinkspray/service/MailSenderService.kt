@@ -1,6 +1,5 @@
-package fr.marstech.mtlinkspray.service;
+package fr.marstech.mtlinkspray.service
 
-public interface MailSenderService {
-
-    void sendMail(String subject, String body);
+interface MailSenderService {
+    fun sendMail(subject: String, body: String)
 }

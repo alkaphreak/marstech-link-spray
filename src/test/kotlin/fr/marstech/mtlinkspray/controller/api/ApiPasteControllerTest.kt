@@ -7,6 +7,7 @@ import fr.marstech.mtlinkspray.dto.PasteRequest
 import fr.marstech.mtlinkspray.entity.HistoryItem
 import fr.marstech.mtlinkspray.entity.PasteEntity
 import fr.marstech.mtlinkspray.enums.PastebinTextLanguageEnum
+import fr.marstech.mtlinkspray.enums.PastebinTextLanguageEnum.KOTLIN
 import fr.marstech.mtlinkspray.service.PasteService
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
@@ -37,11 +38,11 @@ class ApiPasteControllerTest {
     lateinit var objectMapper: ObjectMapper
 
     @Test
-    fun `should create paste and return response`() {
+    fun shouldCreatePasteAndReturnResponse() {
         val request = PasteRequest(
             title = "Test",
             content = "Hello World",
-            language = PastebinTextLanguageEnum.KOTLIN.name,
+            language = KOTLIN.name,
             password = null,
             expiration = "1h",
             isPrivate = false,
@@ -58,13 +59,20 @@ class ApiPasteControllerTest {
             author = HistoryItem("user1")
         )
         // Use matchers for both parameters to avoid InvalidUseOfMatchersException
-        `when`(pasteService.createPaste(any(), any())).thenReturn(pasteId)
-        `when`(pasteService.getPaste(pasteId, request.password)).thenReturn(pasteEntity)
+        `when`(pasteService.createPaste(any(), any()))
+            .thenReturn(pasteId)
+        `when`(pasteService.getPaste(pasteId, request.password))
+            .thenReturn(pasteEntity)
 
-        post("/api/paste").contentType(APPLICATION_JSON).content(objectMapper.writeValueAsString(request))
-            .let(mockMvc::perform).andExpect(status().isOk).andExpect(jsonPath("$.id").value(pasteId))
-            .andExpect(jsonPath("$.title").value("Test")).andExpect(jsonPath("$.content").value("Hello World"))
-            .andExpect(jsonPath("$.language").value(PastebinTextLanguageEnum.KOTLIN.name))
+        post("/api/paste")
+            .contentType(APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request))
+            .let(mockMvc::perform)
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.id").value(pasteId))
+            .andExpect(jsonPath("$.title").value("Test"))
+            .andExpect(jsonPath("$.content").value("Hello World"))
+            .andExpect(jsonPath("$.language").value(KOTLIN.name))
     }
 
     @Test
@@ -74,18 +82,22 @@ class ApiPasteControllerTest {
             id = pasteId,
             title = "Test",
             content = "Hello World",
-            language = PastebinTextLanguageEnum.KOTLIN,
+            language = KOTLIN,
             passwordHash = null,
             isPrivate = false,
             isPasswordProtected = false,
             author = HistoryItem("user1")
         )
-        `when`(pasteService.getPaste(pasteId, null)).thenReturn(pasteEntity)
+        `when`(pasteService.getPaste(pasteId, null))
+            .thenReturn(pasteEntity)
 
-        get("/api/paste/$pasteId").let(mockMvc::perform).andExpect(status().isOk)
-            .andExpect(jsonPath("$.id").value(pasteId)).andExpect(jsonPath("$.title").value("Test"))
+        get("/api/paste/$pasteId")
+            .let(mockMvc::perform)
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.id").value(pasteId))
+            .andExpect(jsonPath("$.title").value("Test"))
             .andExpect(jsonPath("$.content").value("Hello World"))
-            .andExpect(jsonPath("$.language").value(PastebinTextLanguageEnum.KOTLIN.name))
+            .andExpect(jsonPath("$.language").value(KOTLIN.name))
     }
 
     @Test
@@ -100,10 +112,15 @@ class ApiPasteControllerTest {
         )
 
         // Mock the createPaste to throw exception
-        `when`(pasteService.createPaste(any(), any())).thenThrow(RuntimeException("Test exception"))
+        `when`(pasteService.createPaste(any(), any()))
+            .thenThrow(RuntimeException("Test exception"))
 
-        post("/api/paste").contentType(APPLICATION_JSON).content(objectMapper.writeValueAsString(request))
-            .let(mockMvc::perform).andExpect(status().isInternalServerError)
-            .andExpect(content().contentType(APPLICATION_JSON)).andExpect(jsonPath("$.error").value("Test exception"))
+        post("/api/paste")
+            .contentType(APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request))
+            .let(mockMvc::perform)
+            .andExpect(status().isInternalServerError)
+            .andExpect(content().contentType(APPLICATION_JSON))
+            .andExpect(jsonPath("$.error").value("Test exception"))
     }
 }

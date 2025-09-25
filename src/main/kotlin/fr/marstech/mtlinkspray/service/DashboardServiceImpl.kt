@@ -1,47 +1,56 @@
-package fr.marstech.mtlinkspray.service;
+package fr.marstech.mtlinkspray.service
 
-import fr.marstech.mtlinkspray.dto.DashboardDto;
-import fr.marstech.mtlinkspray.entity.DashboardEntity;
-import fr.marstech.mtlinkspray.entity.HistoryItem;
-import fr.marstech.mtlinkspray.repository.DashboardRepository;
-import org.springframework.stereotype.Service;
+import fr.marstech.mtlinkspray.dto.DashboardDto
+import fr.marstech.mtlinkspray.entity.DashboardEntity
+import fr.marstech.mtlinkspray.entity.DashboardItem
+import fr.marstech.mtlinkspray.entity.HistoryItem
+import fr.marstech.mtlinkspray.repository.DashboardRepository
+import org.springframework.stereotype.Service
+import java.time.LocalDateTime
+import java.util.*
+import java.util.Map
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+@Service(value = "dashboardService")
+class DashboardServiceImpl(
+    private val dashboardRepository: DashboardRepository
+) : DashboardService {
 
-@Service
-public class DashboardServiceImpl implements DashboardService {
-
-    private final DashboardRepository dashboardRepository;
-
-    public DashboardServiceImpl(DashboardRepository dashboardRepository) {
-        this.dashboardRepository = dashboardRepository;
+    override fun createDashboard(dashboardDto: DashboardDto): DashboardDto = DashboardEntity(
+        dashboardDto.id,
+        LocalDateTime.now(),
+        null,
+        true,
+        dashboardDto.description,
+        Map.of<String, String>(),
+        HistoryItem(),
+        mutableListOf<HistoryItem>(),
+        dashboardDto.name,
+        dashboardDto.items
+    ).let {
+        dashboardRepository.save(it)
+    }.let {
+        DashboardDto(it.id, it.name, it.items, it.description)
     }
 
-    @Override
-    public DashboardDto createDashboard(DashboardDto dashboardDto) {
+    override fun createDashboard(dashboardName: String): DashboardDto = createDashboard(
+        DashboardDto(
+            id = UUID.randomUUID().toString(),
+            name = dashboardName,
+            items = mutableListOf<DashboardItem>(),
+            description = null
+        )
+    )
 
-        DashboardEntity inputEntity = new DashboardEntity(dashboardDto.getId(), LocalDateTime.now(), null, true, dashboardDto.getDescription(), Map.of(), new HistoryItem(), List.of(), dashboardDto.getName(), dashboardDto.getItems());
-        DashboardEntity savedEntity = dashboardRepository.save(inputEntity);
+    override fun getDashboard(id: String): DashboardDto = dashboardRepository.findById(id)
+        .orElseThrow()
+        .let {
+            DashboardDto(it.id, it.name, it.items, it.description)
+        }
 
-        return new DashboardDto(savedEntity.getId(), savedEntity.getName(), savedEntity.getItems(), savedEntity.getDescription());
-    }
-
-    @Override
-    public DashboardDto createDashboard(String dashboardName) {
-        return createDashboard(new DashboardDto(UUID.randomUUID().toString(), dashboardName, List.of(), null));
-    }
-
-    @Override
-    public DashboardDto getDashboard(String id) {
-        DashboardEntity entity = dashboardRepository.findById(id).orElseThrow();
-        return new DashboardDto(entity.getId(), entity.getName(), entity.getItems(), entity.getDescription());
-    }
-
-    @Override
-    public DashboardDto updateDashboard(String id, DashboardDto dashboardDto) {
-        return null;
-    }
+    override fun updateDashboard(id: String, dashboardDto: DashboardDto): DashboardDto = DashboardDto(
+        id = id,
+        name = dashboardDto.name,
+        items = dashboardDto.items,
+        description = dashboardDto.description
+    )
 }

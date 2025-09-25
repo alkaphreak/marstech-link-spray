@@ -1,8 +1,10 @@
-package fr.marstech.mtlinkspray.service;
+package fr.marstech.mtlinkspray.service
 
-import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest
 
-public interface ReportAbuseService {
-
-    void reportAbuse(String inputAbuseDecsription, HttpServletRequest httpServletRequest);
+interface ReportAbuseService {
+    fun reportAbuse(
+        inputAbuseDecsription: String,
+        httpServletRequest: HttpServletRequest
+    )
 }

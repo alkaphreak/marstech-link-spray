@@ -1,14 +1,10 @@
-package fr.marstech.mtlinkspray.service;
+package fr.marstech.mtlinkspray.service
 
-import org.jetbrains.annotations.NotNull;
+interface RandomIdGeneratorService {
 
-public interface RandomIdGeneratorService {
+    fun generateRandomId(): String
 
-    String getGeneratedFreeId();
-
-    @NotNull String getGeneratedFreeIdWithoutCache();
-
-    String getGeneratedFreeIdWithCache();
-
-    String generateRandomId();
+    fun getGeneratedFreeId(): String
+    fun getGeneratedFreeIdWithoutCache(): String
+    fun getGeneratedFreeIdWithCache(): String
 }

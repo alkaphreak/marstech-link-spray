@@ -33,7 +33,14 @@ interface ThymeleafViewControllerInterface {
         ModelAndView("forward:$forwardUrl")
 
     /**
+     * Returns a ModelAndView to redirect to the given URL.
+     */
+    fun getModelAndViewToRedirect(redirectUrl: String): ModelAndView =
+        ModelAndView(getRedirectUrl(redirectUrl))
+
+    /**
      * Returns a redirect URL string.
      */
     fun getRedirectUrl(url: String): String = "redirect:$url"
+
 }

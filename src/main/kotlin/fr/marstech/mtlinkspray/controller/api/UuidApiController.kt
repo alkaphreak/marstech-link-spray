@@ -1,17 +1,14 @@
-package fr.marstech.mtlinkspray.controller.api;
+package fr.marstech.mtlinkspray.controller.api
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.util.UUID;
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
+import java.util.*
 
 @RestController
 @RequestMapping("/api")
-public class UuidApiController {
+class UuidApiController {
 
-  @GetMapping("/uuid")
-  public String getUuid() {
-    return UUID.randomUUID().toString();
-  }
+    @GetMapping("/uuid")
+    fun getUuid(): String = UUID.randomUUID().toString()
 }

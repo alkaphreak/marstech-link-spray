@@ -14,5 +14,5 @@ class ViewUuidController(
     override fun getModelAndView(): ModelAndView = getModelAndView(UUID)
 
     @GetMapping("/uuid")
-    fun home(): ModelAndView = getModelAndView().addObject("uuid", uuidApiController.uuid)
+    fun home(): ModelAndView = getModelAndView().addObject("uuid", uuidApiController.getUuid())
 }

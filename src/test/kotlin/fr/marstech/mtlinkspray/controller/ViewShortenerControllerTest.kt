@@ -3,17 +3,23 @@ package fr.marstech.mtlinkspray.controller
 import fr.marstech.mtlinkspray.controller.api.ShortenerApiController
 import fr.marstech.mtlinkspray.controller.view.ViewShortenerController
 import fr.marstech.mtlinkspray.enums.ViewNameEnum
+import fr.marstech.mtlinkspray.service.ShortenerService
 import jakarta.servlet.http.HttpServletRequest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
+import kotlin.jvm.java
 
 class ViewShortenerControllerTest {
 
     private val shortenerApiController = mock(ShortenerApiController::class.java)
+    private val shortenerService = mock(ShortenerService::class.java)
     private val httpServletRequest = mock(HttpServletRequest::class.java)
-    private val controller = ViewShortenerController(shortenerApiController)
+
+    private val controller = ViewShortenerController(
+        shortenerApiController, shortenerService
+    )
 
     @Test
     fun `getView should return ModelAndView with correct view name`() {

@@ -1,5 +1,5 @@
-package fr.marstech.mtlinkspray.config;
+package fr.marstech.mtlinkspray.config
 
-public abstract class TestConfig {
-    public static final String MONGO_DB_DOCKER_IMAGE_NAME = "mongo:8";
+object TestConfig {
+    const val MONGO_DB_DOCKER_IMAGE_NAME: String = "mongo:8"
 }

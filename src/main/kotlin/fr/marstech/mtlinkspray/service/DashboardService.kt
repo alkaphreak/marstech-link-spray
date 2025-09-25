@@ -1,14 +1,13 @@
-package fr.marstech.mtlinkspray.service;
+package fr.marstech.mtlinkspray.service
 
-import fr.marstech.mtlinkspray.dto.DashboardDto;
+import fr.marstech.mtlinkspray.dto.DashboardDto
 
-public interface DashboardService {
+interface DashboardService {
+    fun createDashboard(dashboardDto: DashboardDto): DashboardDto
 
-    DashboardDto createDashboard(DashboardDto dashboardDto);
+    fun createDashboard(dashboardName: String): DashboardDto
 
-    DashboardDto createDashboard(String dashboardName);
+    fun getDashboard(id: String): DashboardDto
 
-    DashboardDto getDashboard(String id);
-
-    DashboardDto updateDashboard(String id, DashboardDto dashboardDto);
+    fun updateDashboard(id: String, dashboardDto: DashboardDto): DashboardDto
 }

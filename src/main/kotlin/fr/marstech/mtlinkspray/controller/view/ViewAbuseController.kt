@@ -1,44 +1,32 @@
-package fr.marstech.mtlinkspray.controller.view;
+package fr.marstech.mtlinkspray.controller.view
 
-import fr.marstech.mtlinkspray.enums.ViewNameEnum;
-import fr.marstech.mtlinkspray.service.ReportAbuseService;
-import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.ModelAndView;
-
-import static fr.marstech.mtlinkspray.enums.ViewNameEnum.ABUSE;
-import static fr.marstech.mtlinkspray.utils.NetworkUtils.getHeadersAsMap;
+import fr.marstech.mtlinkspray.enums.ViewNameEnum.ABUSE
+import fr.marstech.mtlinkspray.service.ReportAbuseService
+import fr.marstech.mtlinkspray.utils.NetworkUtils.getHeadersAsMap
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.validation.constraints.NotBlank
+import org.springframework.stereotype.Controller
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.servlet.ModelAndView
 
 @Controller
-public class ViewAbuseController implements ThymeleafViewControllerInterface {
+@RequestMapping("/abuse")
+class ViewAbuseController(private val reportAbuseService: ReportAbuseService) : ThymeleafViewControllerInterface {
 
-    private static final ViewNameEnum viewNameEnum = ABUSE;
+    @GetMapping
+    fun getView(httpServletRequest: HttpServletRequest): ModelAndView =
+        getModelAndView().addObject("headers", getHeadersAsMap(httpServletRequest))
 
-    private final ReportAbuseService reportAbuseService;
+    @PostMapping
+    fun postAbuseForm(
+        @RequestParam @NotBlank inputAbuseDecsription: String,
+        httpServletRequest: HttpServletRequest
+    ): ModelAndView = reportAbuseService
+        .reportAbuse(inputAbuseDecsription, httpServletRequest)
+        .let { getModelAndView() }.addObject("headers", getHeadersAsMap(httpServletRequest))
 
-    public ViewAbuseController(ReportAbuseService reportAbuseService) {
-        this.reportAbuseService = reportAbuseService;
-    }
-
-    @GetMapping("/abuse")
-    public ModelAndView getView(HttpServletRequest httpServletRequest) {
-        return getModelAndView().addObject("headers", getHeadersAsMap(httpServletRequest));
-    }
-
-    @PostMapping("/abuse")
-    public ModelAndView postAbuseForm(
-            @RequestParam String inputAbuseDecsription,
-            HttpServletRequest httpServletRequest) {
-        reportAbuseService.reportAbuse(inputAbuseDecsription, httpServletRequest);
-
-        return getModelAndView().addObject("headers", getHeadersAsMap(httpServletRequest));
-    }
-
-    @Override
-    public ModelAndView getModelAndView() {
-        return getModelAndView(viewNameEnum);
-    }
+    override fun getModelAndView(): ModelAndView = getModelAndView(ABUSE)
 }

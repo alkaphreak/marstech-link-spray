@@ -26,7 +26,7 @@ class ViewUuidControllerTest {
 
     @Test
     fun testGetHome() {
-        `when`(uuidApiController.uuid).thenReturn("getUuidResponse")
+        `when`(uuidApiController.getUuid()).thenReturn("getUuidResponse")
         val result = viewUuidController.home()
         assertEquals(ViewNameEnum.UUID.viewName, result.viewName)
         assertEquals("getUuidResponse", result.model["uuid"])

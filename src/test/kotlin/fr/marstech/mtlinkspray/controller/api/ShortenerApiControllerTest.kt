@@ -1,42 +1,50 @@
-package fr.marstech.mtlinkspray.controller.api;
+package fr.marstech.mtlinkspray.controller.api
 
-import fr.marstech.mtlinkspray.service.ShortenerServiceImpl;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
+import fr.marstech.mtlinkspray.service.ShortenerService
+import fr.marstech.mtlinkspray.service.ShortenerServiceImpl
+import jakarta.servlet.http.HttpServletRequest
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.mockito.ArgumentMatchers
+import org.mockito.Mockito
+import org.mockito.Mockito.*
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.context.bean.override.mockito.MockitoBean
+import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
+import java.net.URI
 
-import java.net.URI;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-@SpringBootTest
-@AutoConfigureMockMvc
+@WebMvcTest
 class ShortenerApiControllerTest {
 
-  @Autowired private MockMvc mockMvc;
+    @Autowired
+    lateinit var mockMvc: MockMvc
 
-  @MockitoBean private ShortenerServiceImpl shortenerServiceImpl;
+    @MockitoBean
+    lateinit var shortenerService: ShortenerService
 
-  @BeforeEach
-  void setUp() throws Exception {
-    when(shortenerServiceImpl.shorten(anyString(), any()))
-        .thenReturn(URI.create("https://short.url").toURL().toString());
-  }
+    @Test
+    fun shouldGetShortenedUrl() {
+        val inputUrl = "https://example.com"
+        val shortenedUrl = "https://short.ly/abc123"
 
-  @Test
-  void getShort() throws Exception {
-    mockMvc
-        .perform(get("/api/url-shortener/shorten").param("url", "https://www.example.com"))
-        .andExpect(status().isOk())
-        .andExpect(content().string("https://short.url"));
-  }
+        `when`(
+            shortenerService.shorten(
+                ArgumentMatchers.eq(inputUrl),
+                ArgumentMatchers.any(HttpServletRequest::class.java)
+            )
+        ).thenReturn(shortenedUrl)
+
+        get("/api/url-shortener/shorten")
+            .param("url", inputUrl)
+            .let(mockMvc::perform)
+            .andExpect(status().isOk)
+            .andExpect(content().string(shortenedUrl))
+    }
 }

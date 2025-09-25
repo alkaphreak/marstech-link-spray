@@ -1,21 +1,26 @@
-package fr.marstech.mtlinkspray.controller.api;
+package fr.marstech.mtlinkspray.controller.api
 
-import fr.marstech.mtlinkspray.service.SprayService;
-import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import fr.marstech.mtlinkspray.service.SprayService
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.validation.constraints.NotBlank
+import org.springframework.http.ResponseEntity
+import org.springframework.validation.annotation.Validated
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RestController
 
-import java.util.List;
-
+@Validated
 @RestController
-public class SprayApiController {
+@RequestMapping("/api/spray")
+open class SprayApiController {
 
-    @GetMapping("/api/spray")
-    public String getSprayLink(
-            HttpServletRequest httpServletRequest,
-            @RequestParam List<String> inputLinkList
-    ) {
-        return SprayService.getLinkSpray(httpServletRequest, inputLinkList);
-    }
+    @GetMapping
+    fun getSprayLink(
+        httpServletRequest: HttpServletRequest,
+        @RequestParam @NotBlank inputLinkList: List<String>,
+    ): ResponseEntity<String> =
+        SprayService
+            .getLinkSpray(httpServletRequest, inputLinkList)
+            .let { ResponseEntity.ok(it) }
 }

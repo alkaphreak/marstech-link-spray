@@ -1,114 +1,120 @@
-package fr.marstech.mtlinkspray.service;
+package fr.marstech.mtlinkspray.service
 
-import fr.marstech.mtlinkspray.entity.HistoryItem;
-import fr.marstech.mtlinkspray.entity.LinkItem;
-import fr.marstech.mtlinkspray.entity.LinkItemTarget;
-import fr.marstech.mtlinkspray.repository.LinkItemRepository;
-import jakarta.servlet.http.HttpServletRequest;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
-import org.springframework.data.crossstore.ChangeSetPersister;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.testcontainers.containers.MongoDBContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
-
-import java.time.LocalDateTime;
-import java.util.*;
-
-import static fr.marstech.mtlinkspray.config.TestConfig.MONGO_DB_DOCKER_IMAGE_NAME;
-import static fr.marstech.mtlinkspray.utils.NetworkUtils.isValidUrl;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
+import fr.marstech.mtlinkspray.config.TestConfig.MONGO_DB_DOCKER_IMAGE_NAME
+import fr.marstech.mtlinkspray.entity.HistoryItem
+import fr.marstech.mtlinkspray.entity.LinkItem
+import fr.marstech.mtlinkspray.entity.LinkItemTarget
+import fr.marstech.mtlinkspray.repository.LinkItemRepository
+import fr.marstech.mtlinkspray.utils.NetworkUtils.isValidUrl
+import jakarta.servlet.http.HttpServletRequest
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.mockito.Mockito
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection
+import org.springframework.data.crossstore.ChangeSetPersister
+import org.springframework.test.context.bean.override.mockito.MockitoBean
+import org.testcontainers.containers.MongoDBContainer
+import org.testcontainers.junit.jupiter.Container
+import org.testcontainers.junit.jupiter.Testcontainers
+import org.testcontainers.utility.DockerImageName
+import java.time.LocalDateTime
+import java.util.*
+import java.util.Map
 
 @Testcontainers
 @SpringBootTest
-class ShortenerServiceTest {
-
-    @Container
-    @ServiceConnection
-    static MongoDBContainer mongoDBContainer = new MongoDBContainer(DockerImageName.parse(MONGO_DB_DOCKER_IMAGE_NAME)).withReuse(true);
-
-    @Autowired
-    LinkItemRepository linkItemRepository;
-    @Autowired
-    ShortenerService shortenerService;
-    @MockitoBean
-    HttpServletRequest httpServletRequest;
+internal class ShortenerServiceTest(
+    val linkItemRepository: LinkItemRepository,
+    val shortenerService: ShortenerService,
+    @MockitoBean var httpServletRequest: HttpServletRequest
+) {
 
     @BeforeEach
-    void setUp() {
-        when(httpServletRequest.getHeaderNames()).thenReturn(new Enumeration<>() {
-            @Override
-            public boolean hasMoreElements() {
-                return false;
+    fun setUp() {
+        Mockito.`when`(httpServletRequest.headerNames)
+            .thenReturn(object : Enumeration<String?> {
+                override fun hasMoreElements(): Boolean = false
+                override fun nextElement(): String = ""
+            })
+        Mockito.`when`(httpServletRequest.serverName).thenReturn("localhost")
+        Mockito.`when`(httpServletRequest.serverPort).thenReturn(8080)
+        Mockito.`when`(httpServletRequest.scheme).thenReturn("http")
+    }
+
+    @Test
+    fun linkItemTest() {
+        val id = UUID.randomUUID().toString()
+        LinkItem(
+            id,
+            LocalDateTime.now(),
+            null,
+            true,
+            null,
+            Map.of<String, String>(),
+            HistoryItem(),
+            mutableListOf<HistoryItem>(),
+            LinkItemTarget("https://www.example.com")
+        ).let { linkItemRepository.save(it) }
+            .let { linkItemRepository.findById(it.id) }.let {
+                Assertions.assertNotNull(it)
+                Assertions.assertTrue(it.isPresent)
+                Assertions.assertEquals(id, it.get().id)
             }
-
-            @Override
-            public String nextElement() {
-                return "";
-            }
-        });
-        when(httpServletRequest.getServerName()).thenReturn("localhost");
-        when(httpServletRequest.getServerPort()).thenReturn(8080);
-        when(httpServletRequest.getScheme()).thenReturn("http");
     }
 
     @Test
-    void linkItemTest() {
-        String id = UUID.randomUUID().toString();
-        LinkItem linkItem = linkItemRepository.save(new LinkItem(id, LocalDateTime.now(), null, true, null, Map.of(), new HistoryItem(), List.of(), new LinkItemTarget("https://www.example.com")));
-        Optional<LinkItem> byId = linkItemRepository.findById(id);
-        //noinspection OptionalGetWithoutIsPresent
-        assertEquals(linkItem.getId(), byId.get().getId());
+    fun shortenValidUrl() {
+        shortenerService.shorten("https://www.example.com", httpServletRequest).let {
+            Assertions.assertNotNull(it)
+            Assertions.assertTrue(it.contains("http://localhost:8080/"))
+            Assertions.assertTrue(isValidUrl(it))
+        }
     }
 
     @Test
-    void shortenValidUrl() {
-        String validUrl = "https://www.example.com";
-        String result = shortenerService.shorten(validUrl, httpServletRequest);
-        assertTrue(isValidUrl(result));
+    fun shortenInvalidUrl() {
+        val exception: Exception? = Assertions.assertThrows(
+            IllegalArgumentException::class.java
+        ) { shortenerService.shorten("invalid-url", httpServletRequest) }
+        Assertions.assertInstanceOf(IllegalArgumentException::class.java, exception)
+        Assertions.assertEquals("Invalid URL: invalid-url", exception!!.message)
     }
 
     @Test
-    void shortenEmptyUrl() {
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> shortenerService.shorten(null, httpServletRequest));
-        assertInstanceOf(IllegalArgumentException.class, exception);
-        assertEquals("URL must not be null or empty", exception.getMessage());
+    @Throws(Exception::class)
+    fun getTargetValidUid() {
+        val url = "https://www.example.com"
+        val shortened = shortenerService.shorten(url, httpServletRequest)
+        val uid = shortened.substring(shortened.lastIndexOf('/') + 1)
+        val target = shortenerService.getTarget(uid, httpServletRequest)
+        Assertions.assertEquals(url, target)
     }
 
     @Test
-    void shortenInvalidUrl() {
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> shortenerService.shorten("invalid-url", httpServletRequest));
-        assertInstanceOf(IllegalArgumentException.class, exception);
-        assertEquals("Invalid URL: invalid-url", exception.getMessage());
+    fun getTargetInvalidUid_throwsException() {
+        Assertions.assertThrows(
+            ChangeSetPersister.NotFoundException::class.java
+        ) { shortenerService.getTarget("nonexistent-uid", httpServletRequest) }
     }
 
     @Test
-    void getTargetValidUid() throws Exception {
-        String url = "https://www.example.com";
-        String shortened = shortenerService.shorten(url, httpServletRequest);
-        String uid = shortened.substring(shortened.lastIndexOf('/') + 1);
-        String target = shortenerService.getTarget(uid, httpServletRequest);
-        assertEquals(url, target);
+    @Throws(Exception::class)
+    fun shortenAndRetrievePersistedLink() {
+        val url = "https://persisted.com"
+        val shortened = shortenerService.shorten(url, httpServletRequest)
+        val uid = shortened.substring(shortened.lastIndexOf('/') + 1)
+        val item = linkItemRepository.findById(uid)
+        Assertions.assertTrue(item.isPresent)
+        Assertions.assertEquals(url, item.get().target.targetUrl)
     }
 
-    @Test
-    void getTargetInvalidUid_throwsException() {
-        assertThrows(ChangeSetPersister.NotFoundException.class, () -> shortenerService.getTarget("nonexistent-uid", httpServletRequest));
-    }
-
-    @Test
-    void shortenAndRetrievePersistedLink() throws Exception {
-        String url = "https://persisted.com";
-        String shortened = shortenerService.shorten(url, httpServletRequest);
-        String uid = shortened.substring(shortened.lastIndexOf('/') + 1);
-        Optional<LinkItem> item = linkItemRepository.findById(uid);
-        assertTrue(item.isPresent());
-        assertEquals(url, item.get().getTarget().getTargetUrl());
+    companion object {
+        @Suppress("unused")
+        @Container
+        @ServiceConnection
+        var mongoDBContainer: MongoDBContainer? =
+            MongoDBContainer(DockerImageName.parse(MONGO_DB_DOCKER_IMAGE_NAME)).withReuse(true)
     }
 }

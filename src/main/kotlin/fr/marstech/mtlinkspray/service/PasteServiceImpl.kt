@@ -14,7 +14,9 @@ import java.time.LocalDateTime
 import java.util.*
 
 @Service
-class PasteServiceImpl(private val pasteRepository: PasteRepository) : PasteService {
+class PasteServiceImpl(
+    private val pasteRepository: PasteRepository
+) : PasteService {
 
     private val passwordEncoder = BCryptPasswordEncoder()
 

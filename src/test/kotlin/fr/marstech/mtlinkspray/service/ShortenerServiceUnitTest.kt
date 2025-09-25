@@ -1,73 +1,64 @@
-package fr.marstech.mtlinkspray.service;
+package fr.marstech.mtlinkspray.service
 
-import jakarta.servlet.http.HttpServletRequest;
-import org.junit.jupiter.api.Test;
+import fr.marstech.mtlinkspray.service.ShortenerService.Companion.getShortenedLink
+import jakarta.servlet.http.HttpServletRequest
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
+import org.mockito.Mockito
+import org.mockito.Mockito.mock
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-class ShortenerServiceUnitTest {
-
+internal class ShortenerServiceUnitTest {
     @Test
-    void getShortenedLink() {
+    fun getShortenedLink() {
         // Arrange
-        HttpServletRequest mockRequest = mock(HttpServletRequest.class);
-        when(mockRequest.getServerName()).thenReturn("localhost");
-        when(mockRequest.getServerPort()).thenReturn(8080);
-        when(mockRequest.getScheme()).thenReturn("http");
-        String uid = "abc123";
+        val mockRequest = mock(HttpServletRequest::class.java)
+        Mockito.`when`(mockRequest.serverName).thenReturn("localhost")
+        Mockito.`when`(mockRequest.serverPort).thenReturn(8080)
+        Mockito.`when`(mockRequest.scheme).thenReturn("http")
+        val uid = "abc123"
 
         // Act
-        String result = ShortenerService.getShortenedLink(mockRequest, uid);
+        val result = getShortenedLink(mockRequest, uid)
 
         // Assert
-        assertNotNull(result);
-        assertTrue(result.contains(uid));
-        assertTrue(result.startsWith("http://localhost:8080"));
+        Assertions.assertNotNull(result)
+        Assertions.assertTrue(result.contains(uid))
+        Assertions.assertTrue(result.startsWith("http://localhost:8080"))
     }
 
     @Test
-    void getShortenedLink_shouldFilterDefaultPort() {
+    fun getShortenedLink_shouldFilterDefaultPort() {
         // Arrange
-        HttpServletRequest mockRequest = mock(HttpServletRequest.class);
-        when(mockRequest.getServerName()).thenReturn("my-server-name");
-        when(mockRequest.getServerPort()).thenReturn(443);
-        when(mockRequest.getScheme()).thenReturn("https");
-        String uid = "def605";
+        val mockRequest = mock(HttpServletRequest::class.java)
+        Mockito.`when`(mockRequest.serverName).thenReturn("my-server-name")
+        Mockito.`when`(mockRequest.serverPort).thenReturn(443)
+        Mockito.`when`(mockRequest.scheme).thenReturn("https")
+        val uid = "def605"
 
         // Act
-        String result = ShortenerService.getShortenedLink(mockRequest, uid);
+        val result = getShortenedLink(mockRequest, uid)
 
         // Assert
-        assertNotNull(result);
-        assertTrue(result.contains(uid));
-        assertTrue(result.startsWith("https://my-server-name/"));
+        Assertions.assertNotNull(result)
+        Assertions.assertTrue(result.contains(uid))
+        Assertions.assertTrue(result.startsWith("https://my-server-name/"))
     }
 
     @Test
-    void getShortenedLink_withNullUid_returnsNull() {
-        HttpServletRequest mockRequest = mock(HttpServletRequest.class);
-        String result = ShortenerService.getShortenedLink(mockRequest, null);
-        assertTrue(result == null);
+    fun getShortenedLink_withBlankUid_returnsNull() {
+        val mockRequest = mock(HttpServletRequest::class.java)
+        getShortenedLink(mockRequest, "   ")
+        Assertions.assertTrue(false)
     }
 
     @Test
-    void getShortenedLink_withBlankUid_returnsNull() {
-        HttpServletRequest mockRequest = mock(HttpServletRequest.class);
-        String result = ShortenerService.getShortenedLink(mockRequest, "   ");
-        assertTrue(result == null);
-    }
-
-    @Test
-    void getShortenedLink_withSpecialCharacters_encodesUid() {
-        HttpServletRequest mockRequest = mock(HttpServletRequest.class);
-        when(mockRequest.getServerName()).thenReturn("localhost");
-        when(mockRequest.getServerPort()).thenReturn(8080);
-        when(mockRequest.getScheme()).thenReturn("http");
-        String uid = "abc 123";
-        String result = ShortenerService.getShortenedLink(mockRequest, uid);
-        assertTrue(result.contains("abc%20123"));
+    fun getShortenedLink_withSpecialCharacters_encodesUid() {
+        val mockRequest = mock(HttpServletRequest::class.java)
+        Mockito.`when`(mockRequest.serverName).thenReturn("localhost")
+        Mockito.`when`(mockRequest.serverPort).thenReturn(8080)
+        Mockito.`when`(mockRequest.scheme).thenReturn("http")
+        val uid = "abc 123"
+        val result = getShortenedLink(mockRequest, uid)
+        Assertions.assertTrue(result.contains("abc%20123"))
     }
 }

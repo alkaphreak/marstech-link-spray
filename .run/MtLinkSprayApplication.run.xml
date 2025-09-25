@@ -6,7 +6,7 @@
     <selectedOptions>
       <option name="environmentVariables" />
     </selectedOptions>
-    <option name="SPRING_BOOT_MAIN_CLASS" value="fr.marstech.mtlinkspray.MtLinkSprayApplication" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="MtLinkSprayApplication" />
     <extension name="net.ashald.envfile">
       <option name="IS_ENABLED" value="false" />
       <option name="IS_SUBST" value="true" />
