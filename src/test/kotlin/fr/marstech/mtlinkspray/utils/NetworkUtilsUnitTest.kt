@@ -5,13 +5,11 @@ import fr.marstech.mtlinkspray.utils.NetworkUtils.isValidUrl
 import jakarta.servlet.http.HttpServletRequest
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
 import java.util.*
 
-@Disabled
 internal class NetworkUtilsUnitTest {
     private var mockRequest: HttpServletRequest? = null
 

@@ -5,12 +5,10 @@ import fr.marstech.mtlinkspray.enums.ViewNameEnum
 import jakarta.servlet.http.HttpServletRequest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
 import org.springframework.web.servlet.ModelAndView
 
-@Disabled
 class ThymeleafViewControllerInterfaceTest {
 
     // Provide a simple implementation for testing
@@ -21,6 +19,7 @@ class ThymeleafViewControllerInterfaceTest {
             mav.addObject("viewNameEnum", viewNameEnum)
             return mav
         }
+
         override fun getModelAndView(viewNameEnum: ViewNameEnum, httpServletRequest: HttpServletRequest): ModelAndView {
             val mav = ModelAndView(viewNameEnum.viewName)
             mav.addObject("viewNameEnum", viewNameEnum)
@@ -58,6 +57,4 @@ class ThymeleafViewControllerInterfaceTest {
         val result = controller.getRedirectUrl("/redirectUrl")
         assertEquals("redirect:/redirectUrl", result)
     }
-
-    // No Mockito verification or matcher usage in this test class. No unfinished verification present.
 }
