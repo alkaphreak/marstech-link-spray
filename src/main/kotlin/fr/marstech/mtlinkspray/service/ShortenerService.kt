@@ -22,10 +22,9 @@ interface ShortenerService {
      * Get the target URL from the shortened UID
      *
      * @param uid                the shortened UID
-     * @param httpServletRequest the request
      * @return the target URL
      */
-    fun getTarget(uid: String, httpServletRequest: HttpServletRequest): String
+    fun getTarget(uid: String): String
 
     companion object {
         /**

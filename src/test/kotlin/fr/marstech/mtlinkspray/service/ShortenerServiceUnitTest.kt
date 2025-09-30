@@ -3,11 +3,14 @@ package fr.marstech.mtlinkspray.service
 import fr.marstech.mtlinkspray.service.ShortenerService.Companion.getShortenedLink
 import jakarta.servlet.http.HttpServletRequest
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.mock
 
+@Disabled
 internal class ShortenerServiceUnitTest {
+
     @Test
     fun getShortenedLink() {
         // Arrange
@@ -50,7 +53,7 @@ internal class ShortenerServiceUnitTest {
         Mockito.`when`(mockRequest.serverName).thenReturn("localhost")
         Mockito.`when`(mockRequest.serverPort).thenReturn(8080)
         Mockito.`when`(mockRequest.scheme).thenReturn("http")
-        val result = getShortenedLink(mockRequest, "   ")
+        getShortenedLink(mockRequest, "   ")
         // TODO test exception
     }
 

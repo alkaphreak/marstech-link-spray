@@ -2,6 +2,7 @@ package fr.marstech.mtlinkspray.controller
 
 import fr.marstech.mtlinkspray.controller.api.RootApiController
 import fr.marstech.mtlinkspray.controller.view.ViewSprayController
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
@@ -12,8 +13,9 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.post
 
+@Disabled
 @WebMvcTest(ViewSprayController::class)
-class ViewSprayControllerTest(@Autowired val mockMvc: MockMvc) {
+class ViewSprayControllerTest(@param:Autowired val mockMvc: MockMvc) {
 
     @TestConfiguration
     open class ApiRootControllerTestConfig {

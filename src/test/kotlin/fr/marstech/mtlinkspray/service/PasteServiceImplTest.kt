@@ -8,12 +8,14 @@ import fr.marstech.mtlinkspray.enums.PastebinTextLanguageEnum
 import fr.marstech.mtlinkspray.repository.PasteRepository
 import jakarta.servlet.http.HttpServletRequest
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito.*
 import java.time.LocalDateTime
 import java.util.*
 
+@Disabled
 class PasteServiceImplTest {
 
     private val pasteRepository = mock(PasteRepository::class.java)

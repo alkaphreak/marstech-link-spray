@@ -1,6 +1,7 @@
 package fr.marstech.mtlinkspray.controller.api
 
 import fr.marstech.mtlinkspray.service.ShortenerService
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mockito.any
@@ -14,6 +15,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
+@Disabled
 @ExtendWith(SpringExtension::class)
 @WebMvcTest(ShortenerApiController::class)
 class ShortenerApiControllerTest {

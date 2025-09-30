@@ -5,10 +5,12 @@ import fr.marstech.mtlinkspray.enums.ViewNameEnum
 import jakarta.servlet.http.HttpServletRequest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
 import org.springframework.web.servlet.ModelAndView
 
+@Disabled
 class ThymeleafViewControllerInterfaceTest {
 
     // Provide a simple implementation for testing

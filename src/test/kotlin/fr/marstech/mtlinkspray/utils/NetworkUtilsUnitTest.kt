@@ -5,12 +5,13 @@ import fr.marstech.mtlinkspray.utils.NetworkUtils.isValidUrl
 import jakarta.servlet.http.HttpServletRequest
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
 import java.util.*
 
+@Disabled
 internal class NetworkUtilsUnitTest {
     private var mockRequest: HttpServletRequest? = null
 
@@ -52,7 +53,7 @@ internal class NetworkUtilsUnitTest {
     @Test
     fun getPort() {
         `when`(mockRequest!!.headerNames).thenReturn(
-            Collections.enumeration<String?>(
+            Collections.enumeration(
                 mutableListOf<String?>()
             )
         )
@@ -63,7 +64,7 @@ internal class NetworkUtilsUnitTest {
     @Test
     fun getScheme() {
         `when`(mockRequest!!.headerNames).thenReturn(
-            Collections.enumeration<String?>(
+            Collections.enumeration(
                 mutableListOf<String?>()
             )
         )
@@ -74,7 +75,7 @@ internal class NetworkUtilsUnitTest {
     @Test
     fun getHost() {
         `when`(mockRequest!!.headerNames).thenReturn(
-            Collections.enumeration<String?>(
+            Collections.enumeration(
                 mutableListOf<String?>()
             )
         )

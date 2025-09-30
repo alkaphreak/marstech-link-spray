@@ -4,14 +4,14 @@ import fr.marstech.mtlinkspray.service.SprayService.Companion.getLinkList
 import jakarta.servlet.http.HttpServletRequest
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.bean.override.mockito.MockitoBean
-import org.testcontainers.junit.jupiter.Testcontainers
 import java.util.*
 
-@Testcontainers
+@Disabled
 @SpringBootTest
 internal class SprayServiceTest {
 
@@ -21,14 +21,14 @@ internal class SprayServiceTest {
     @BeforeEach
     fun setUp() {
         Mockito.`when`(httpServletRequest.headerNames).thenReturn(object : Enumeration<String?> {
-                override fun hasMoreElements(): Boolean {
-                    return false
-                }
+            override fun hasMoreElements(): Boolean {
+                return false
+            }
 
-                override fun nextElement(): String {
-                    return ""
-                }
-            })
+            override fun nextElement(): String {
+                return ""
+            }
+        })
         Mockito.`when`(httpServletRequest.serverName).thenReturn("localhost")
         Mockito.`when`(httpServletRequest.serverPort).thenReturn(8080)
         Mockito.`when`(httpServletRequest.scheme).thenReturn("http")

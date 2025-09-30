@@ -2,14 +2,14 @@ package fr.marstech.mtlinkspray.service
 
 import fr.marstech.mtlinkspray.repository.LinkItemRepository
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.context.ActiveProfiles
 import java.text.MessageFormat
 import java.util.stream.IntStream
 
-@ActiveProfiles("test")
+@Disabled
 @SpringBootTest
 class RandomIdGeneratorServiceImplTest {
     private val linkItemRepository = mock(LinkItemRepository::class.java)

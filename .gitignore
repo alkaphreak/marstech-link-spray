@@ -62,3 +62,4 @@ replay_pid*
 /pom.xml.versionsBackup
 /local-docs/
 /issues/
+/.marstech-ignored/

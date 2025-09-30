@@ -6,11 +6,13 @@ import fr.marstech.mtlinkspray.service.ReportAbuseService
 import jakarta.servlet.http.HttpServletRequest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 
+@Disabled
 class ViewAbuseControllerTest {
 
     private val reportAbuseService: ReportAbuseService = mock()

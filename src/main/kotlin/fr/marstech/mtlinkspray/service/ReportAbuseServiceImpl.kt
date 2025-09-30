@@ -16,7 +16,7 @@ class ReportAbuseServiceImpl(
 
     override fun reportAbuse(
         inputAbuseDecsription: String, httpServletRequest: HttpServletRequest
-    ) = "reportAbuse".let {
+    ) = "reportAbuse".let { it ->
         AbuseReportEntity(
             UUID.randomUUID().toString(),
             LocalDateTime.now(),

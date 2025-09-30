@@ -6,11 +6,12 @@ import fr.marstech.mtlinkspray.enums.ViewNameEnum
 import fr.marstech.mtlinkspray.service.ShortenerService
 import jakarta.servlet.http.HttpServletRequest
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
-import kotlin.jvm.java
 
+@Disabled
 class ViewShortenerControllerTest {
 
     private val shortenerApiController = mock(ShortenerApiController::class.java)

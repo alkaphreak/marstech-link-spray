@@ -14,4 +14,4 @@ db.linkItem.createIndex({"id": 1}, {unique: true});
 db.linkItem.createIndex({"createdAt": 1});
 db.abuseReport.createIndex({"createdAt": 1});
 
-print('Test database initialized successfully');
+echo('Test database initialized successfully');

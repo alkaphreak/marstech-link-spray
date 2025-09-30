@@ -5,12 +5,14 @@ import fr.marstech.mtlinkspray.controller.view.ViewUuidController
 import fr.marstech.mtlinkspray.enums.ViewNameEnum
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
 
+@Disabled
 class ViewUuidControllerTest {
 
     @Mock

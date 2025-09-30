@@ -13,10 +13,10 @@ import org.springframework.mail.javamail.JavaMailSender
 open class JavaMailSenderTestConfiguration {
     @Bean
     open fun mockMailSender(): JavaMailSender {
-        val javaMailSender = Mockito.mock<JavaMailSender>(JavaMailSender::class.java)
-        Mockito.`when`<MimeMessage?>(javaMailSender.createMimeMessage())
+        val javaMailSender = Mockito.mock(JavaMailSender::class.java)
+        Mockito.`when`(javaMailSender.createMimeMessage())
             .thenAnswer(Answer { _: InvocationOnMock? ->
-                val mockSession = Mockito.mock<Session?>(Session::class.java)
+                val mockSession = Mockito.mock(Session::class.java)
                 MimeMessage(mockSession)
             })
         return javaMailSender

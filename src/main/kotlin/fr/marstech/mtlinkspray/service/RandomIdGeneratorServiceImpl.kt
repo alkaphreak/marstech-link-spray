@@ -4,30 +4,29 @@ import fr.marstech.mtlinkspray.objects.RandomIdGeneratorObject
 import fr.marstech.mtlinkspray.repository.LinkItemRepository
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
-import java.util.*
 
 @Service
 class RandomIdGeneratorServiceImpl(
     val linkItemRepository: LinkItemRepository
 ) : RandomIdGeneratorService {
 
-    @Value("\${mt.link-spray.random-id.length}")
+    @Value($$"${mt.link-spray.random-id.length}")
     var length: Int = 0
 
-    @Value("\${mt.link-spray.random-id.cache.enabled}")
+    @Value($$"${mt.link-spray.random-id.cache.enabled}")
     val isCacheEnabled: Boolean = true
 
-    @Value("\${mt.link-spray.random-id.cache.depth}")
+    @Value($$"${mt.link-spray.random-id.cache.depth}")
     val cacheDepth: Int = 100
 
     @JvmField
-    @Value("\${mt.link-spray.random-id.cache.treshold}")
+    @Value($$"${mt.link-spray.random-id.cache.treshold}")
     val cacheTreshold: Int = 10
 
-    @Value("\${mt.link-spray.random-id.prefix}")
+    @Value($$"${mt.link-spray.random-id.prefix}")
     val prefix: String = ""
 
-    @Value("\${mt.link-spray.random-id.charset}")
+    @Value($$"${mt.link-spray.random-id.charset}")
     val charset: String = (0..127).map(Int::toChar).joinToString("")
 
     val cacheIds: LinkedHashSet<String> = LinkedHashSet()

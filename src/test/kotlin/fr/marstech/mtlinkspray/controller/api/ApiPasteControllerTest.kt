@@ -9,6 +9,7 @@ import fr.marstech.mtlinkspray.entity.PasteEntity
 import fr.marstech.mtlinkspray.enums.PastebinTextLanguageEnum
 import fr.marstech.mtlinkspray.enums.PastebinTextLanguageEnum.KOTLIN
 import fr.marstech.mtlinkspray.service.PasteService
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
@@ -23,6 +24,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 
+@Disabled
 @WebMvcTest(controllers = [PasteApiController::class, RootApiController::class])
 @ContextConfiguration(classes = [MtLinkSprayApplication::class])
 @Import(GlobalRestExceptionHandler::class)

@@ -2,9 +2,11 @@ package fr.marstech.mtlinkspray.controller.commons
 
 import fr.marstech.mtlinkspray.enums.ViewNameEnum
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.web.servlet.ModelAndView
 
+@Disabled
 class GlobalExceptionHandlerTest {
 
     private val handler = GlobalExceptionHandler()

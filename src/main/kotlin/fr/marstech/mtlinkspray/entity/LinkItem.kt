@@ -2,8 +2,6 @@ package fr.marstech.mtlinkspray.entity
 
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
-import org.springframework.data.mongodb.core.mapping.Field
-import org.springframework.data.util.Pair
 import java.time.LocalDateTime
 import java.util.*
 

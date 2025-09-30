@@ -1,6 +1,5 @@
 package fr.marstech.mtlinkspray.conf
 
-import fr.marstech.mtlinkspray.repository.MtLinkSprayCollectionRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -17,7 +16,6 @@ import org.springframework.core.env.Environment
 @Profile("dev")
 open class ApplicationReadyEventHandlerForDev(
     private val environment: Environment,
-    private val mtLinkSprayCollectionRepository: MtLinkSprayCollectionRepository,
 ) {
     @Value($$"${mt.link-spray.version}")
     private lateinit var mtLinkSprayVersion: String

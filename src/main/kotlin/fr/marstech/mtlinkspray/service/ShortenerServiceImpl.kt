@@ -36,7 +36,6 @@ class ShortenerServiceImpl(
 
     override fun getTarget(
         uid: String,
-        httpServletRequest: HttpServletRequest
     ): String =
         linkItemRepository.findById(uid)
             .orElseThrow<ChangeSetPersister.NotFoundException?>(
