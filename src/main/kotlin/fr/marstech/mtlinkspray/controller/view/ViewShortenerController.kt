@@ -1,6 +1,6 @@
 package fr.marstech.mtlinkspray.controller.view
 
-import fr.marstech.mtlinkspray.controller.api.ShortenerApiController
+
 import fr.marstech.mtlinkspray.enums.ViewNameEnum.SHORTENER
 import fr.marstech.mtlinkspray.service.ShortenerService
 import jakarta.servlet.http.HttpServletRequest
@@ -14,20 +14,20 @@ import org.springframework.web.servlet.ModelAndView
 @Controller
 @RequestMapping("/shortener")
 open class ViewShortenerController(
-    val shortenerApiController: ShortenerApiController, val shortenerService: ShortenerService
+    val shortenerService: ShortenerService
 ) : ThymeleafViewControllerInterface {
 
     override fun getModelAndView() = getModelAndView(SHORTENER)
 
-    @GetMapping("/shortener")
+    @GetMapping
     fun getShortenerPage(): ModelAndView = getModelAndView()
 
-    @PostMapping("/shortener")
+    @PostMapping
     fun createShortenedLink(
         @RequestParam(name = "input-link") @NotBlank inputLink: String, httpServletRequest: HttpServletRequest
     ): ModelAndView = getModelAndView()
         .addObject("inputLink", inputLink)
-        .addObject("shortenedLink", shortenerApiController.getShort(inputLink, httpServletRequest))
+        .addObject("shortenedLink", shortenerService.shorten(inputLink, httpServletRequest))
 
     /**
      * Forward a short link to the real link
