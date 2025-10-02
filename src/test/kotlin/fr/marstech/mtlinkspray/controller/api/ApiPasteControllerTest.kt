@@ -24,7 +24,6 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 
-@Disabled
 @WebMvcTest(controllers = [PasteApiController::class, RootApiController::class])
 @ContextConfiguration(classes = [MtLinkSprayApplication::class])
 @Import(GlobalRestExceptionHandler::class)
