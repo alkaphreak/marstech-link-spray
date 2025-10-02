@@ -1,5 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="MtLinkSprayApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <option name="ACTIVE_PROFILES" value="dev" />
     <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UpdateClassesAndResources" />
     <module name="mt-link-spray" />
     <option name="SPRING_BOOT_MAIN_CLASS" value="fr.marstech.mtlinkspray.MtLinkSprayApplication" />
@@ -15,6 +16,7 @@
     </extension>
     <method v="2">
       <option name="Make" enabled="true" />
+      <option name="RunConfigurationTask" enabled="true" run_configuration_name="db.sh dev start" run_configuration_type="ShConfigurationType" />
     </method>
   </configuration>
 </component>
