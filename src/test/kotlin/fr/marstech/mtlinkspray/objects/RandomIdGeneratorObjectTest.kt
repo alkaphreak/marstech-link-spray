@@ -6,11 +6,10 @@ import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
-@Disabled
 class RandomIdGeneratorObjectTest {
 
     @Test
-    fun getDEFAULT_CHARSET() {
+    fun getDefaultCharset() {
         val charset = RandomIdGeneratorObject.DEFAULT_CHARSET
         assertTrue(charset.contains('a'))
         assertTrue(charset.contains('Z'))
@@ -19,14 +18,14 @@ class RandomIdGeneratorObjectTest {
     }
 
     @Test
-    fun generate_default() {
+    fun generateDefault() {
         val id = RandomIdGeneratorObject.generate()
         assertEquals(RandomIdGeneratorObject.DEFAULT_SIZE, id.length)
         assertTrue(id.all { RandomIdGeneratorObject.DEFAULT_CHARSET.contains(it) })
     }
 
     @Test
-    fun generate_with_prefix_and_length() {
+    fun generateWithPrefixAndLength() {
         val prefix = "abc"
         val totalLength = 10
         val id = RandomIdGeneratorObject.generate(prefix, totalLength)
@@ -36,7 +35,7 @@ class RandomIdGeneratorObjectTest {
     }
 
     @Test
-    fun generate_with_custom_charset() {
+    fun generateWithCustomCharset() {
         val charset = "XYZ"
         val id = RandomIdGeneratorObject.generate("", 5, charset)
         assertEquals(5, id.length)
@@ -44,21 +43,21 @@ class RandomIdGeneratorObjectTest {
     }
 
     @Test
-    fun generate_prefix_trimmed() {
+    fun generatePrefixTrimmed() {
         val id = RandomIdGeneratorObject.generate("  ab  ", 6)
         assertTrue(id.startsWith("ab"))
         assertEquals(6, id.length)
     }
 
     @Test
-    fun generate_totalLength_less_than_prefix_throws() {
+    fun generateTotalLengthLessThanPrefixThrows() {
         assertThrows<IllegalArgumentException> {
             RandomIdGeneratorObject.generate("prefix", 2)
         }
     }
 
     @Test
-    fun generate_zero_length() {
+    fun generateZeroLength() {
         val id = RandomIdGeneratorObject.generate("", 0)
         assertEquals(0, id.length)
     }

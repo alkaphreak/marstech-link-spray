@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.util.*
 
-@Disabled
 class UuidApiControllerTest {
 
     var uuidApiController: UuidApiController = UuidApiController()
@@ -19,8 +18,7 @@ class UuidApiControllerTest {
             { Assertions.assertNotNull(uuid2) },
             { Assertions.assertNotEquals(uuid1, uuid2) },
             { Assertions.assertEquals(uuid1, UUID.fromString(uuid1).toString()) },
-            { Assertions.assertEquals(uuid2, UUID.fromString(uuid2).toString()) }
-        )
+            { Assertions.assertEquals(uuid2, UUID.fromString(uuid2).toString()) })
     }
 
     @Test
