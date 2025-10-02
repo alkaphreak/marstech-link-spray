@@ -174,7 +174,7 @@
                 <configuration>
                     <!--suppress MavenModelInspection -->
                     <argLine>
-<!--                        ${jacoco.agent.argLine}-->
+                        ${jacoco.agent.argLine}
                         -javaagent:${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar
                         -Xshare:off
                     </argLine>
@@ -225,7 +225,6 @@
                 </configuration>
             </plugin>
 
-<!--
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -258,51 +257,46 @@
                     <target>${java.version}</target>
                 </configuration>
             </plugin>
--->
 
             <!-- JaCoCo plugin: generates code coverage reports for unit tests -->
-            <!--
-                        <plugin>
-                            <groupId>org.jacoco</groupId>
-                            <artifactId>jacoco-maven-plugin</artifactId>
-                            <version>0.8.13</version>
-                            <executions>
-                                <execution>
-                                    <id>prepare-agent</id>
-                                    <goals>
-                                        <goal>prepare-agent</goal>
-                                    </goals>
-                                    <configuration>
-                                        <propertyName>jacoco.agent.argLine</propertyName>
-                                    </configuration>
-                                </execution>
-                                <execution>
-                                    <id>report</id>
-                                    <phase>test</phase>
-                                    <goals>
-                                        <goal>report</goal>
-                                    </goals>
-                                </execution>
-                            </executions>
-                        </plugin>
-            -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.13</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                        <configuration>
+                            <propertyName>jacoco.agent.argLine</propertyName>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
-    <!--
-        <distributionManagement>
-            <repository>
-                <id>github</id> &lt;!&ndash; This should match the server-id in settings.xml &ndash;&gt;
-                <name>GitHub OWNER Apache Maven Packages</name>
-                <url>https://maven.pkg.github.com/alkaphreak/marstech-link-spray</url>
-            </repository>
-            <snapshotRepository>
-                <id>github</id> &lt;!&ndash; This should match the server-id in settings.xml &ndash;&gt;
-                <name>GitHub OWNER Apache Maven Snapshot Packages</name>
-                <url>https://maven.pkg.github.com/alkaphreak/marstech-link-spray</url>
-                <uniqueVersion>false</uniqueVersion>
-            </snapshotRepository>
-        </distributionManagement>
-    -->
+    <distributionManagement>
+        <repository>
+            <id>github</id> <!-- This should match the server-id in settings.xml -->
+            <name>GitHub OWNER Apache Maven Packages</name>
+            <url>https://maven.pkg.github.com/alkaphreak/marstech-link-spray</url>
+        </repository>
+        <snapshotRepository>
+            <id>github</id> <!-- This should match the server-id in settings.xml -->
+            <name>GitHub OWNER Apache Maven Snapshot Packages</name>
+            <url>https://maven.pkg.github.com/alkaphreak/marstech-link-spray</url>
+            <uniqueVersion>false</uniqueVersion>
+        </snapshotRepository>
+    </distributionManagement>
 
 </project>
