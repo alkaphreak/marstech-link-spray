@@ -9,7 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import java.text.MessageFormat
 import java.util.stream.IntStream
 
-@Disabled
+
 @SpringBootTest
 class RandomIdGeneratorServiceImplTest {
     private val linkItemRepository = mock(LinkItemRepository::class.java)
@@ -22,6 +22,7 @@ class RandomIdGeneratorServiceImplTest {
         Assertions.assertEquals(randomIdGeneratorService.length, randomId.length)
     }
 
+    @Disabled
     @Test
     fun benchmarkWithAndWithoutCache() {
         val testRange = 1
