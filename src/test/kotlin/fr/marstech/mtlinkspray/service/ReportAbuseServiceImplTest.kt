@@ -14,7 +14,6 @@ import org.mockito.Mockito.`when`
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.junit.jupiter.SpringExtension
 
-@Disabled
 @ExtendWith(SpringExtension::class)
 @SpringBootTest
 internal class ReportAbuseServiceImplTest {
