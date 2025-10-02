@@ -8,13 +8,12 @@ import fr.marstech.mtlinkspray.utils.NetworkUtils.isValidUrl
 import jakarta.servlet.http.HttpServletRequest
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.data.crossstore.ChangeSetPersister
 import java.time.LocalDateTime
 import java.util.*

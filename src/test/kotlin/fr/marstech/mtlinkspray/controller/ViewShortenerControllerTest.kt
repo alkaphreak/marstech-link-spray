@@ -6,7 +6,6 @@ import fr.marstech.mtlinkspray.enums.ViewNameEnum.SHORTENER
 import fr.marstech.mtlinkspray.service.ShortenerService
 import jakarta.servlet.http.HttpServletRequest
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`

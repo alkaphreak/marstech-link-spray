@@ -9,7 +9,6 @@ import fr.marstech.mtlinkspray.entity.PasteEntity
 import fr.marstech.mtlinkspray.enums.PastebinTextLanguageEnum
 import fr.marstech.mtlinkspray.enums.PastebinTextLanguageEnum.KOTLIN
 import fr.marstech.mtlinkspray.service.PasteService
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any

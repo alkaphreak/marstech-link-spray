@@ -8,7 +8,6 @@ import fr.marstech.mtlinkspray.entity.HistoryItem
 import fr.marstech.mtlinkspray.repository.DashboardRepository
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito.mock
