@@ -7,11 +7,11 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
+import org.mockito.Mockito.`when`
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.util.*
 
-@Disabled
 @SpringBootTest
 internal class SprayServiceTest {
 
@@ -20,19 +20,14 @@ internal class SprayServiceTest {
 
     @BeforeEach
     fun setUp() {
-        Mockito.`when`(httpServletRequest.headerNames).thenReturn(object : Enumeration<String?> {
-            override fun hasMoreElements(): Boolean {
-                return false
-            }
-
-            override fun nextElement(): String {
-                return ""
-            }
+        `when`(httpServletRequest.headerNames).thenReturn(object : Enumeration<String?> {
+            override fun hasMoreElements(): Boolean = false
+            override fun nextElement(): String = ""
         })
-        Mockito.`when`(httpServletRequest.serverName).thenReturn("localhost")
-        Mockito.`when`(httpServletRequest.serverPort).thenReturn(8080)
-        Mockito.`when`(httpServletRequest.scheme).thenReturn("http")
-        Mockito.`when`(httpServletRequest.requestURI).thenReturn("spray")
+        `when`(httpServletRequest.serverName).thenReturn("localhost")
+        `when`(httpServletRequest.serverPort).thenReturn(8080)
+        `when`(httpServletRequest.scheme).thenReturn("http")
+        `when`(httpServletRequest.requestURI).thenReturn("spray")
     }
 
     @Test
