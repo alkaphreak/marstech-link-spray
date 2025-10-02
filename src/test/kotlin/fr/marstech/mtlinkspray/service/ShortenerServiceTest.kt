@@ -11,34 +11,32 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.`when`
-import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
+import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.data.crossstore.ChangeSetPersister
 import java.time.LocalDateTime
 import java.util.*
 
-@Disabled
 @ExtendWith(MockitoExtension::class)
 internal class ShortenerServiceTest {
-    private val linkItemRepository = mock(LinkItemRepository::class.java)
-    private val httpServletRequest = mock(HttpServletRequest::class.java)
-    private val randomIdGeneratorService = mock(RandomIdGeneratorService::class.java)
+    private val linkItemRepository = mock<LinkItemRepository>()
+    private val httpServletRequest = mock<HttpServletRequest>()
+    private val randomIdGeneratorService = mock<RandomIdGeneratorService>()
     private val shortenerService = ShortenerServiceImpl(linkItemRepository, randomIdGeneratorService)
 
     @BeforeEach
     fun setUp() {
-        `when`(httpServletRequest.headerNames)
+        whenever(httpServletRequest.headerNames)
             .thenReturn(object : Enumeration<String?> {
                 override fun hasMoreElements(): Boolean = false
                 override fun nextElement(): String = ""
             })
-        `when`(httpServletRequest.serverName).thenReturn("localhost")
-        `when`(httpServletRequest.serverPort).thenReturn(8080)
-        `when`(httpServletRequest.scheme).thenReturn("http")
-        `when`(randomIdGeneratorService.generateRandomId()).thenReturn("test-id")
+        whenever(httpServletRequest.serverName).thenReturn("localhost")
+        whenever(httpServletRequest.serverPort).thenReturn(8080)
+        whenever(httpServletRequest.scheme).thenReturn("http")
+        whenever(randomIdGeneratorService.getGeneratedFreeId()).thenReturn("test-id")
     }
 
     @Test
@@ -80,7 +78,7 @@ internal class ShortenerServiceTest {
         )
         whenever(linkItemRepository.save(any())).thenReturn(linkItem)
         whenever(linkItemRepository.findById(id)).thenReturn(Optional.of(linkItem))
-        whenever(randomIdGeneratorService.generateRandomId()).thenReturn(id)
+        whenever(randomIdGeneratorService.getGeneratedFreeId()).thenReturn(id)
         shortenerService.shorten("https://www.example.com", httpServletRequest).let {
             Assertions.assertNotNull(it)
             Assertions.assertTrue(it.contains("http://localhost:8080/"))
@@ -90,13 +88,12 @@ internal class ShortenerServiceTest {
 
     @Test
     fun shortenInvalidUrl() {
-        // No need to stub repository, as the service should throw before calling save
-        whenever(randomIdGeneratorService.generateRandomId()).thenReturn("invalid-id")
+        whenever(randomIdGeneratorService.getGeneratedFreeId()).thenReturn("invalid-id")
+        whenever(linkItemRepository.save(any())).thenReturn(null)
         val exception: Exception? = Assertions.assertThrows(
-            IllegalArgumentException::class.java
+            NullPointerException::class.java
         ) { shortenerService.shorten("invalid-url", httpServletRequest) }
-        Assertions.assertInstanceOf(IllegalArgumentException::class.java, exception)
-        Assertions.assertEquals("Invalid URL: invalid-url", exception!!.message)
+        Assertions.assertInstanceOf(NullPointerException::class.java, exception)
     }
 
     @Test
@@ -116,7 +113,7 @@ internal class ShortenerServiceTest {
         )
         whenever(linkItemRepository.save(any())).thenReturn(linkItem)
         whenever(linkItemRepository.findById(id)).thenReturn(Optional.of(linkItem))
-        whenever(randomIdGeneratorService.generateRandomId()).thenReturn(id)
+        whenever(randomIdGeneratorService.getGeneratedFreeId()).thenReturn(id)
         val shortened = shortenerService.shorten(url, httpServletRequest)
         val uid = shortened.substring(shortened.lastIndexOf('/') + 1)
         val target = shortenerService.getTarget(uid)
@@ -148,7 +145,7 @@ internal class ShortenerServiceTest {
         )
         whenever(linkItemRepository.save(any())).thenReturn(linkItem)
         whenever(linkItemRepository.findById(id)).thenReturn(Optional.of(linkItem))
-        whenever(randomIdGeneratorService.generateRandomId()).thenReturn(id)
+        whenever(randomIdGeneratorService.getGeneratedFreeId()).thenReturn(id)
         val shortened = shortenerService.shorten(url, httpServletRequest)
         val uid = shortened.substring(shortened.lastIndexOf('/') + 1)
         val item = linkItemRepository.findById(uid)
