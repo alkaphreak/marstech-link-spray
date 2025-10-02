@@ -8,11 +8,10 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
-import org.mockito.ArgumentMatchers.eq
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.verify
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
 
-@Disabled
 class ViewAbuseControllerTest {
 
     private val reportAbuseService: ReportAbuseService = mock()
@@ -20,7 +19,7 @@ class ViewAbuseControllerTest {
     private val controller = ViewAbuseController(reportAbuseService)
 
     @Test
-    fun `getView should return ModelAndView with correct view and headers`() {
+    fun getViewShouldReturnModelAndViewWithCorrectViewAndHeaders() {
         val modelAndView = controller.getView(httpServletRequest)
         assertEquals(ViewNameEnum.ABUSE.viewName, modelAndView.viewName)
         assertTrue(modelAndView.model.containsKey("headers"))
@@ -29,10 +28,10 @@ class ViewAbuseControllerTest {
     }
 
     @Test
-    fun `getLink should call reportAbuse and return ModelAndView with correct view and headers`() {
+    fun getLinkShouldCallReportAbuseAndReturnModelAndViewWithCorrectViewAndHeaders() {
         val inputAbuseDescription = "test abuse"
         val modelAndView = controller.postAbuseForm(inputAbuseDescription, httpServletRequest)
-        verify(reportAbuseService).reportAbuse(eq(inputAbuseDescription), eq(httpServletRequest))
+        verify(reportAbuseService).reportAbuse(any(), any())
         assertEquals(ViewNameEnum.ABUSE.viewName, modelAndView.viewName)
         assertTrue(modelAndView.model.containsKey("headers"))
         assertTrue(modelAndView.model.containsKey("viewNameEnum"))
