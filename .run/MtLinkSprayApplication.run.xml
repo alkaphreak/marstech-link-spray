@@ -1,6 +1,8 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="All in mt-link-spray" type="JUnit" factoryName="JUnit" nameIsGenerated="true">
+  <configuration default="false" name="MtLinkSprayApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UpdateClassesAndResources" />
     <module name="mt-link-spray" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="fr.marstech.mtlinkspray.MtLinkSprayApplication" />
     <extension name="net.ashald.envfile">
       <option name="IS_ENABLED" value="false" />
       <option name="IS_SUBST" value="false" />
@@ -11,10 +13,6 @@
         <ENTRY IS_ENABLED="true" PARSER="runconfig" IS_EXECUTABLE="false" />
       </ENTRIES>
     </extension>
-    <option name="PACKAGE_NAME" value="" />
-    <option name="MAIN_CLASS_NAME" value="" />
-    <option name="METHOD_NAME" value="" />
-    <option name="TEST_OBJECT" value="package" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>
