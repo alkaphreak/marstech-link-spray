@@ -5,6 +5,7 @@ import fr.marstech.mtlinkspray.enums.ViewNameEnum.SHORTENER
 import fr.marstech.mtlinkspray.service.ShortenerService
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.constraints.NotBlank
+
 import org.springframework.stereotype.Controller
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
@@ -13,9 +14,7 @@ import org.springframework.web.servlet.ModelAndView
 @Validated
 @Controller
 @RequestMapping("/shortener")
-open class ViewShortenerController(
-    val shortenerService: ShortenerService
-) : ThymeleafViewControllerInterface {
+open class ViewShortenerController(val shortenerService: ShortenerService) : ThymeleafViewControllerInterface {
 
     override fun getModelAndView() = getModelAndView(SHORTENER)
 
