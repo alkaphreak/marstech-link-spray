@@ -18,7 +18,7 @@ open class ApplicationReadyEventHandlerForDev(
     private val environment: Environment,
 ) {
     @Value($$"${mt.link-spray.version}")
-    private lateinit var mtLinkSprayVersion: String
+    private var mtLinkSprayVersion: String = "unknown"
 
     private val scope = CoroutineScope(Dispatchers.Default)
 
