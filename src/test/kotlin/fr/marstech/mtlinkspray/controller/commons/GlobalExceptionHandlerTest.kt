@@ -1,6 +1,5 @@
 package fr.marstech.mtlinkspray.controller.commons
 
-import fr.marstech.mtlinkspray.enums.ViewNameEnum
 import fr.marstech.mtlinkspray.enums.ViewNameEnum.ERROR
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test

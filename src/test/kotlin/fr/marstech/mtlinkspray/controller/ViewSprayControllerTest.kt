@@ -1,54 +1,43 @@
 package fr.marstech.mtlinkspray.controller
 
-import fr.marstech.mtlinkspray.controller.api.RootApiController
 import fr.marstech.mtlinkspray.controller.view.ViewSprayController
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
-import org.springframework.boot.test.context.TestConfiguration
-import org.springframework.context.annotation.Bean
-import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.get
-import org.springframework.test.web.servlet.post
+import org.springframework.mock.web.MockHttpServletRequest
+import org.springframework.web.servlet.ModelAndView
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 
-@Disabled
-@WebMvcTest(ViewSprayController::class)
-class ViewSprayControllerTest(@param:Autowired val mockMvc: MockMvc) {
+class ViewSprayControllerTest {
 
-    @TestConfiguration
-    open class ApiRootControllerTestConfig {
-        @Bean(name = ["rootApiController"])
-        open fun rootApiController(): RootApiController {
-            val mock = Mockito.mock(RootApiController::class.java)
-            Mockito.`when`(mock.version).thenReturn("test-version")
-            return mock
-        }
+    private val controller = ViewSprayController()
+
+    @Test
+    fun `GET spray page returns correct view`() {
+        val request = MockHttpServletRequest()
+        val result: ModelAndView = controller.getSprayPage(request)
+        
+        assertEquals("spray", result.viewName)
+        assertNotNull(result.model["headers"])
     }
 
     @Test
-    fun `GET spray page returns OK`() {
-        mockMvc.get("/spray").andExpect {
-            status { isOk() }
-        }
+    fun `POST spray returns correct view with model`() {
+        val request = MockHttpServletRequest()
+        val result: ModelAndView = controller.getLink("https://example.com", request)
+        
+        assertEquals("spray", result.viewName)
+        assertNotNull(result.model["linkList"])
+        assertNotNull(result.model["linkListText"])
+        assertNotNull(result.model["linkSpray"])
     }
 
     @Test
-    fun `POST spray returns OK`() {
-        mockMvc.post("/spray") {
-            param("inputLinkList", "test")
-        }.andExpect {
-            status { isOk() }
-        }
-    }
-
-    @Test
-    fun `GET spray open returns OK`() {
-        mockMvc.get("/spray/open") {
-            param("spray", "test")
-        }.andExpect {
-            status { isOk() }
-        }
+    fun `GET spray open returns correct view with model`() {
+        val sprayList = listOf("https://example.com")
+        val result: ModelAndView = controller.getSpray(sprayList)
+        
+        assertEquals("spray", result.viewName)
+        assertNotNull(result.model["linkListText"])
+        assertNotNull(result.model["spray"])
     }
 }

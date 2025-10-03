@@ -9,7 +9,6 @@ import fr.marstech.mtlinkspray.service.PasteService
 import jakarta.servlet.http.HttpServletRequest
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.InjectMocks
 import org.mockito.Mock
@@ -23,7 +22,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.servlet.view.InternalResourceViewResolver
 
-@Disabled
 class PasteViewControllerTest {
 
     @Mock
@@ -40,9 +38,7 @@ class PasteViewControllerTest {
         val viewResolver = InternalResourceViewResolver()
         viewResolver.setPrefix("/WEB-INF/views/")
         viewResolver.setSuffix(".html")
-        mockMvc = MockMvcBuilders.standaloneSetup(pasteViewController)
-            .setViewResolvers(viewResolver)
-            .build()
+        mockMvc = MockMvcBuilders.standaloneSetup(pasteViewController).setViewResolvers(viewResolver).build()
     }
 
     @AfterEach
@@ -52,20 +48,15 @@ class PasteViewControllerTest {
 
     @Test
     fun getShowCreateFormReturnsCreateView() {
-        mockMvc.perform(get("/paste"))
-            .andExpect(status().isOk)
-            .andExpect(model().attribute("create", true))
+        mockMvc.perform(get("/paste")).andExpect(status().isOk).andExpect(model().attribute("create", true))
             .andExpect(view().name(ViewNameEnum.PASTE.viewName))
     }
 
     @Test
     fun getViewPasteReturnsProtectedViewWhenPasswordProtected() {
         `when`(pasteService.isPassordProtected("abc")).thenReturn(true)
-        mockMvc.perform(get("/paste/abc"))
-            .andExpect(status().isOk)
-            .andExpect(model().attribute("isProtected", true))
-            .andExpect(model().attribute("pasteId", "abc"))
-            .andExpect(model().attribute("create", false))
+        mockMvc.perform(get("/paste/abc")).andExpect(status().isOk).andExpect(model().attribute("isProtected", true))
+            .andExpect(model().attribute("pasteId", "abc")).andExpect(model().attribute("create", false))
             .andExpect(view().name(ViewNameEnum.PASTE.viewName))
     }
 
@@ -74,20 +65,15 @@ class PasteViewControllerTest {
         val pasteId = "abc123"
         val content = "Hello World"
         val entity = PasteEntity(
-            id = pasteId,
-            content = content,
-            author = HistoryItem("user1")
+            id = pasteId, content = content, author = HistoryItem("user1")
         )
         val response = PasteResponse.fromEntity(entity)
 
         `when`(pasteService.isPassordProtected("xyz")).thenReturn(false)
         `when`(pasteService.getPaste("xyz", null)).thenReturn(entity)
 
-        mockMvc.perform(get("/paste/xyz"))
-            .andExpect(status().isOk)
-            .andExpect(model().attribute("isProtected", false))
-            .andExpect(model().attribute("paste", response))
-            .andExpect(model().attribute("create", false))
+        mockMvc.perform(get("/paste/xyz")).andExpect(status().isOk).andExpect(model().attribute("isProtected", false))
+            .andExpect(model().attribute("paste", response)).andExpect(model().attribute("create", false))
             .andExpect(view().name(ViewNameEnum.PASTE.viewName))
     }
 
@@ -102,11 +88,8 @@ class PasteViewControllerTest {
         ).build()
 
         mockMvc.perform(
-            post("/paste")
-                .param("inputPasteBinTextArea", "test content")
+            post("/paste").param("inputPasteBinTextArea", "test content")
                 .requestAttr("jakarta.servlet.http.HttpServletRequest", request)
-        )
-            .andExpect(status().is3xxRedirection)
-            .andExpect(redirectedUrl("/paste/newid"))
+        ).andExpect(status().is3xxRedirection).andExpect(redirectedUrl("/paste/newid"))
     }
 }

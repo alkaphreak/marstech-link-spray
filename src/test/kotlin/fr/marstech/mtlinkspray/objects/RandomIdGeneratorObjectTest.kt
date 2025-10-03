@@ -1,64 +1,64 @@
 package fr.marstech.mtlinkspray.objects
 
+import fr.marstech.mtlinkspray.objects.RandomIdGeneratorObject.DEFAULT_CHARSET
+import fr.marstech.mtlinkspray.objects.RandomIdGeneratorObject.DEFAULT_SIZE
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
-@Disabled
 class RandomIdGeneratorObjectTest {
 
     @Test
-    fun getDEFAULT_CHARSET() {
-        val charset = RandomIdGeneratorObject.DEFAULT_CHARSET
+    fun getDefaultCharset() {
+        val charset = DEFAULT_CHARSET
         assertTrue(charset.contains('a'))
         assertTrue(charset.contains('Z'))
         assertTrue(charset.contains('0'))
-        assertEquals(62, charset.length)
+        assertEquals(62, charset.size) // 26 lowercase + 26 uppercase + 10 digits
     }
 
     @Test
-    fun generate_default() {
+    fun generateDefault() {
         val id = RandomIdGeneratorObject.generate()
-        assertEquals(RandomIdGeneratorObject.DEFAULT_SIZE, id.length)
-        assertTrue(id.all { RandomIdGeneratorObject.DEFAULT_CHARSET.contains(it) })
+        assertEquals(DEFAULT_SIZE, id.length)
+        assertTrue(id.all { DEFAULT_CHARSET.contains(it) })
     }
 
     @Test
-    fun generate_with_prefix_and_length() {
+    fun generateWithPrefixAndLength() {
         val prefix = "abc"
         val totalLength = 10
         val id = RandomIdGeneratorObject.generate(prefix, totalLength)
         assertTrue(id.startsWith(prefix))
         assertEquals(totalLength, id.length)
-        assertTrue(id.drop(prefix.length).all { RandomIdGeneratorObject.DEFAULT_CHARSET.contains(it) })
+        assertTrue(id.drop(prefix.length).all { DEFAULT_CHARSET.contains(it) })
     }
 
     @Test
-    fun generate_with_custom_charset() {
-        val charset = "XYZ"
+    fun generateWithCustomCharset() {
+        val charset = "XYZ".toCharArray()
         val id = RandomIdGeneratorObject.generate("", 5, charset)
         assertEquals(5, id.length)
         assertTrue(id.all { charset.contains(it) })
     }
 
     @Test
-    fun generate_prefix_trimmed() {
+    fun generatePrefixTrimmed() {
         val id = RandomIdGeneratorObject.generate("  ab  ", 6)
         assertTrue(id.startsWith("ab"))
         assertEquals(6, id.length)
     }
 
     @Test
-    fun generate_totalLength_less_than_prefix_throws() {
+    fun generateTotalLengthLessThanPrefixThrows() {
         assertThrows<IllegalArgumentException> {
             RandomIdGeneratorObject.generate("prefix", 2)
         }
     }
 
     @Test
-    fun generate_zero_length() {
+    fun generateZeroLength() {
         val id = RandomIdGeneratorObject.generate("", 0)
         assertEquals(0, id.length)
     }

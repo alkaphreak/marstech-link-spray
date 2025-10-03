@@ -42,7 +42,7 @@ class RandomIdGeneratorServiceImpl(
         val maxAttempts = 5
         do {
             if (attempts++ >= maxAttempts) throw IllegalStateException("Unable to generate a free ID after 5 attempts")
-            id = generate()
+            id = generateRandomId()
         } while (linkItemRepository.existsById(id))
         return id
     }
@@ -59,9 +59,12 @@ class RandomIdGeneratorServiceImpl(
         return cacheIds.removeFirst()
     }
 
-    fun generateRandomIds(count: Int): Set<String> = (1..count).mapTo(mutableSetOf()) { generate() }
+    fun generateRandomIds(count: Int): Set<String> = (1..count)
+        .mapTo(mutableSetOf()) { generateRandomId() }
 
-    override fun generateRandomId(): String = generate()
-
-    private fun generate(): String = RandomIdGeneratorObject.generate(prefix, length, charset)
+    override fun generateRandomId(): String = RandomIdGeneratorObject.generate(
+        prefix = prefix,
+        totalLength = length,
+        charset = charset.toCharArray()
+    )
 }

@@ -8,7 +8,6 @@ import fr.marstech.mtlinkspray.entity.HistoryItem
 import fr.marstech.mtlinkspray.repository.DashboardRepository
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito.mock
@@ -17,24 +16,22 @@ import org.springframework.boot.test.context.SpringBootTest
 import java.time.LocalDateTime
 import java.util.*
 
-@Disabled
 @SpringBootTest
 class DashboardServiceTest {
     private val dashboardRepository = mock(DashboardRepository::class.java)
     private val dashboardService = DashboardServiceImpl(dashboardRepository)
 
     @Test
-    fun `should create dashboard`() {
+    fun shouldCreateDashboard() {
         val items: MutableList<DashboardItem> = mutableListOf(
             DashboardLink(name = "Link 1", description = "desc", url = "https://example.com")
         )
-        val dashboardDto =
-            DashboardDto(
-                id = UUID.randomUUID().toString(),
-                name = "Test Dashboard",
-                items = items,
-                description = "This is a test dashboard"
-            )
+        val dashboardDto = DashboardDto(
+            id = UUID.randomUUID().toString(),
+            name = "Test Dashboard",
+            items = items,
+            description = "This is a test dashboard"
+        )
         val dashboardEntity = DashboardEntity(
             id = dashboardDto.id,
             creationDate = LocalDateTime.now(),
@@ -54,7 +51,7 @@ class DashboardServiceTest {
     }
 
     @Test
-    fun `should create dashboard with name`() {
+    fun shouldCreateDashboardWithName() {
         val dashboardName = "Test Dashboard"
         val dashboardEntity = DashboardEntity(
             id = UUID.randomUUID().toString(),
@@ -70,15 +67,14 @@ class DashboardServiceTest {
     }
 
     @Test
-    fun `should get dashboard`() {
+    fun shouldGetDashboard() {
         val items: MutableList<DashboardItem> = mutableListOf()
-        val dashboardDto =
-            DashboardDto(
-                id = UUID.randomUUID().toString(),
-                name = "Test Dashboard",
-                items = items,
-                description = "This is a test dashboard"
-            )
+        val dashboardDto = DashboardDto(
+            id = UUID.randomUUID().toString(),
+            name = "Test Dashboard",
+            items = items,
+            description = "This is a test dashboard"
+        )
         val dashboardEntity = DashboardEntity(
             id = dashboardDto.id,
             creationDate = LocalDateTime.now(),
@@ -99,22 +95,21 @@ class DashboardServiceTest {
     }
 
     @Test
-    fun `should throw when dashboard not found`() {
+    fun shouldThrowWhenDashboardNotFound() {
         assertThrows<NoSuchElementException> {
             dashboardService.getDashboard("non-existent-id")
         }
     }
 
     @Test
-    fun `should update dashboard`() {
+    fun shouldUpdateDashboard() {
         val items: MutableList<DashboardItem> = mutableListOf()
-        val dashboardDto =
-            DashboardDto(
-                id = UUID.randomUUID().toString(),
-                name = "Test Dashboard",
-                items = items,
-                description = "This is a test dashboard"
-            )
+        val dashboardDto = DashboardDto(
+            id = UUID.randomUUID().toString(),
+            name = "Test Dashboard",
+            items = items,
+            description = "This is a test dashboard"
+        )
         val dashboardEntity = DashboardEntity(
             id = dashboardDto.id,
             creationDate = LocalDateTime.now(),
