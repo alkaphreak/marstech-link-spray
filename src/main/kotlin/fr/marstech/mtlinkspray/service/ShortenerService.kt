@@ -36,8 +36,8 @@ interface ShortenerService {
          */
         @JvmStatic
         fun getShortenedLink(
-            httpServletRequest: HttpServletRequest,
-            @NotBlank uid: String
+            @NotBlank uid: String,
+            httpServletRequest: HttpServletRequest
         ): String =
             UriComponentsBuilder.newInstance()
                 .scheme(getScheme(httpServletRequest))

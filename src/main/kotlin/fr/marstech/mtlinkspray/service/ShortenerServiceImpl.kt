@@ -32,7 +32,12 @@ class ShortenerServiceImpl(
         historyItems = mutableListOf<HistoryItem>(),
         target = LinkItemTarget(url)
     ).let { linkItemRepository.save(it) }
-        .let { getShortenedLink(httpServletRequest, it.id) }
+        .let {
+            getShortenedLink(
+                uid = it.id,
+                httpServletRequest = httpServletRequest
+            )
+        }
 
     override fun getTarget(
         uid: String,

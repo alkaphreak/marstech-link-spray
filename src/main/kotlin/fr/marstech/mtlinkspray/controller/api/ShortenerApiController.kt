@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/api/url-shortener")
 open class ShortenerApiController(
-    val shortenerService: ShortenerService
+    open val shortenerService: ShortenerService
 ) {
 
     @GetMapping("/shorten")
