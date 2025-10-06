@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletRequest
 import java.net.URI
 
 object NetworkUtils {
+
     @JvmStatic
     fun getHeadersAsMap(httpServletRequest: HttpServletRequest): Map<String, String> =
         when (httpServletRequest.headerNames) {
