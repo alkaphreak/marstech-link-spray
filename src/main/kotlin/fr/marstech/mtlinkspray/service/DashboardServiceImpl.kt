@@ -10,7 +10,7 @@ import java.time.LocalDateTime
 import java.util.*
 import java.util.Map
 
-@Service(value = "dashboardService")
+@Service
 class DashboardServiceImpl(
     private val dashboardRepository: DashboardRepository
 ) : DashboardService {
@@ -42,15 +42,21 @@ class DashboardServiceImpl(
     )
 
     override fun getDashboard(id: String): DashboardDto = dashboardRepository.findById(id)
-        .orElseThrow()
+        .orElseThrow { NoSuchElementException("Dashboard not found") }
         .let {
             DashboardDto(it.id, it.name, it.items, it.description)
         }
 
-    override fun updateDashboard(id: String, dashboardDto: DashboardDto): DashboardDto = DashboardDto(
-        id = id,
-        name = dashboardDto.name,
-        items = dashboardDto.items,
-        description = dashboardDto.description
-    )
+    override fun updateDashboard(id: String, dashboardDto: DashboardDto): DashboardDto = 
+        dashboardRepository.findById(id)
+            .orElseThrow { NoSuchElementException("Dashboard not found") }
+            .let { existing ->
+                existing.copy(
+                    name = dashboardDto.name,
+                    items = dashboardDto.items,
+                    description = dashboardDto.description
+                )
+            }
+            .let { dashboardRepository.save(it) }
+            .let { DashboardDto(it.id, it.name, it.items, it.description) }
 }

@@ -26,7 +26,9 @@ class ViewAbuseController(private val reportAbuseService: ReportAbuseService) : 
         httpServletRequest: HttpServletRequest
     ): ModelAndView = reportAbuseService
         .reportAbuse(inputAbuseDecsription, httpServletRequest)
-        .let { getModelAndView() }.addObject("headers", getHeadersAsMap(httpServletRequest))
+        .let { getModelAndView() }
+        .addObject("headers", getHeadersAsMap(httpServletRequest))
+        .addObject("abuseReported", true)
 
     override fun getModelAndView(): ModelAndView = getModelAndView(ABUSE)
 }

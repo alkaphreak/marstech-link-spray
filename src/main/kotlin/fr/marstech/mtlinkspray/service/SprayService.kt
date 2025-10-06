@@ -40,7 +40,7 @@ interface SprayService {
             .scheme(getScheme(httpServletRequest))
             .host(getHost(httpServletRequest))
             .port(filterDefaultPort(getPort(httpServletRequest)))
-            .path(MessageFormat.format("{0}/open", httpServletRequest.requestURI))
+            .path("/spray/open")
             .queryParam("spray", *linkList.toTypedArray())
             .build()
             .encode()

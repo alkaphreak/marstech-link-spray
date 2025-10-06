@@ -19,7 +19,6 @@ class RandomIdGeneratorServiceImpl(
     @Value($$"${mt.link-spray.random-id.cache.depth}")
     val cacheDepth: Int = 100
 
-    @JvmField
     @Value($$"${mt.link-spray.random-id.cache.treshold}")
     val cacheTreshold: Int = 10
 

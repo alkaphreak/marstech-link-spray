@@ -45,10 +45,28 @@
 
             <div class="col" th:if="${!create and !isProtected}">
                 <div class="mb-3">
-                    <label class="form-label" for="outputPasteBinTextArea">
-                        Your paste ID is :
-                        <span th:text="${paste.id}"></span>
-                    </label>
+                    <label class="form-label" for="inputPasteBinId">Your paste ID is:</label>
+                    <input class="form-control-plaintext user-select-all"
+                           id="inputPasteBinId"
+                           readonly="readonly"
+                           th:value="${paste.id}"
+                           type="text"/>
+
+                    <label class="form-label" for="inputPasteBinUrl">Your paste URL is:</label>
+                    <!--/*@thymesVar id="pasteBinUrl" type="java.lang.String"*/-->
+                    <input class="form-control-plaintext user-select-all"
+                           id="inputPasteBinUrl"
+                           readonly="readonly"
+                           th:value="${pasteBinUrl}"
+                           type="text"/>
+
+                    <button class="btn btn-outline-secondary btn-sm"
+                            onclick="copyFormInputValueToClipboard('inputPasteBinUrl','liveAlertPlaceholder')"
+                            type="button"><i class="bi bi-clipboard"></i> Copy my paste URL
+                    </button>
+                    <div id="liveAlertPlaceholder"></div>
+
+                    <label for="outputPasteBinTextArea">Your paste</label>
                     <textarea aria-describedby="outputPasteBinTextAreaHelp"
                               class="form-control"
                               id="outputPasteBinTextArea"

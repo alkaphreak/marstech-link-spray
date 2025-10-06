@@ -6,9 +6,9 @@ import org.springframework.web.bind.annotation.RestController
 import java.util.*
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/uuid")
 class UuidApiController {
 
-    @GetMapping("/uuid")
+    @GetMapping()
     fun getUuid(): String = UUID.randomUUID().toString()
 }

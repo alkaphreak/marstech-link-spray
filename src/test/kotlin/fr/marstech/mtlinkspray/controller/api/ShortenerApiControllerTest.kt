@@ -19,7 +19,13 @@ class ShortenerApiControllerTest {
 
     @BeforeEach
     fun setup() {
-        mockMvc = MockMvcBuilders.standaloneSetup(ShortenerApiController(shortenerService)).build()
+        val validator = org.springframework.validation.beanvalidation.LocalValidatorFactoryBean()
+        validator.afterPropertiesSet()
+        
+        mockMvc = MockMvcBuilders.standaloneSetup(ShortenerApiController(shortenerService))
+            .setControllerAdvice(fr.marstech.mtlinkspray.controller.commons.GlobalRestExceptionHandler())
+            .setValidator(validator)
+            .build()
     }
 
     @Test
@@ -32,5 +38,32 @@ class ShortenerApiControllerTest {
         mockMvc.perform(get("/api/url-shortener/shorten").param("url", inputUrl))
             .andExpect(status().isOk)
             .andExpect(content().string(shortenedUrl))
+    }
+
+    @Test
+    fun shouldReturn400ForMissingUrl() {
+        mockMvc.perform(get("/api/url-shortener/shorten"))
+            .andExpect(status().isBadRequest)
+    }
+
+    @Test
+    fun shouldReturn400ForBlankUrl() {
+        mockMvc.perform(get("/api/url-shortener/shorten").param("url", ""))
+            .andExpect(status().isBadRequest)
+    }
+
+    @Test
+    fun shouldReturn400ForWhitespaceUrl() {
+        mockMvc.perform(get("/api/url-shortener/shorten").param("url", "   "))
+            .andExpect(status().isBadRequest)
+    }
+
+    @Test
+    fun shouldHandleServiceException() {
+        whenever(shortenerService.shorten(any<String>(), any()))
+            .thenThrow(IllegalArgumentException("Service error"))
+
+        mockMvc.perform(get("/api/url-shortener/shorten").param("url", "https://example.com"))
+            .andExpect(status().isBadRequest)
     }
 }

@@ -23,7 +23,13 @@ class DashboardApiControllerTest {
 
     @BeforeEach
     fun setup() {
-        mockMvc = MockMvcBuilders.standaloneSetup(DashboardApiController(dashboardService)).build()
+        val validator = org.springframework.validation.beanvalidation.LocalValidatorFactoryBean()
+        validator.afterPropertiesSet()
+        
+        mockMvc = MockMvcBuilders.standaloneSetup(DashboardApiController(dashboardService))
+            .setControllerAdvice(fr.marstech.mtlinkspray.controller.commons.GlobalRestExceptionHandler())
+            .setValidator(validator)
+            .build()
     }
 
     @Test
@@ -53,5 +59,33 @@ class DashboardApiControllerTest {
         mockMvc.perform(
             put("/api/dashboard/1").contentType(APPLICATION_JSON).content(objectMapper.writeValueAsString(dashboard))
         ).andExpect(status().isOk).andExpect(content().json(objectMapper.writeValueAsString(dashboard)))
+    }
+
+    @Test
+    fun shouldReturn400ForBlankId() {
+        // Test with whitespace string - this should trigger our validation
+        whenever(dashboardService.getDashboard(" "))
+            .thenThrow(IllegalArgumentException("ID cannot be blank"))
+        
+        mockMvc.perform(get("/api/dashboard/ "))
+            .andExpect(status().isBadRequest)
+    }
+
+    @Test
+    fun shouldReturn404ForNonExistentDashboard() {
+        whenever(dashboardService.getDashboard("nonexistent"))
+            .thenThrow(NoSuchElementException("Dashboard not found"))
+
+        mockMvc.perform(get("/api/dashboard/nonexistent"))
+            .andExpect(status().isNotFound)
+    }
+
+    @Test
+    fun shouldReturn400ForInvalidJson() {
+        mockMvc.perform(
+            post("/api/dashboard")
+                .contentType(APPLICATION_JSON)
+                .content("{invalid json}")
+        ).andExpect(status().isBadRequest)
     }
 }

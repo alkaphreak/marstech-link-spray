@@ -123,4 +123,74 @@ class ApiPasteControllerTest {
             .andExpect(content().contentType(APPLICATION_JSON))
             .andExpect(jsonPath("$.error").value("Test exception"))
     }
+
+    @Test
+    fun shouldCreatePasteWithMinimalData() {
+        val request = PasteRequest(content = "Minimal content")
+        val pasteId = "xyz789"
+        val pasteEntity = PasteEntity(
+            id = pasteId,
+            title = null,
+            content = request.content,
+            language = PastebinTextLanguageEnum.TEXT,
+            passwordHash = null,
+            isPrivate = false,
+            isPasswordProtected = false,
+            author = HistoryItem("user1")
+        )
+
+        `when`(pasteService.createPaste(any(), any())).thenReturn(pasteId)
+        `when`(pasteService.getPaste(pasteId, null)).thenReturn(pasteEntity)
+
+        post("/api/paste")
+            .contentType(APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request))
+            .let(mockMvc::perform)
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.id").value(pasteId))
+            .andExpect(jsonPath("$.content").value("Minimal content"))
+    }
+
+    @Test
+    fun shouldGetPasteWithPassword() {
+        val pasteId = "protected123"
+        val password = "secret"
+        val pasteEntity = PasteEntity(
+            id = pasteId,
+            title = "Protected Paste",
+            content = "Secret content",
+            language = KOTLIN,
+            passwordHash = "hashedPassword",
+            isPrivate = true,
+            isPasswordProtected = true,
+            author = HistoryItem("user1")
+        )
+        `when`(pasteService.getPaste(pasteId, password)).thenReturn(pasteEntity)
+
+        get("/api/paste/$pasteId")
+            .param("password", password)
+            .let(mockMvc::perform)
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.id").value(pasteId))
+            .andExpect(jsonPath("$.isPasswordProtected").value(true))
+    }
+
+    @Test
+    fun shouldReturn404ForNonExistentPaste() {
+        `when`(pasteService.getPaste("nonexistent", null))
+            .thenThrow(RuntimeException("Paste not found"))
+
+        get("/api/paste/nonexistent")
+            .let(mockMvc::perform)
+            .andExpect(status().isInternalServerError)
+    }
+
+    @Test
+    fun shouldReturn400ForInvalidJson() {
+        post("/api/paste")
+            .contentType(APPLICATION_JSON)
+            .content("{\"invalid_json\":0 }")
+            .let(mockMvc::perform)
+            .andExpect(status().isBadRequest)
+    }
 }
