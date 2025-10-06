@@ -18,6 +18,6 @@ class ViewRootControllerTest {
     @Test
     fun getIndexReturnsExpectedView() {
         val result = controller.getIndex()
-        assertEquals(HOME.viewName, result.viewName)
+        assertEquals("redirect:/", result)
     }
 }
