@@ -1,8 +1,9 @@
 package fr.marstech.mtlinkspray.controller.view
 
 import fr.marstech.mtlinkspray.enums.ViewNameEnum.SPRAY
-import fr.marstech.mtlinkspray.service.SprayService
 import fr.marstech.mtlinkspray.service.SprayService.Companion.getLinkList
+import fr.marstech.mtlinkspray.service.SprayService.Companion.getLinkListText
+import fr.marstech.mtlinkspray.service.SprayService.Companion.getLinkSpray
 import fr.marstech.mtlinkspray.utils.NetworkUtils.getHeadersAsMap
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.stereotype.Controller
@@ -25,13 +26,16 @@ class ViewSprayController : ThymeleafViewControllerInterface {
         @RequestParam inputLinkList: String, httpServletRequest: HttpServletRequest
     ): ModelAndView = getLinkList(inputLinkList).let { linkList ->
         getModelAndView().addObject("linkList", linkList)
-            .addObject("linkListText", SprayService.getLinkListText(linkList))
-            .addObject("linkSpray", SprayService.getLinkSpray(httpServletRequest, linkList))
+            .addObject("linkListText", getLinkListText(linkList))
+            .addObject("linkSpray", getLinkSpray(httpServletRequest, linkList))
     }
 
     @GetMapping("/open")
-    fun getSpray(@RequestParam(name = "spray") sprayStringList: List<String>): ModelAndView =
-        getModelAndView().addObject("linkListText", SprayService.getLinkListText(sprayStringList))
+    fun getSpray(
+        @RequestParam(name = "spray") sprayStringList: List<String>
+    ): ModelAndView =
+        getModelAndView()
+            .addObject("linkListText", getLinkListText(sprayStringList))
             .addObject("spray", sprayStringList)
 
     override fun getModelAndView(): ModelAndView = getModelAndView(SPRAY)
