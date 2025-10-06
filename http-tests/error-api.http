@@ -1,5 +1,0 @@
-@baseUrl = http://localhost:8096
-
-### Trigger error for testing
-GET {{baseUrl}}/api/error/test
-Accept: application/json
