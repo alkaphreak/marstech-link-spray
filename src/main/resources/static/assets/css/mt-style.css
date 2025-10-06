@@ -37,3 +37,7 @@ ul.mt-copyright-list li:last-child:after {
 section {
     padding: 10px 0 20px 0;
 }
+
+#liveAlertPlaceholder .alert {
+    margin: 10px 0;
+}
