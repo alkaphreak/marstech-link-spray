@@ -1,13 +1,41 @@
 @baseUrl = http://localhost:8096
 
-### Spray links
-POST {{baseUrl}}/api/spray
-Content-Type: application/json
+### Spray links - Multiple valid URLs
+GET {{baseUrl}}/api/spray?inputLinkList=https://example.com&inputLinkList=https://google.com&inputLinkList=https://github.com
+Accept: text/plain
 
-{
-  "links": ["https://a.com", "https://b.com"]
-}
+### Spray links - Two URLs
+GET {{baseUrl}}/api/spray?inputLinkList=https://example.com&inputLinkList=https://example.org
+Accept: text/plain
 
-### Get spray status
-GET {{baseUrl}}/api/spray/status
-Accept: application/json
+### Spray links - Single URL
+GET {{baseUrl}}/api/spray?inputLinkList=https://example.com
+Accept: text/plain
+
+### Spray links - URLs with different protocols
+GET {{baseUrl}}/api/spray?inputLinkList=https://secure.example.com&inputLinkList=http://insecure.example.com
+Accept: text/plain
+
+### Spray links - URLs with parameters
+GET {{baseUrl}}/api/spray?inputLinkList=https://example.com/search?q=test&inputLinkList=https://example.org/page?id=123
+Accept: text/plain
+
+### Spray links - Empty list
+GET {{baseUrl}}/api/spray
+Accept: text/plain
+
+### Spray links - Invalid URLs
+GET {{baseUrl}}/api/spray?inputLinkList=not-a-url&inputLinkList=also-invalid
+Accept: text/plain
+
+### Spray links - Mixed valid and invalid URLs
+GET {{baseUrl}}/api/spray?inputLinkList=https://example.com&inputLinkList=invalid-url
+Accept: text/plain
+
+### Spray links - Blank URLs
+GET {{baseUrl}}/api/spray?inputLinkList=&inputLinkList=https://example.com
+Accept: text/plain
+
+### Open spray links - Valid spray parameters
+GET {{baseUrl}}/spray/open?spray=https://example.com&spray=https://google.com
+Accept: text/html
