@@ -1,6 +1,7 @@
 package fr.marstech.mtlinkspray.controller.api
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import fr.marstech.mtlinkspray.controller.commons.GlobalRestExceptionHandler
 import fr.marstech.mtlinkspray.dto.DashboardDto
 import fr.marstech.mtlinkspray.service.DashboardService
 import org.junit.jupiter.api.BeforeEach
@@ -25,9 +26,9 @@ class DashboardApiControllerTest {
     fun setup() {
         val validator = org.springframework.validation.beanvalidation.LocalValidatorFactoryBean()
         validator.afterPropertiesSet()
-        
+
         mockMvc = MockMvcBuilders.standaloneSetup(DashboardApiController(dashboardService))
-            .setControllerAdvice(fr.marstech.mtlinkspray.controller.commons.GlobalRestExceptionHandler())
+            .setControllerAdvice(GlobalRestExceptionHandler())
             .setValidator(validator)
             .build()
     }
@@ -66,7 +67,7 @@ class DashboardApiControllerTest {
         // Test with whitespace string - this should trigger our validation
         whenever(dashboardService.getDashboard(" "))
             .thenThrow(IllegalArgumentException("ID cannot be blank"))
-        
+
         mockMvc.perform(get("/api/dashboard/ "))
             .andExpect(status().isBadRequest)
     }
@@ -80,12 +81,13 @@ class DashboardApiControllerTest {
             .andExpect(status().isNotFound)
     }
 
+    @Suppress("JsonStandardCompliance")
     @Test
     fun shouldReturn400ForInvalidJson() {
         mockMvc.perform(
             post("/api/dashboard")
                 .contentType(APPLICATION_JSON)
-                .content("{invalid json}")
+                .content("\"{\"invalid json\" }\"") // Malformed JSON
         ).andExpect(status().isBadRequest)
     }
 }

@@ -14,7 +14,7 @@ import org.springframework.core.env.Environment
 
 @Configuration
 @Profile("dev")
-open class ApplicationReadyEventHandlerForDev(
+class ApplicationReadyEventHandlerForDev(
     private val environment: Environment,
 ) {
     @Value($$"${mt.link-spray.version}")

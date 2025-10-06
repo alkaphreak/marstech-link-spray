@@ -13,7 +13,9 @@ GET {{baseUrl}}/api/url-shortener/shorten?url=https://example.com/path?param1=va
 Accept: text/plain
 
 ### Shorten URL - Long URL
-GET {{baseUrl}}/api/url-shortener/shorten?url=https://example.com/very/long/path/with/many/segments/and/parameters?param1=value1&param2=value2&param3=value3&param4=value4
+GET {{baseUrl}}/api/url-shortener/shorten?
+    url=https://example.com/very/long/path/with/many/segments/and/parameters?param1=value1&param2=value2&param3=value3&
+    param4=value4
 Accept: text/plain
 
 ### Shorten URL - Invalid URL (missing protocol)

@@ -49,14 +49,11 @@ class DashboardServiceImpl(
 
     override fun updateDashboard(id: String, dashboardDto: DashboardDto): DashboardDto = 
         dashboardRepository.findById(id)
-            .orElseThrow { NoSuchElementException("Dashboard not found") }
-            .let { existing ->
-                existing.copy(
-                    name = dashboardDto.name,
-                    items = dashboardDto.items,
-                    description = dashboardDto.description
-                )
-            }
+    .orElseThrow { NoSuchElementException("Dashboard not found") }.copy(
+            name = dashboardDto.name,
+            items = dashboardDto.items,
+            description = dashboardDto.description
+        )
             .let { dashboardRepository.save(it) }
             .let { DashboardDto(it.id, it.name, it.items, it.description) }
 }

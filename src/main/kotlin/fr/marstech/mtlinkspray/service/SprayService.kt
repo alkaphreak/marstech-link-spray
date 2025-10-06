@@ -6,7 +6,6 @@ import fr.marstech.mtlinkspray.utils.NetworkUtils.getPort
 import fr.marstech.mtlinkspray.utils.NetworkUtils.getScheme
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.web.util.UriComponentsBuilder
-import java.text.MessageFormat
 
 interface SprayService {
     companion object {

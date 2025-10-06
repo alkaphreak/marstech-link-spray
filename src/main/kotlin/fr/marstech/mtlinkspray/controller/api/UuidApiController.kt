@@ -9,6 +9,6 @@ import java.util.*
 @RequestMapping("/api/uuid")
 class UuidApiController {
 
-    @GetMapping()
+    @GetMapping
     fun getUuid(): String = UUID.randomUUID().toString()
 }

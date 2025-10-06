@@ -18,6 +18,7 @@ annotation class NotEmptyNotBlank(
     val payload: Array<KClass<out Payload>> = []
 )
 
+@Suppress("unused")
 class NotEmptyNotBlankValidator : ConstraintValidator<NotEmptyNotBlank, List<String>> {
     override fun isValid(value: List<String>?, context: ConstraintValidatorContext?): Boolean =
         !value.isNullOrEmpty() && value.all(String::isNotBlank)

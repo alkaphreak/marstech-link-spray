@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*
 @Validated
 @RestController
 @RequestMapping("/api/dashboard")
-open class DashboardApiController(
+class DashboardApiController(
     private val dashboardService: DashboardService
 ) {
 

@@ -10,9 +10,9 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.mail.javamail.JavaMailSender
 
 @Configuration
-open class JavaMailSenderTestConfiguration {
+class JavaMailSenderTestConfiguration {
     @Bean
-    open fun mockMailSender(): JavaMailSender {
+    fun mockMailSender(): JavaMailSender {
         val javaMailSender = Mockito.mock(JavaMailSender::class.java)
         Mockito.`when`(javaMailSender.createMimeMessage())
             .thenAnswer(Answer { _: InvocationOnMock? ->
