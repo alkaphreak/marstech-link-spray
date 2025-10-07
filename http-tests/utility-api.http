@@ -1,0 +1,20 @@
+@baseUrl = http://localhost:8096
+
+### Generate UUID - Standard request
+GET {{baseUrl}}/api/uuid
+Accept: text/plain
+
+### Generate UUID - Multiple requests for uniqueness test
+GET {{baseUrl}}/api/uuid
+Accept: text/plain
+
+### Generate UUID - Third request
+GET {{baseUrl}}/api/uuid
+Accept: text/plain
+
+### Generate UUID - With different Accept header
+GET {{baseUrl}}/api/uuid
+Accept: application/json
+
+### Generate UUID - With no Accept header
+GET {{baseUrl}}/api/uuid

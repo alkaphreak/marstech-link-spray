@@ -1,0 +1,66 @@
+@baseUrl = http://localhost:8096
+
+### XSS Test - Script in paste content
+POST {{baseUrl}}/api/paste
+Content-Type: application/json
+
+{
+  "title": "XSS Test",
+  "content": "<script>alert('XSS')</script>",
+  "language": "HTML"
+}
+
+### XSS Test - Script in paste title
+POST {{baseUrl}}/api/paste
+Content-Type: application/json
+
+{
+  "title": "<script>alert('XSS')</script>",
+  "content": "Normal content"
+}
+
+### SQL Injection Test - In URL parameter
+GET {{baseUrl}}/api/url-shortener/shorten?url=https://example.com'; DROP TABLE urls; --
+Accept: text/plain
+
+### Path Traversal Test - In paste ID
+GET {{baseUrl}}/api/paste/../../../etc/passwd
+Accept: application/json
+
+### CSRF Test - Missing CSRF token (if implemented)
+POST {{baseUrl}}/api/paste
+Content-Type: application/json
+Origin: https://malicious-site.com
+
+{
+  "content": "CSRF test content"
+}
+
+### Large Payload Test - DoS attempt
+POST {{baseUrl}}/api/paste
+Content-Type: application/json
+
+{
+  "content": "{{ $randomLoremText(10000) }}"
+}
+
+### Header Injection Test
+GET {{baseUrl}}/api/uuid
+X-Forwarded-For: 127.0.0.1\r\nMalicious-Header: injected
+
+### Command Injection Test - In URL
+GET {{baseUrl}}/api/url-shortener/shorten?url=https://example.com; ls -la
+Accept: text/plain
+
+### Unicode/UTF-8 Test - Special characters
+POST {{baseUrl}}/api/paste
+Content-Type: application/json
+
+{
+  "title": "Unicode Test 🚀",
+  "content": "Testing unicode: 你好世界 🌍 émojis 🎉 and special chars: ñáéíóú"
+}
+
+### Null Byte Test
+GET {{baseUrl}}/api/paste/test%00.txt
+Accept: application/json

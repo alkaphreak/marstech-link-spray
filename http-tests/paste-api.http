@@ -1,0 +1,75 @@
+@baseUrl = http://localhost:8096
+
+### Create paste - Basic text
+POST {{baseUrl}}/api/paste
+Content-Type: application/json
+
+{
+  "title": "Hello World",
+  "content": "Hello, world! This is a test paste.",
+  "language": "TEXT",
+  "expiration": "1h",
+  "isPrivate": false
+}
+
+### Create paste - Code with syntax highlighting
+POST {{baseUrl}}/api/paste
+Content-Type: application/json
+
+{
+  "title": "Kotlin Example",
+  "content": "fun main() {\n    println(\"Hello, Kotlin!\")\n}",
+  "language": "KOTLIN",
+  "expiration": "1d",
+  "isPrivate": false
+}
+
+### Create paste - Password protected
+POST {{baseUrl}}/api/paste
+Content-Type: application/json
+
+{
+  "title": "Secret Paste",
+  "content": "This is a secret message",
+  "language": "TEXT",
+  "password": "secret123",
+  "expiration": "1w",
+  "isPrivate": true
+}
+
+### Create paste - Minimal required fields
+POST {{baseUrl}}/api/paste
+Content-Type: application/json
+
+{
+  "content": "Just content, no title"
+}
+
+### Create paste - Invalid (empty content)
+POST {{baseUrl}}/api/paste
+Content-Type: application/json
+
+{
+  "title": "Empty Content",
+  "content": ""
+}
+
+### Get paste by ID - Public paste
+GET {{baseUrl}}/api/paste/abc123
+Accept: application/json
+
+### Get paste by ID - With password
+GET {{baseUrl}}/api/paste/def456?password=secret123
+Accept: application/json
+
+### Get paste by ID - Wrong password
+GET {{baseUrl}}/api/paste/def456?password=wrongpassword
+Accept: application/json
+
+### Get paste by ID - Not found
+GET {{baseUrl}}/api/paste/nonexistent
+Accept: application/json
+
+### Get paste by ID - Invalid ID format
+GET {{baseUrl}}/api/paste/
+Accept: application/json

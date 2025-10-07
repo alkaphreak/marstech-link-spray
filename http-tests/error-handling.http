@@ -1,0 +1,62 @@
+@baseUrl = http://localhost:8096
+
+### Test 404 - Non-existent endpoint
+GET {{baseUrl}}/api/nonexistent
+Accept: application/json
+
+### Test 405 - Method not allowed (POST to GET endpoint)
+POST {{baseUrl}}/api/uuid
+Content-Type: application/json
+
+{}
+
+### Test 400 - Bad Request (Invalid JSON)
+POST {{baseUrl}}/api/paste
+Content-Type: application/json
+
+{
+  "content": "test",
+  "invalid": json
+}
+
+### Test 400 - Missing required parameter
+GET {{baseUrl}}/api/url-shortener/shorten
+Accept: text/plain
+
+### Test 400 - Blank required parameter
+GET {{baseUrl}}/api/url-shortener/shorten?url=
+Accept: text/plain
+
+### Test 415 - Unsupported Media Type
+POST {{baseUrl}}/api/paste
+Content-Type: text/plain
+
+content=test
+
+### Test validation error - Invalid paste content
+POST {{baseUrl}}/api/paste
+Content-Type: application/json
+
+{
+  "content": ""
+}
+
+### Test large payload - Very long content
+POST {{baseUrl}}/api/paste
+Content-Type: application/json
+
+{
+  "content": "{{ $randomLoremParagraphs(100) }}"
+}
+
+### Test special characters in URL parameters
+GET {{baseUrl}}/api/url-shortener/shorten?url=https://example.com/test?param=<script>alert('xss')</script>
+Accept: text/plain
+
+### Test SQL injection attempt in paste content
+POST {{baseUrl}}/api/paste
+Content-Type: application/json
+
+{
+  "content": "'; DROP TABLE pastes; --"
+}

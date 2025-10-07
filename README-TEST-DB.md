@@ -53,7 +53,7 @@ mvn spring-boot:run -Dspring-boot.run.profiles=test
 The test database includes these pre-created collections:
 
 - `linkItem` - Stores shortened links and spray configurations
-- `abuseReport` - Stores abuse reports
+- `abuseReport` - Store abuse reports
 - `dashboardEntity` - Dashboard data
 - `mtLinkSprayCollectionItem` - Collection items
 
@@ -62,7 +62,7 @@ The test database includes these pre-created collections:
 The test configuration uses these settings:
 
 - Server runs on port **8097** (different from production port 8096)
-- MongoDB connection configured for test database
+- MongoDB connection configured for a test database
 - Mail settings disabled for testing
 
 ## Docker Compose
@@ -72,7 +72,7 @@ The test database uses `docker-compose.test.yml` which:
 - Runs MongoDB 8 in a container
 - Exposes port 27018
 - Creates persistent volume for data
-- Initializes database with required collections
+- Initializes a database with required collections
 - Uses authentication (testuser/testpass)
 
 ## Cleanup

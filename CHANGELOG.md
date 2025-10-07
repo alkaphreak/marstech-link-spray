@@ -29,8 +29,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
-- Resolved issues with Docker Desktop startup script on macOS.
-- Fixed Thymeleaf template integration for displaying application version.
+- Resolved issues with Docker Desktop startup scripts on macOS.
+- Fixed Thymeleaf template integration for displaying the application version.
 
 ### Removed
 
