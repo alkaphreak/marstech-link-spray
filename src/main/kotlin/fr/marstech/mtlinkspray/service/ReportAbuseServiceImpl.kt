@@ -3,11 +3,11 @@ package fr.marstech.mtlinkspray.service
 import fr.marstech.mtlinkspray.entity.AbuseReportEntity
 import fr.marstech.mtlinkspray.entity.HistoryItem
 import fr.marstech.mtlinkspray.repository.AbuseReportRepository
+import fr.marstech.mtlinkspray.utils.NetworkUtils
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.stereotype.Service
-import java.time.LocalDateTime
+import java.time.LocalDateTime.now
 import java.util.*
-import java.util.Map
 
 @Service
 class ReportAbuseServiceImpl(
@@ -15,28 +15,27 @@ class ReportAbuseServiceImpl(
     private val mailSenderService: MailSenderService
 ) : ReportAbuseService {
 
+    val action: String = "REPORT_ABUSE"
+    val mailSubject: String = " MarsTech Link-Spray - Abuse report"
+    val mailBodyPrefix: String = "New abuse report received:\n\n"
+
     override fun reportAbuse(
-        inputAbuseDecsription: String, httpServletRequest: HttpServletRequest
-    ) = "reportAbuse".let { it ->
+        inputAbuseDecsription: String,
+        httpServletRequest: HttpServletRequest
+    ) = abuseReportRepository.save(
         AbuseReportEntity(
             id = UUID.randomUUID().toString(),
-            creationDate = LocalDateTime.now(),
-            expiresAt = null,
-            isEnabled = true,
-            description = "$it:$inputAbuseDecsription",
-            metadata = Map.of<String, String>(),
+            creationDate = now(),
+            description = "$mailBodyPrefix$inputAbuseDecsription",
             author = HistoryItem(
-                ipAddress = httpServletRequest.remoteAddr,
-                dateTime = LocalDateTime.now(),
-                action = it
+                ipAddress = NetworkUtils.getIpAddress(httpServletRequest),
+                action = action,
             )
-        ).let { abuseReportRepository.save(it) }
-            .let {
-                mailSenderService.sendMail(
-                    subject = " MarsTech Link-Spray - Abuse report",
-                    body = it.toString()
-                )
-            }
-
+        )
+    ).let {
+        mailSenderService.sendMail(
+            subject = mailSubject,
+            body = it.toString()
+        )
     }
 }
