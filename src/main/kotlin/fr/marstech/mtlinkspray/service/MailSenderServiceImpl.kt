@@ -12,7 +12,10 @@ class MailSenderServiceImpl(
     @param:Value($$"${mt.link-spray.notification.mail.sender:}") private val sender: String
 ) : MailSenderService {
 
-    override fun sendMail(subject: String, body: String) {
+    override fun sendMail(
+        subject: String,
+        body: String
+    ) {
         mailSender.send(SimpleMailMessage().apply {
             from = sender
             setTo(receiver)
