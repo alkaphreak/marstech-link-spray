@@ -40,7 +40,7 @@ class RandomIdGeneratorServiceImpl(
         var attempts = 0
         val maxAttempts = 5
         do {
-            if (attempts++ >= maxAttempts) throw IllegalStateException("Unable to generate a free ID after 5 attempts")
+            check(attempts++ < maxAttempts) { "Unable to generate a free ID after 5 attempts" }
             id = generateRandomId()
         } while (linkItemRepository.existsById(id))
         return id
