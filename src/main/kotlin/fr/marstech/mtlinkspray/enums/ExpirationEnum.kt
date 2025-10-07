@@ -18,5 +18,8 @@ enum class ExpirationEnum(
     companion object {
         fun fromExpiration(expiration: String): ExpirationEnum? =
             entries.firstOrNull { it.expiration == expiration }
+
+        fun fromExpirationOrError(expiration: String): ExpirationEnum =
+            fromExpiration(expiration) ?: throw IllegalArgumentException("Invalid expiration value")
     }
 }

@@ -10,7 +10,7 @@ import fr.marstech.mtlinkspray.utils.NetworkUtils
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
-import java.time.LocalDateTime
+import java.time.LocalDateTime.now
 import java.util.*
 
 @Service
@@ -20,22 +20,25 @@ class PasteServiceImpl(
 
     private val passwordEncoder = BCryptPasswordEncoder()
 
-    override fun createPaste(request: PasteRequest, httpServletRequest: HttpServletRequest): String =
+    override fun createPaste(
+        request: PasteRequest,
+        httpServletRequest: HttpServletRequest
+    ): String =
         pasteRepository.save(
             PasteEntity(
                 id = UUID.randomUUID().toString(),
                 title = request.title,
                 content = request.content,
-                language = PastebinTextLanguageEnum.fromName(request.language)!!,
+                language = PastebinTextLanguageEnum.fromNameOrDefault(request.language),
                 passwordHash = request.password?.let { hashPassword(it) },
-                expiresAt = ExpirationEnum.fromExpiration(request.expiration).let {
-                    if (it == null) throw IllegalArgumentException("Invalid expiration value")
-                    else LocalDateTime.now().plus(it.temporalAmount)
+                expiresAt = ExpirationEnum.fromExpirationOrError(request.expiration).let {
+                    now().plus(it.temporalAmount)
                 },
                 isPrivate = request.isPrivate,
                 isPasswordProtected = !request.password.isNullOrBlank(),
                 author = HistoryItem(
-                    ipAddress = NetworkUtils.getIpAddress(httpServletRequest), action = "CREATE_PASTE"
+                    ipAddress = NetworkUtils.getIpAddress(httpServletRequest),
+                    action = "CREATE_PASTE"
                 ),
             )
         ).id
