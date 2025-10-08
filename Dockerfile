@@ -1,12 +1,9 @@
-FROM eclipse-temurin:21-jdk-jammy
+FROM eclipse-temurin:21-jre-jammy
 
 WORKDIR /app
 
-COPY pom.xml .
-COPY mvnw .
-COPY .mvn ./.mvn
-COPY src ./src
+COPY {{distributionName}}-{{projectEffectiveVersion}}.jar app.jar
 
-RUN ./mvnw clean install
+EXPOSE 8096
 
-CMD ["java", "-jar", "target/*.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]

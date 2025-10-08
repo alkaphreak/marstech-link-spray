@@ -305,6 +305,14 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <!-- JReleaser plugin for automated releases -->
+            <plugin>
+                <groupId>org.jreleaser</groupId>
+                <artifactId>jreleaser-maven-plugin</artifactId>
+                <version>1.20.0</version>
+                <inherited>false</inherited>
+            </plugin>
         </plugins>
     </build>
 
