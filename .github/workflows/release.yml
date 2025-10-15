@@ -47,6 +47,8 @@ jobs:
           RELEASE_VERSION="${{ steps.bump-version.outputs.version }}"
           BRANCH_NAME="release/v$RELEASE_VERSION"
           git checkout -b "$BRANCH_NAME"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
           git add pom.xml
           git commit -m "chore: bump version to $RELEASE_VERSION for release"
           git push origin "$BRANCH_NAME"
@@ -70,6 +72,8 @@ jobs:
           patch=$((patch + 1))
           DEV_VERSION="$major.$minor.$patch-SNAPSHOT"
           mvn versions:set -DnewVersion=$DEV_VERSION
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
           git add pom.xml
           git commit -m "chore: bump to next development version $DEV_VERSION"
           git push origin main
