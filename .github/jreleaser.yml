@@ -23,7 +23,7 @@ distributions:
   marstech-link-spray:
     type: JAVA_BINARY
     artifacts:
-      - path: 'target/mt-link-spray-{{projectVersion}}.jar'
+      - path: 'target/marstech-link-spray-{{projectVersion}}.jar'
 
 packagers:
   docker:

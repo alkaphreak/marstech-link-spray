@@ -52,12 +52,8 @@ jobs:
           git push origin "$BRANCH_NAME"
           echo "Created release branch: $BRANCH_NAME"
 
-      - name: Build
-        run: mvn clean package -DskipTests
-
-      - name: Run Tests
-        run: mvn test
-
+      - name: Build and Test
+        run: mvn -B -ntp clean verify
       - name: Release with JReleaser
         env:
           JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

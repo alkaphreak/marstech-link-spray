@@ -6,7 +6,7 @@ echo "Testing JReleaser setup..."
 echo "Building project..."
 mvn clean package -DskipTests
 
-# Test JReleaser configuration (this will fail due to missing token, but shows config is valid)
+# Test JReleaser configuration (validates config; does not require a real token)
 echo "Testing JReleaser configuration..."
 export JRELEASER_GITHUB_TOKEN="dummy-token-for-testing"
 mvn jreleaser:config

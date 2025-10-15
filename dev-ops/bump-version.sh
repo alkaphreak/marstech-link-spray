@@ -37,7 +37,7 @@ NEW_VERSION="$major.$minor.$patch"
 echo "New version: $NEW_VERSION"
 
 # Update pom.xml
-mvn versions:set -DnewVersion="$NEW_VERSION"
+mvn versions:set -DnewVersion="$NEW_VERSION" -DgenerateBackupPoms=false
 
 echo "Version bumped to $NEW_VERSION"
 echo "Run 'git add pom.xml && git commit -m \"chore: bump version to $NEW_VERSION\"' to commit"

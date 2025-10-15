@@ -65,7 +65,7 @@ The basic JReleaser setup is **COMPLETE** and ready for use. The implementation 
 ### Immediate Use:
 1. Set `JRELEASER_GITHUB_TOKEN` environment variable
 2. Run GitHub Actions "Release" workflow
-3. Enter desired version (e.g., `1.0.0`)
+3. Select bump type (patch/minor/major)
 4. Automated professional release created
 
 ### Benefits Achieved:
