@@ -60,6 +60,32 @@ The basic JReleaser setup is **COMPLETE** and ready for use. The implementation 
 - [ ] SonarCloud integration in release workflow
 - [ ] Automated rollback procedures
 
+## ✅ Phase 2: Docker & JReleaser Integration Improvements - COMPLETED
+
+### Files Created/Modified:
+
+1. **Dockerfile** (root) - Updated for local builds (uses `COPY target/*.jar app.jar`)
+2. **src/jreleaser/distributions/marstech-link-spray/Dockerfile** - New, tokenized for JReleaser packaging
+3. **jreleaser.yml** - New, configures JReleaser Docker distribution and artifact naming
+4. **README.Docker.md** - Updated to document local vs JReleaser Dockerfile usage
+
+### Key Features Implemented:
+
+✅ **Dual Dockerfile Strategy**
+- Local builds use a simple Dockerfile for developer convenience
+- JReleaser builds use a tokenized Dockerfile for release automation
+
+✅ **JReleaser Configuration**
+- Docker distribution configured in jreleaser.yml
+- Artifact naming matches build output
+
+✅ **Documentation Updates**
+- README.Docker.md explains build strategies and usage
+
+## Current Status
+
+The project now supports both local and automated Docker builds, with clear documentation and configuration for JReleaser releases. All changes are integrated and tested.
+
 ## Usage
 
 ### Immediate Use:
