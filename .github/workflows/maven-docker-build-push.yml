@@ -55,4 +55,4 @@ jobs:
           DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
           DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
           DOCKER_REPO: ${{ vars.DOCKER_REPO || 'marstech-link-spray' }}
-        run: mvn jreleaser:deploy -Djreleaser.deployers=docker
+        run: mvn jreleaser:release -Djreleaser.select.packagers=docker
