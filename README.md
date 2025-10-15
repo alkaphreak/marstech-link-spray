@@ -96,6 +96,17 @@ Run this in shell or do it manually:
 echo "testcontainers.reuse.enable=true" >> $HOME/.testcontainers.properties
 ```
 
+## Releases
+
+This project uses **JReleaser** for automated, professional releases.
+
+### Quick Release
+1. Go to GitHub Actions → "Release" workflow
+2. Click "Run workflow" and select bump type (`patch`, `minor`, or `major`)
+3. Automated release with changelog and artifacts
+
+See [RELEASE.md](RELEASE.md) for detailed release documentation.
+
 ## Contributing
 
 Contributions are welcome! To contribute:
