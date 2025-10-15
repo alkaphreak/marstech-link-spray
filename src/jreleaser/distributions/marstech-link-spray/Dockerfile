@@ -2,7 +2,7 @@ FROM eclipse-temurin:21-jre-jammy
 
 WORKDIR /app
 
-COPY {{distributionName}}-{{projectEffectiveVersion}}.jar app.jar
+COPY mt-link-spray-{{projectEffectiveVersion}}.jar app.jar
 
 EXPOSE 8096
 
