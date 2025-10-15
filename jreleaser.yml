@@ -2,7 +2,7 @@ distributions:
   marstech-link-spray:
     type: JAVA_BINARY
     artifact:
-      path: target/mt-link-spray-{{projectEffectiveVersion}}.jar
+      path: target/marstech-link-spray-{{projectEffectiveVersion}}.jar
     docker:
       active: ALWAYS
       dockerfile: src/jreleaser/distributions/marstech-link-spray/Dockerfile
