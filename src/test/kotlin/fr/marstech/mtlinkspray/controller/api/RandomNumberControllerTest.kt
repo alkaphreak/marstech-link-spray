@@ -60,7 +60,7 @@ class RandomNumberControllerTest {
 
     @Test
     fun shouldReturnBadRequestWhenMaxExceedsConfiguredLimit() {
-        // controller has @Max(1000000000) on max parameter
+        // controller enforces max value limit via manual validation (string length and numeric value), not via @Max annotation
         mockMvc.perform(get("/api/random?max=1000000001"))
             .andExpect(status().isBadRequest)
     }
