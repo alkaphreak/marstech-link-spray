@@ -27,7 +27,7 @@ class RandomNumberApiController {
         // Input validation
         val inputMin = when {
             min.isNullOrBlank() -> 0
-            (if (min.startsWith("-")) min.length - 1 else min.length) > MIN_AND_MAX_LENGTH ->
+            min == "-" || (if (min.startsWith("-")) min.length - 1 else min.length) >= MIN_AND_MAX_LENGTH ->
                 throw IllegalArgumentException("Min length must not exceed $MIN_AND_MAX_LENGTH characters")
 
             else
