@@ -25,37 +25,35 @@ class RandomNumberApiController {
     ): RandomNumberResponse {
 
         // Input validation
-        val inputMin = if (min.isNullOrBlank()) {
-            0
-        } else if (min.length > MIN_AND_MAX_LENGTH) {
-            throw IllegalArgumentException("Min length must not exceed $MIN_AND_MAX_LENGTH characters")
-        } else
-            try {
+        val inputMin = when {
+            min.isNullOrBlank() -> 0
+            (if (min.startsWith("-")) min.length - 1 else min.length) > MIN_AND_MAX_LENGTH ->
+                throw IllegalArgumentException("Min length must not exceed $MIN_AND_MAX_LENGTH characters")
+
+            else
+                -> try {
                 min.toInt()
             } catch (_: NumberFormatException) {
                 throw IllegalArgumentException("Min value must be an integer")
             }
+        }
 
-        val inputMax = if (max.isNullOrBlank()) {
-            throw MissingServletRequestParameterException("max", "int")
-        } else if (max.length > MIN_AND_MAX_LENGTH) {
-            throw IllegalArgumentException("Max length must not exceed $MIN_AND_MAX_LENGTH characters")
-        } else
-            try {
+        val inputMax = when {
+            max.isNullOrBlank() -> throw MissingServletRequestParameterException("max", "int")
+            max.length > MIN_AND_MAX_LENGTH -> throw IllegalArgumentException("Max length must not exceed $MIN_AND_MAX_LENGTH characters")
+            else
+                -> try {
                 max.toInt()
             } catch (_: NumberFormatException) {
                 throw IllegalArgumentException("Max value must be an integer")
             }
-
-        if (inputMin > inputMax) {
-            throw IllegalArgumentException("Min value must be less than or equal to Max value")
         }
 
-        // Process random generation
-        val value = Random.nextInt(inputMin, inputMax)
+        require(inputMin <= inputMax) { "Min value must be less than or equal to Max value" }
 
+        // Process random generation
         return RandomNumberResponse(
-            value = value,
+            value = Random.nextInt(inputMin, inputMax + 1),
             min = inputMin,
             max = inputMax,
             timestamp = Instant.now()
