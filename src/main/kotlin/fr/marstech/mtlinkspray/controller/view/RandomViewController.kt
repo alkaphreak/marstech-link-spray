@@ -8,7 +8,7 @@ import org.springframework.web.servlet.ModelAndView
 
 @Controller
 @RequestMapping("/random")
-class RandomViewController() : ThymeleafViewControllerInterface {
+class RandomViewController : ThymeleafViewControllerInterface {
 
     override fun getModelAndView(): ModelAndView = getModelAndView(RANDOM)
 
