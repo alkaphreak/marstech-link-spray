@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{index.html :: html-head}">
+    <title></title>
+</head>
+<body>
+
+<header th:replace="~{index.html :: body-header}">
+    <!-- nav bar-->
+</header>
+
+<section class="intro-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col">
+                <h3>Random value generator</h3>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="get-started" th:with="view=${T(fr.marstech.mtlinkspray.enums.ViewNameEnum).RANDOM}">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col">
+
+                <form id="randomForm" onsubmit="return false;">
+                    <div class="mb-3">
+                        <label for="min" class="form-label">Min (optional)</label>
+                        <input type="number" id="min" name="min" class="form-control" placeholder="0">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="max" class="form-label">Max *</label>
+                        <input type="number" id="max" name="max" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="value" class="form-label">Random Value</label>
+                        <input type="text" id="value" class="form-control-plaintext user-select-all" readonly>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button id="generateBtn" class="btn btn-primary" type="button">Generate</button>
+                        <button id="copyBtn" class="btn btn-outline-secondary" type="button">Copy</button>
+                    </div>
+
+                    <div id="randomAlert" class="mt-3"></div>
+                </form>
+
+                <script>
+                    const baseUrl = '';
+                    const generateBtn = document.getElementById('generateBtn');
+                    const copyBtn = document.getElementById('copyBtn');
+                    const minInput = document.getElementById('min');
+                    const maxInput = document.getElementById('max');
+                    const valueInput = document.getElementById('value');
+                    const randomAlert = document.getElementById('randomAlert');
+
+                    function showAlert(message, type = 'danger') {
+                        randomAlert.innerHTML = `\n                            <div class="alert alert-${type} alert-dismissible" role="alert">\n                                ${message}\n                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>\n                            </div>`;
+                    }
+
+                    generateBtn.addEventListener('click', async () => {
+                        const min = minInput.value;
+                        const max = maxInput.value;
+
+                        if (!max) {
+                            showAlert('Max is required', 'warning');
+                            return;
+                        }
+
+                        const url = `/api/random?${min ? `min=${encodeURIComponent(min)}&` : ''}max=${encodeURIComponent(max)}`;
+
+                        try {
+                            const resp = await fetch(url, { headers: { 'Accept': 'application/json' } });
+                            if (!resp.ok) {
+                                const err = await resp.json().catch(() => ({ error: resp.statusText }));
+                                showAlert(err.error || 'Request failed', 'warning');
+                                return;
+                            }
+
+                            const data = await resp.json();
+                            valueInput.value = data.value;
+                            // update inputs to reflect effective min/max
+                            minInput.value = data.min;
+                            maxInput.value = data.max;
+                            showAlert('Random value generated', 'success');
+                        } catch (e) {
+                            showAlert('Request failed: ' + (e.message || e), 'danger');
+                        }
+                    });
+
+                    copyBtn.addEventListener('click', async () => {
+                        try {
+                            await navigator.clipboard.writeText(valueInput.value || '');
+                            showAlert('Copied to clipboard', 'success');
+                        } catch (e) {
+                            showAlert('Copy failed', 'warning');
+                        }
+                    });
+                </script>
+
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer class="footer bg-black text-white" th:replace="~{index.html :: body-footer}">
+    <!-- footer -->
+</footer>
+
+<div class="d-none" th:replace="~{index.html :: footer-div-script}">
+    <!-- footer script -->
+</div>
+</body>
+</html>

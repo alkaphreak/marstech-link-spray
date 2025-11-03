@@ -6,13 +6,29 @@ import org.springframework.core.annotation.Order
 import org.springframework.http.HttpStatus.*
 import org.springframework.http.ResponseEntity
 import org.springframework.http.converter.HttpMessageNotReadableException
+import org.springframework.validation.BindException
 import org.springframework.web.bind.MissingServletRequestParameterException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import org.springframework.beans.TypeMismatchException
+import org.springframework.core.convert.ConversionFailedException
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
 
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @RestControllerAdvice
 class GlobalRestExceptionHandler {
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException::class)
+    fun handleMethodArgumentTypeMismatch(e: MethodArgumentTypeMismatchException): ResponseEntity<Map<String, String?>> =
+        ResponseEntity(mapOf("error" to (e.message ?: "Invalid argument type")), BAD_REQUEST)
+
+    @ExceptionHandler(TypeMismatchException::class)
+    fun handleTypeMismatch(e: TypeMismatchException): ResponseEntity<Map<String, String?>> =
+        ResponseEntity(mapOf("error" to (e.message ?: "Type mismatch")), BAD_REQUEST)
+
+    @ExceptionHandler(ConversionFailedException::class)
+    fun handleConversionFailed(e: ConversionFailedException): ResponseEntity<Map<String, String?>> =
+        ResponseEntity(mapOf("error" to (e.message ?: "Conversion failed")), BAD_REQUEST)
 
     @ExceptionHandler(RuntimeException::class)
     fun handleRuntimeException(ex: RuntimeException): ResponseEntity<Map<String, String>> =
@@ -47,8 +63,8 @@ class GlobalRestExceptionHandler {
     fun handleMethodArgumentNotValid(e: org.springframework.web.bind.MethodArgumentNotValidException): ResponseEntity<Map<String, String?>> =
         ResponseEntity(mapOf("error" to e.message), BAD_REQUEST)
 
-    @ExceptionHandler(org.springframework.validation.BindException::class)
-    fun handleBindException(e: org.springframework.validation.BindException): ResponseEntity<Map<String, String?>> =
+    @ExceptionHandler(BindException::class)
+    fun handleBindException(e: BindException): ResponseEntity<Map<String, String?>> =
         ResponseEntity(mapOf("error" to e.message), BAD_REQUEST)
 
     @ExceptionHandler(HttpMessageNotReadableException::class)
