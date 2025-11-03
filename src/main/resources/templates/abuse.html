@@ -49,6 +49,13 @@
                     <button class="btn btn-primary" type="submit">Send report</button>
                 </form>
             </div>
+            <div id="liveAlertPlaceholder">
+                <!--/*@thymesVar id="abuseReported" type="java.lang.Boolean"*/-->
+                <div class="alert alert-success alert-dismissible" role="alert" th:if="${abuseReported}">
+                    <div>Report sent successfully</div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </div>
         </div>
     </div>
 </section>

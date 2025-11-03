@@ -1,0 +1,79 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: 'Version bump type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: main
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+
+      - name: Bump Version
+        id: bump-version
+        run: |
+          ./dev-ops/bump-version.sh ${{ github.event.inputs.bump }}
+          NEW_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create Release Branch
+        run: |
+          RELEASE_VERSION="${{ steps.bump-version.outputs.version }}"
+          BRANCH_NAME="release/v$RELEASE_VERSION"
+          git checkout -b "$BRANCH_NAME"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git add pom.xml
+          git commit -m "chore: bump version to $RELEASE_VERSION for release"
+          git push origin "$BRANCH_NAME"
+          echo "Created release branch: $BRANCH_NAME"
+
+      - name: Build and Test
+        run: mvn -B -ntp clean verify
+      - name: Release with JReleaser
+        env:
+          JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+          DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+          DOCKER_REPO: ${{ vars.DOCKER_REPO || 'marstech-link-spray' }}
+        run: mvn jreleaser:full-release
+
+      - name: Update Main Branch
+        run: |
+          git checkout main
+          RELEASE_VERSION="${{ steps.bump-version.outputs.version }}"
+          IFS='.' read -r major minor patch <<< "$RELEASE_VERSION"
+          patch=$((patch + 1))
+          DEV_VERSION="$major.$minor.$patch-SNAPSHOT"
+          mvn versions:set -DnewVersion=$DEV_VERSION
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git add pom.xml
+          git commit -m "chore: bump to next development version $DEV_VERSION"
+          git push origin main

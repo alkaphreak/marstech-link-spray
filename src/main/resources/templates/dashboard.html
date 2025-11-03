@@ -59,7 +59,7 @@
     <div class="container">
         <div class="row">
             <div class="col" th:width="${dashboard}">
-                <div th:each="item ${dashboard.items}">
+                <div th:each="item : ${dashboard.items}">
                     <!--/*@thymesVar id="item" type="fr.marstech.mtlinkspray.entity.DashboardItem"*/-->
                     <span th:text="${item.name}">Name</span>
                     <span th:text="${item.description}">Description</span>

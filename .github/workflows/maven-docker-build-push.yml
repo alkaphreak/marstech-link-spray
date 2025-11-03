@@ -1,80 +1,58 @@
-name: Maven build and push to Docker Hub
+name: Docker Build and Push (JReleaser)
 
 on:
   push:
     branches: [ release/* ]
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: 'Version bump type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
 
 jobs:
-  build:
-    runs-on: self-hosted
+  docker-release:
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
 
     steps:
-      - name: checkout code
-        uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
-      - name: Set up Java version
-        uses: actions/setup-java@v4
+      - name: Setup Java
+        uses: actions/setup-java@v5
         with:
           java-version: '21'
-          distribution: 'liberica'
-          server-id: github
-          settings-path: ${{ github.workspace }}
+          distribution: 'temurin'
 
       - name: Cache Maven dependencies
         uses: actions/cache@v4
         with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
 
-      - name: get the version from the pom.xml
-        id: pom-version
-        run: echo "version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_OUTPUT
+      - name: Bump Version
+        run: |
+          if [ "${{ github.event.inputs.bump }}" != "" ]; then
+            ./dev-ops/bump-version.sh ${{ github.event.inputs.bump }}
+          fi
 
-      - name: get the timestamp
-        id: build-timestamp
-        run: echo "timestamp=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
+      - name: Build
+        run: mvn clean package -DskipTests
 
-      - name: Maven clean install
-        run: mvn -B clean install --file pom.xml
-
-      - name: Build with Maven
+      - name: Docker Release with JReleaser
         env:
-          MY_ORGANISATION: ${{ vars.MY_ORGANISATION }}
-          APP_NAME: ${{ vars.APP_NAME }}
-          TIMESTAMP: ${{ steps.build-timestamp.outputs.timestamp }}
-          TAGNAME: ${{ steps.pom-version.outputs.version }}-${{ steps.build-timestamp.outputs.timestamp }}
-          DOCKER_HUB_REGISTRY: ${{ vars.DOCKER_HUB_REGISTRY }}
+          JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
           DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-          DOCKER_REPO: ${{ vars.DOCKER_REPO }}
-        run: |
-          echo "Maven build with TAGNAME: $TAGNAME"
-          
-          echo "docker start"
-          bash dev-ops/docker-start.sh
-          
-          echo "Docker login"
-          echo $DOCKER_HUB_ACCESS_TOKEN | docker login $DOCKER_HUB_REGISTRY -u $DOCKER_HUB_USERNAME --password-stdin  
-          
-          echo "Maven build (with tests and multi-arch support)"
-          mvn spring-boot:build-image \
-            -Dspring-boot.build-image.imageName="$MY_ORGANISATION/$APP_NAME:$TAGNAME" \
-            -Dspring-boot.build-image.builder=paketobuildpacks/builder:base \
-            -Dspring-boot.build-image.publish=true \
-            -Dspring-boot.build-image.publish=true \
-            -Dtimestamp="$TIMESTAMP" \
-            -f "pom.xml"  
-          
-          echo "Docker image tag"
-          docker tag "$MY_ORGANISATION/$APP_NAME:$TAGNAME" "$DOCKER_REPO:$TAGNAME"
-          
-          echo "Docker image push"
-          docker push "$DOCKER_HUB_REGISTRY/$DOCKER_REPO:$TAGNAME"
-
-          echo "Cleanup local images"
-          docker image prune -f
+          DOCKER_REPO: ${{ vars.DOCKER_REPO || 'marstech-link-spray' }}
+        run: mvn jreleaser:release -Djreleaser.select.packagers=docker

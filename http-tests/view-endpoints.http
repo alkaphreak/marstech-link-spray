@@ -1,0 +1,63 @@
+@baseUrl = http://localhost:8096
+
+### Home page
+GET {{baseUrl}}/
+Accept: text/html
+
+### Index page
+GET {{baseUrl}}/index
+Accept: text/html
+
+### Spray page - GET form
+GET {{baseUrl}}/spray
+Accept: text/html
+
+### Spray page - POST with links
+POST {{baseUrl}}/spray
+Content-Type: application/x-www-form-urlencoded
+
+inputLinkList=https://example.com%0Ahttps://google.com%0Ahttps://github.com
+
+### Spray open page - View generated spray
+GET {{baseUrl}}/spray/open?spray=https://example.com&spray=https://google.com
+Accept: text/html
+
+### Paste page - GET form
+GET {{baseUrl}}/paste
+Accept: text/html
+
+### Paste page - POST create paste
+POST {{baseUrl}}/paste
+Content-Type: application/x-www-form-urlencoded
+
+inputPasteBinTextArea=Hello World! This is a test paste.
+
+### Paste view - View created paste
+GET {{baseUrl}}/paste/abc123
+Accept: text/html
+
+### Shortener page - GET form
+GET {{baseUrl}}/shortener
+Accept: text/html
+
+### Shortener page - POST shorten URL
+POST {{baseUrl}}/shortener
+Content-Type: application/x-www-form-urlencoded
+
+inputUrl=https://example.com/very/long/url/that/needs/shortening
+
+### UUID generator page
+GET {{baseUrl}}/uuid
+Accept: text/html
+
+### Dashboard page
+GET {{baseUrl}}/dashboard
+Accept: text/html
+
+### Abuse page
+GET {{baseUrl}}/abuse
+Accept: text/html
+
+### 404 page test
+GET {{baseUrl}}/nonexistent-page
+Accept: text/html

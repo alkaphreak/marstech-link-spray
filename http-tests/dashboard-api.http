@@ -1,0 +1,58 @@
+@baseUrl = http://localhost:8096
+
+### Get dashboard by ID - Success
+GET {{baseUrl}}/api/dashboard/test-dashboard-id
+Accept: application/json
+
+### Get dashboard by ID - Not Found
+GET {{baseUrl}}/api/dashboard/non-existent-id
+Accept: application/json
+
+### Get dashboard by ID - Invalid ID (blank)
+GET {{baseUrl}}/api/dashboard/
+Accept: application/json
+
+### Create new dashboard - Success
+POST {{baseUrl}}/api/dashboard
+Content-Type: application/json
+
+{
+  "name": "My Dashboard",
+  "description": "Test dashboard for development",
+  "items": []
+}
+
+### Create dashboard - Minimal data
+POST {{baseUrl}}/api/dashboard
+Content-Type: application/json
+
+{}
+
+### Update dashboard - Success
+PUT {{baseUrl}}/api/dashboard/test-dashboard-id
+Content-Type: application/json
+
+{
+  "id": "test-dashboard-id",
+  "name": "Updated Dashboard",
+  "description": "Updated description",
+  "items": []
+}
+
+### Update dashboard - Not Found
+PUT {{baseUrl}}/api/dashboard/non-existent-id
+Content-Type: application/json
+
+{
+  "name": "Updated Dashboard",
+  "description": "Updated description"
+}
+
+### Update dashboard - Invalid JSON
+PUT {{baseUrl}}/api/dashboard/test-id
+Content-Type: application/json
+
+{
+  "name": "Invalid",
+  "description":""
+}
