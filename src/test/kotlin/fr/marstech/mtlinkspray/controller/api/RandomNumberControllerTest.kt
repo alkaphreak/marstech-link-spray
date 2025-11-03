@@ -74,7 +74,7 @@ class RandomNumberControllerTest {
 
     @Test
     fun shouldAcceptBoundaryMinMaxValues() {
-        // boundary values defined by annotations should be accepted
+        // boundary values based on the 9-character length limit enforced by the controller should be accepted
         mockMvc.perform(get("/api/random?min=-10000000&max=100000000"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.min").value(-10000000))
