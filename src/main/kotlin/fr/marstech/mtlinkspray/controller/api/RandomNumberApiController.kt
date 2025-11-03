@@ -52,7 +52,7 @@ class RandomNumberApiController {
         }
 
         // Process random generation
-        val value = Random.nextInt(inputMin, inputMax)
+        val value = Random.nextInt(inputMin, inputMax + 1)
 
         return RandomNumberResponse(
             value = value,
