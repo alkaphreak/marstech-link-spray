@@ -67,7 +67,7 @@ class RandomNumberControllerTest {
 
     @Test
     fun shouldReturnBadRequestWhenMinBelowConfiguredLimit() {
-        // controller has @Min(-1000000000) on min parameter
+        // controller enforces min parameter via manual length validation (up to 9 characters), not via @Min annotation
         mockMvc.perform(get("/api/random?min=-1000000001&max=10"))
             .andExpect(status().isBadRequest)
     }
