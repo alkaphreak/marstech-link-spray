@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.beans.TypeMismatchException
 import org.springframework.core.convert.ConversionFailedException
+import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
 
 @Order(Ordered.HIGHEST_PRECEDENCE)
@@ -59,8 +60,8 @@ class GlobalRestExceptionHandler {
     fun handleValidationException(e: ConstraintViolationException): ResponseEntity<Map<String, String?>> =
         ResponseEntity(mapOf("error" to e.message), BAD_REQUEST)
 
-    @ExceptionHandler(org.springframework.web.bind.MethodArgumentNotValidException::class)
-    fun handleMethodArgumentNotValid(e: org.springframework.web.bind.MethodArgumentNotValidException): ResponseEntity<Map<String, String?>> =
+    @ExceptionHandler(MethodArgumentNotValidException::class)
+    fun handleMethodArgumentNotValid(e: MethodArgumentNotValidException): ResponseEntity<Map<String, String?>> =
         ResponseEntity(mapOf("error" to e.message), BAD_REQUEST)
 
     @ExceptionHandler(BindException::class)

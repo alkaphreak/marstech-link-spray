@@ -39,8 +39,10 @@ class RandomNumberApiController {
         }
 
         val inputMax = when {
-            max.isNullOrBlank() -> throw MissingServletRequestParameterException("max", "int")
-            max.length > MIN_AND_MAX_LENGTH -> throw IllegalArgumentException("Max length must not exceed $MIN_AND_MAX_LENGTH characters")
+            max.isNullOrBlank() ->
+                throw MissingServletRequestParameterException("max", "int")
+            max.length > MIN_AND_MAX_LENGTH ->
+                throw IllegalArgumentException("Max length must not exceed $MIN_AND_MAX_LENGTH characters")
             else
                 -> try {
                 max.toInt()
