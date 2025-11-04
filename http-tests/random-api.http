@@ -1,0 +1,37 @@
+@baseUrl = http://localhost:8096
+
+### Random API - Valid min/max
+GET {{baseUrl}}/api/random?min=10&max=20
+Accept: application/json
+
+### Random API - Default min (min omitted)
+GET {{baseUrl}}/api/random?max=50
+Accept: application/json
+
+### Random API - Missing max (should return 400)
+GET {{baseUrl}}/api/random
+Accept: application/json
+
+### Random API - min greater than max (should return 400)
+GET {{baseUrl}}/api/random?min=100&max=10
+Accept: application/json
+
+### Random API - Max at 9 digits (boundary accepted)
+GET {{baseUrl}}/api/random?max=999999999
+Accept: application/json
+
+### Random API - Max length exceeded (10 digits, should return 400)
+GET {{baseUrl}}/api/random?max=1000000000
+Accept: application/json
+
+### Random API - Max too large (conversion failure or length exceeded, should return 400)
+GET {{baseUrl}}/api/random?max=1000000000000
+Accept: application/json
+
+### Random API - Min negative within allowed length (accepted)
+GET {{baseUrl}}/api/random?min=-99999999&max=0
+Accept: application/json
+
+### Random API - Min negative length exceeded (should return 400)
+GET {{baseUrl}}/api/random?min=-100000000&max=0
+Accept: application/json

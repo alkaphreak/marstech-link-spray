@@ -10,6 +10,7 @@ This directory contains comprehensive HTTP tests for the Marstech Link Spray app
 - **shortener-api.http** - URL shortening service tests
 - **spray-api.http** - Link spray functionality tests
 - **utility-api.http** - UUID generation and utility endpoints
+- **random-api.http** - Random number generator API tests
 
 ### Additional Test Categories
 - **error-handling.http** - Error scenarios and edge cases
@@ -42,6 +43,7 @@ Convert HTTP requests to curl commands for command-line testing.
 - ✅ GET `/api/url-shortener/shorten`
 - ✅ GET `/api/spray`
 - ✅ GET `/api/uuid`
+- ✅ GET `/api/random` - random number generator endpoint
 
 ### View Endpoints Tested
 - ✅ GET `/` (home)
@@ -78,6 +80,7 @@ Convert HTTP requests to curl commands for command-line testing.
 - URL shortening: 200 OK with shortened URL string
 - Spray operations: 200 OK with spray URL string
 - UUID generation: 200 OK with UUID string
+- Random number generation: 200 OK with JSON response containing `value`, `min`, `max`, and `timestamp`
 
 ### Error Cases
 - Invalid requests: 400 Bad Request
@@ -92,3 +95,20 @@ Convert HTTP requests to curl commands for command-line testing.
 - Security tests validate input sanitization
 - View tests ensure proper HTML rendering
 - Error tests verify proper error handling and responses
+
+## Random API - quick examples
+The `random-api.http` contains the main smoke tests for the Random Number API. Example curl commands:
+
+```bash
+# valid: generate between 10 and 20
+curl -sS 'http://localhost:8096/api/random?min=10&max=20' -H 'Accept: application/json'
+
+# default min: min omitted -> defaults to 0
+curl -sS 'http://localhost:8096/api/random?max=50' -H 'Accept: application/json'
+
+# missing max: should return 400
+curl -i 'http://localhost:8096/api/random' -H 'Accept: application/json'
+
+# min > max: should return 400
+curl -i 'http://localhost:8096/api/random?min=100&max=10' -H 'Accept: application/json'
+```
