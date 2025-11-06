@@ -1,0 +1,135 @@
+```mermaid
+graph TB
+    %% Styles
+    classDef triggerClass fill:#28a745,stroke:#1e7e34,color:#fff,stroke-width:3px
+    classDef inputClass fill:#ffc107,stroke:#e0a800,stroke-width:2px
+    classDef processClass fill:#e7f3ff,stroke:#0066cc,stroke-width:2px
+    classDef jreleaserClass fill:#e7e7ff,stroke:#6f42c1,stroke-width:2px
+    classDef successClass fill:#28a745,stroke:#1e7e34,color:#fff,stroke-width:2px
+    classDef failClass fill:#dc3545,stroke:#bd2130,color:#fff,stroke-width:2px
+    classDef decisionClass fill:#17a2b8,stroke:#117a8b,color:#fff,stroke-width:2px
+
+    %% Main Flow
+    START([🚀 GitHub Actions<br/>Release Workflow<br/>TRIGGER]):::triggerClass
+    INPUT[👤 User Selects<br/>Version Bump Type]:::inputClass
+    CHOICE{Version<br/>Bump?}:::decisionClass
+
+    PATCH[PATCH<br/>0.0.4 → 0.0.5<br/>Bug fixes]
+    MINOR[MINOR<br/>0.0.4 → 0.1.0<br/>New features]
+    MAJOR[MAJOR<br/>0.0.4 → 1.0.0<br/>Breaking changes]
+
+    CHECKOUT[📦 Checkout Code<br/>from main branch]:::processClass
+    JAVA[☕ Setup Java 21<br/>Temurin + Maven Cache]:::processClass
+    BUMP[🔢 Bump Version<br/>./dev-ops/bump-version.sh<br/>Update pom.xml]:::processClass
+    BRANCH[🌿 Create Release Branch<br/>release/v VERSION]:::processClass
+    BUILD[🔨 Build & Test<br/>mvn clean verify]:::processClass
+
+    TEST{Tests<br/>Pass?}:::decisionClass
+
+    JRELEASER[📋 JReleaser<br/>full-release]:::jreleaserClass
+
+    TAG[🏷️ Create Git Tag<br/>v VERSION]:::jreleaserClass
+    CHANGELOG[📝 Generate Changelog<br/>From commits]:::jreleaserClass
+    GHRELEASE[🎉 Create GitHub Release<br/>Upload JAR artifacts]:::jreleaserClass
+    DOCKER[🐳 Build Docker Image<br/>marstech-link-spray]:::jreleaserClass
+    DOCKERPUSH[📤 Push to Docker Hub<br/>Tags: version + latest]:::jreleaserClass
+
+    MAINUPDATE[🔄 Update Main Branch<br/>Next dev version<br/>VERSION+1-SNAPSHOT]:::processClass
+
+    SUCCESS[✅ RELEASE COMPLETE<br/>• GitHub Release Created<br/>• Docker Images Published<br/>• Main Branch Updated]:::successClass
+    FAILURE[❌ WORKFLOW FAILED<br/>Check logs & retry]:::failClass
+
+    %% Flow
+    START --> INPUT
+    INPUT --> CHOICE
+    CHOICE -->|patch| PATCH
+    CHOICE -->|minor| MINOR
+    CHOICE -->|major| MAJOR
+
+    PATCH --> CHECKOUT
+    MINOR --> CHECKOUT
+    MAJOR --> CHECKOUT
+
+    CHECKOUT --> JAVA
+    JAVA --> BUMP
+    BUMP --> BRANCH
+    BRANCH --> BUILD
+    BUILD --> TEST
+
+    TEST -->|✓ Yes| JRELEASER
+    TEST -->|✗ No| FAILURE
+
+    JRELEASER --> TAG
+    TAG --> CHANGELOG
+    CHANGELOG --> GHRELEASE
+    GHRELEASE --> DOCKER
+    DOCKER --> DOCKERPUSH
+    DOCKERPUSH --> MAINUPDATE
+    MAINUPDATE --> SUCCESS
+
+    %% Notes
+    ENV[🔐 Required Secrets:<br/>• GITHUB_TOKEN<br/>• DOCKER_HUB_USERNAME<br/>• DOCKER_HUB_ACCESS_TOKEN]
+
+    ARTIFACTS[📦 Release Artifacts:<br/>• JAR file<br/>• Docker images<br/>• Release notes<br/>• Checksums]
+
+    START -.-> ENV
+    SUCCESS -.-> ARTIFACTS
+```
+
+# MarsTech Link Spray - Release Workflow
+
+## Quick Visual Guide
+
+This diagram shows the automated GitHub Actions release workflow for MarsTech Link Spray.
+
+### Workflow Steps
+
+1. **🚀 Trigger**: Manually start the release workflow in GitHub Actions
+2. **👤 Input**: Select version bump type (patch, minor, or major)
+3. **📦 Checkout**: Clone the repository from main branch
+4. **☕ Setup**: Configure Java 21 and Maven environment
+5. **🔢 Bump**: Automatically update version in pom.xml
+6. **🌿 Branch**: Create a release branch (e.g., `release/v0.0.5`)
+7. **🔨 Build**: Run `mvn clean verify` to build and test
+8. **📋 JReleaser**: Execute release automation:
+   - Create Git tag
+   - Generate changelog from commits
+   - Create GitHub release
+   - Build Docker image
+   - Push to Docker Hub
+9. **🔄 Update**: Bump main branch to next development version
+10. **✅ Complete**: Release is live!
+
+### Version Bump Types
+
+- **PATCH** (0.0.4 → 0.0.5): Bug fixes, documentation, security patches
+- **MINOR** (0.0.4 → 0.1.0): New features, enhancements
+- **MAJOR** (0.0.4 → 1.0.0): Breaking changes
+
+### Required Configuration
+
+Before first release, set these GitHub Secrets:
+- `GITHUB_TOKEN` (automatically provided)
+- `DOCKER_HUB_USERNAME`
+- `DOCKER_HUB_ACCESS_TOKEN`
+
+### Output Artifacts
+
+Each release produces:
+- ✅ GitHub Release with changelog
+- ✅ JAR artifact: `mt-link-spray-[VERSION].jar`
+- ✅ Docker image: `username/marstech-link-spray:v[VERSION]`
+- ✅ Docker image: `username/marstech-link-spray:latest`
+- ✅ Checksums and release notes
+
+---
+
+**View this diagram:**
+- On GitHub: The Mermaid diagram renders automatically
+- In IDE: Use Mermaid preview plugins
+- Online: Copy to [Mermaid Live Editor](https://mermaid.live/)
+
+**For more details, see:**
+- [RELEASE_GUIDE.md](../RELEASE_GUIDE.md) - Complete release documentation
+- [release-workflow.dot](release-workflow.dot) - Detailed Graphviz diagram
+
