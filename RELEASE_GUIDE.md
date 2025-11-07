@@ -344,51 +344,66 @@ export JRELEASER_GITHUB_TOKEN="your-github-token"
 ```
 Or ensure GitHub Actions has `GITHUB_TOKEN` secret configured.
 
-#### Issue: Docker Hub authentication failed
-**Solution:**
-1. Verify Docker Hub credentials in GitHub Secrets
-2. Ensure access token has `Read, Write, Delete` permissions
-3. Check token hasn't expired
+#### Issue: 403 Permission Denied when workflow pushes release branch
+If you see an error like in your logs:
 
-```bash
-# Test Docker Hub login locally
-echo "$DOCKER_HUB_ACCESS_TOKEN" | docker login -u "$DOCKER_HUB_USERNAME" --password-stdin
+```
+remote: Permission to <owner>/marstech-link-spray.git denied to github-actions[bot].
+fatal: unable to access 'https://github.com/<owner>/marstech-link-spray/': The requested URL returned error: 403
 ```
 
-#### Issue: Version conflict or tag already exists
-**Solution:**
-```bash
-# Delete local tag
-git tag -d v0.0.5
+Diagnosis: The job attempted to push a branch (or tag) from inside a GitHub Actions run but the token used (usually `GITHUB_TOKEN`) did not have write permission for the repository or the runner couldn't use credentials for pushing.
 
-# Delete remote tag
-git push origin :refs/tags/v0.0.5
+Fixes (ordered from simplest to more explicit):
 
-# Re-run release
+1) Explicitly give workflow write permission to repo contents
+
+Add a top-level `permissions` block to your workflow so the `GITHUB_TOKEN` can push changes:
+
+```yaml
+# .github/workflows/release.yml (top-level)
+permissions:
+  contents: write
 ```
 
-#### Issue: Build fails during release
-**Solution:**
-```bash
-# Test build locally first
-mvn clean verify
+2) Ensure actions/checkout persists credentials
 
-# Check for compilation errors
-mvn clean compile
+Make the checkout step explicitly persist credentials so the `GITHUB_TOKEN` is available to `git` for pushing:
 
-# Run tests separately
-mvn test
+```yaml
+- name: Checkout
+  uses: actions/checkout@v4
+  with:
+    fetch-depth: 0
+    ref: main
+    persist-credentials: true
 ```
 
-#### Issue: Release branch not merging
-**Solution:**
-- Check for merge conflicts in GitHub
-- Manually merge release branch if needed:
+(actions/checkout default is usually `persist-credentials: true`, but some runners or workflows explicitly set read-only defaults — setting it explicitly avoids ambiguity.)
+
+3) Check repository Actions permissions
+
+Go to: Repository Settings → Actions → General → Workflow permissions. Ensure it's set to "Read and write permissions" (not "Read repository contents only").
+
+4) Fallback: Use a Personal Access Token (PAT)
+
+If your organization or repo policy blocks `GITHUB_TOKEN` writes (common in some orgs), create a GitHub Personal Access Token with `repo` scope and store it as a secret (for example `REPO_PAT`). Then change the push step to use it explicitly:
+
 ```bash
-git checkout main
-git merge release/v0.0.5
-git push origin main
+# example in a workflow run step
+git remote set-url origin https://x-access-token:${{ secrets.REPO_PAT }}@github.com/${{ github.repository }}.git
+git push origin "$BRANCH_NAME"
 ```
+
+Or use `actions/setup-git-credentials`-style actions that accept a token input.
+
+5) Make sure the workflow run is not from an untrusted fork
+
+Workflows triggered by pull requests from forks run with reduced permissions and cannot push back to the main repository. Trigger releases from the protected `main` branch (via `workflow_dispatch`) or from trusted runs.
+
+6) Verify Git user is configured
+
+The workflow already configures `git config user.email` and `user.name` — keep those lines. The missing piece in your logs was authentication, not username config.
 
 ---
 
@@ -475,4 +490,3 @@ If you encounter issues not covered in this guide:
 ---
 
 **Happy Releasing! 🎉**
-

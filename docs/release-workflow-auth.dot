@@ -1,0 +1,25 @@
+digraph ReleaseAuth {
+  rankdir=LR;
+  node [shape=box, style=rounded, fontname="Arial"];
+
+  actions [label="GitHub Actions\nRelease Job"];
+  token_choice [label="Auth Method\n(choose one)", shape=diamond, style=filled, fillcolor="#fff3cd"];
+
+  github_token [label="Use GITHUB_TOKEN\n(persist-credentials: true)\npermissions: contents: write", shape=note, fillcolor="#d1ecf1"];
+  pat [label="Use Personal Access Token (PAT)\nStore as secret e.g. REPO_PAT\npermission: repo", shape=note, fillcolor="#e7f3ff"];
+
+  check_repo_settings [label="Repository Settings\nAllow GitHub Actions to create and approve PRs / push", shape=box, fillcolor="#f8d7da"];
+  push_remote [label="git push origin release/vX.Y.Z\n(or use actions/checkout with token)", shape=box, fillcolor="#d4edda"];
+  failure [label="403: Permission Denied\nAction cannot push as github-actions[bot]", shape=box, fillcolor="#ffc9c9"];
+
+  actions -> token_choice;
+  token_choice -> github_token [label="default / recommended"];
+  token_choice -> pat [label="if org policies block GITHUB_TOKEN"];
+
+  github_token -> check_repo_settings;
+  pat -> push_remote;
+
+  check_repo_settings -> push_remote;
+  push_remote -> failure [label="if permissions insufficient", style=dashed];
+}
+
