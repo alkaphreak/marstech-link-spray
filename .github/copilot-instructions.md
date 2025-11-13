@@ -47,6 +47,8 @@ MarsTech Link Spray is a URL shortener and link management service built with:
 - Test profile: `test` (uses port 27018 for MongoDB)
 - Aim for **high code coverage**
 - Use **Given-When-Then** structure for test methods
+- Use **camelCase** method names (e.g., `shouldReturnUserWhenUserExists`)
+- Add `@DisplayName` for human-readable descriptions
 
 ### API Design
 - Follow **RESTful conventions**
