@@ -46,6 +46,7 @@ MarsTech Link Spray is a URL shortener and link management service built with:
 - Mock dependencies with **Mockito** (`@MockBean`, `@Mock`)
 - Test profile: `test` (uses port 27018 for MongoDB)
 - Aim for **high code coverage**
+- Use **Given-When-Then** structure for test methods
 
 ### API Design
 - Follow **RESTful conventions**
@@ -138,7 +139,7 @@ interface MyRepository : MongoRepository<MyEntity, String> {
 2. **Match the project's style** and conventions
 3. **Use Kotlin features** (not Java-style Kotlin)
 4. **Include proper error handling** and validation
-5. **Add tests** when suggesting new features
+5. **Add tests** when suggesting new features (use Given-When-Then structure)
 6. **Follow RESTful** conventions for APIs
 7. **Consider MongoDB indexing** for queries
 8. **Apply Spring Boot best practices**
