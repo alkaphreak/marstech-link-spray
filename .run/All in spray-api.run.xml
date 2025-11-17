@@ -1,0 +1,7 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="All in spray-api" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" path="$PROJECT_DIR$/http-tests/spray-api.http">
+    <method v="2">
+      <option name="RunConfigurationTask" enabled="true" run_configuration_name="MtLinkSprayApplication" run_configuration_type="SpringBootApplicationConfigurationType" />
+    </method>
+  </configuration>
+</component>
