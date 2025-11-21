@@ -72,21 +72,26 @@ jobs:
       - name: Create Dev Bump Branch
         id: create-dev-branch
         run: |
-          # Switch to main and compute next dev snapshot
+          # Ensure we start from the up-to-date main
           git checkout main
+          git fetch origin main --depth=1
+
+          # Compute next dev snapshot from the release version (no workspace changes yet)
           RELEASE_VERSION="${{ steps.bump-version.outputs.version }}"
           IFS='.' read -r major minor patch <<< "$RELEASE_VERSION"
           patch=$((patch + 1))
           DEV_VERSION="$major.$minor.$patch-SNAPSHOT"
 
-          # Apply version change
-          mvn versions:set -DnewVersion=$DEV_VERSION
-
-          # Prepare branch
+          # Prepare branch (create branch first so any changes land on it)
           BRANCH_NAME="release/dev-bump-$GITHUB_RUN_ID"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
+
+          # Create the new branch from main (fail if branch already exists locally)
           git checkout -b "$BRANCH_NAME"
+
+          # Apply version change on the new branch and commit there
+          mvn versions:set -DnewVersion=$DEV_VERSION
           git add pom.xml
           git commit -m "chore: bump to next development version $DEV_VERSION"
 
