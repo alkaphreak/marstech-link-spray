@@ -48,6 +48,8 @@ jobs:
       - name: Bump Version
         id: bump-version
         run: |
+          echo "----------------------------------------------------------------"
+          echo "Bumping version with type: ${{ github.event.inputs.bump }}"
           ./dev-ops/bump-version.sh ${{ github.event.inputs.bump }}
           NEW_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
           echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
@@ -55,6 +57,7 @@ jobs:
 
       - name: Create Release Branch
         run: |
+          echo "----------------------------------------------------------------"
           RELEASE_VERSION="${{ steps.bump-version.outputs.version }}"
           BRANCH_NAME="release/v$RELEASE_VERSION"
           TEST_MODE="${{ github.event.inputs.test }}"
@@ -150,4 +153,16 @@ jobs:
           DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
           DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
           DOCKER_REPO: ${{ vars.DOCKER_REPO || 'marstech-link-spray' }}
-        run: mvn jreleaser:full-release
+        run: |
+          echo "----------------------------------------------------------------"
+          echo "Releasing version: ${{ steps.bump-version.outputs.version }}"
+          echo "Docker Repo: $DOCKER_REPO"
+
+          TEST_MODE="${{ github.event.inputs.test }}"
+          if [ "$TEST_MODE" = "true" ] || [ "$TEST_MODE" = "True" ]; then
+            echo "Test mode enabled: running JReleaser in dry-run to avoid creating/updating GitHub release."
+            echo "Running: mvn jreleaser:full-release -Djreleaser.dry-run=true"
+            mvn jreleaser:full-release -Djreleaser.dry-run=true
+          else
+            mvn jreleaser:full-release
+          fi
