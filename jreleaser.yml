@@ -1,3 +1,8 @@
+release:
+  github:
+    overwrite: true
+    update: true
+
 distributions:
   marstech-link-spray:
     type: JAVA_BINARY
@@ -6,9 +11,7 @@ distributions:
     docker:
       active: ALWAYS
       dockerfile: src/jreleaser/distributions/marstech-link-spray/Dockerfile
-      # Use the DOCKER_REPO env var (should be "username/marstech-link-spray") so the workflow
-      # controls the target registry/namespace.
-      imageName: '${env.DOCKER_REPO}'
+      imageName: marstech-link-spray
       tags:
         - latest
         - '{{projectEffectiveVersion}}'
