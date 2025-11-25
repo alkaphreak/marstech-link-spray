@@ -120,8 +120,17 @@ jobs:
       - name: Build and Test
         run: |
             echo "----------------------------------------------------------------"
-            echo "SKIP - Building and testing project"
 #            mvn -B -ntp clean verify
+            echo "SKIP - Building and testing project"
+
+      - name: Dump JReleaser config (debug)
+        run: |
+          echo "----------------------------------------------------------------"
+          echo "Dumping jreleaser.yml for debug"
+          sed -n '1,120p' jreleaser.yml || true
+          echo "Listing JReleaser plugin version"
+          mvn -q help:evaluate -Dexpression=project.build.plugins | grep -i jreleaser || true
+
       - name: Release with JReleaser
         env:
           JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -130,4 +139,10 @@ jobs:
           DOCKER_REPO: ${{ vars.DOCKER_REPO || 'marstech-link-spray' }}
         run: |
           echo "----------------------------------------------------------------"
-          mvn jreleaser:full-release
+          echo "Releasing version: ${{ steps.bump-version.outputs.version }}"
+          echo "Docker Repo: $DOCKER_REPO"
+          echo "Running JReleaser with overwrite/update enabled"
+          mvn jreleaser:full-release \
+            -Djreleaser.release.overwrite=true \
+            -Djreleaser.release.update=true \
+            -Djreleaser.dry.run=false

@@ -1,7 +1,7 @@
 release:
-  github:
-    overwrite: true
-    update: true
+  overwrite: true
+  update: true
+  github: {}
 
 distributions:
   marstech-link-spray:
@@ -15,7 +15,6 @@ distributions:
       tags:
         - latest
         - '{{projectEffectiveVersion}}'
-      # Configure registries so JReleaser can authenticate and push to Docker Hub.
       registries:
         - serverName: docker.io
           username: ${env.DOCKER_HUB_USERNAME}
