@@ -10,4 +10,3 @@ distributions:
       tags:
         - latest
         - '{{projectEffectiveVersion}}'
-
