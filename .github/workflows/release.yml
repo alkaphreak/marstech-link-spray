@@ -12,11 +12,6 @@ on:
           - patch
           - minor
           - major
-      test:
-        description: 'Run in test mode'
-        required: false
-        default: true
-        type: boolean
 
 permissions:
   contents: write
@@ -60,55 +55,36 @@ jobs:
           echo "----------------------------------------------------------------"
           RELEASE_VERSION="${{ steps.bump-version.outputs.version }}"
           BRANCH_NAME="release/v$RELEASE_VERSION"
-          TEST_MODE="${{ github.event.inputs.test }}"
 
-          echo "Preparing release branch '$BRANCH_NAME' (test mode: $TEST_MODE)"
+          echo "Preparing release branch '$BRANCH_NAME' (replay-friendly mode)"
 
           # Track whether we stashed local changes
           STASHED=false
 
-          # In test mode attempt to stash any local changes (including untracked) so checkouts won't fail.
-          # We always run the stash attempt in test mode because previous steps (bump-version) can modify files.
-          if [ "$TEST_MODE" = "true" ] || [ "$TEST_MODE" = "True" ]; then
-            echo "Test mode: attempting to stash local changes (if any)"
-            STASH_NAME="release-bump-$RELEASE_VERSION-$(date +%s)"
-            STASH_OUTPUT=$(git stash push -u -m "$STASH_NAME" 2>&1 || true)
-            echo "stash output: $STASH_OUTPUT"
-            if ! echo "$STASH_OUTPUT" | grep -q "No local changes to save"; then
-              STASHED=true
-              echo "Stash created: $STASH_NAME"
-            else
-              echo "No local changes to stash"
-            fi
+          # Attempt to stash any local changes (including untracked) so checkouts won't fail.
+          # This is necessary because previous steps (bump-version) can modify files.
+          echo "Attempting to stash local changes (if any)"
+          STASH_NAME="release-bump-$RELEASE_VERSION-$(date +%s)"
+          STASH_OUTPUT=$(git stash push -u -m "$STASH_NAME" 2>&1 || true)
+          echo "stash output: $STASH_OUTPUT"
+          if ! echo "$STASH_OUTPUT" | grep -q "No local changes to save"; then
+            STASHED=true
+            echo "Stash created: $STASH_NAME"
           else
-            # If not in test mode, fail early if there are uncommitted changes
-            if [ -n "$(git status --porcelain)" ]; then
-              echo "Error: local changes present; commit or stash before running release." >&2
-              exit 1
-            fi
+            echo "No local changes to stash"
           fi
 
-          # If remote branch exists
+          # If remote branch exists, fetch and reuse it
           if git ls-remote --heads origin "$BRANCH_NAME" | grep -q "refs/heads/$BRANCH_NAME"; then
-            if [ "$TEST_MODE" = "true" ] || [ "$TEST_MODE" = "True" ]; then
-              echo "Test mode: remote branch exists; fetching and reusing $BRANCH_NAME"
-              git fetch origin "$BRANCH_NAME":"$BRANCH_NAME"
-              git checkout "$BRANCH_NAME"
-            else
-              echo "Error: branch '$BRANCH_NAME' already exists on remote 'origin'." >&2
-              exit 1
-            fi
+            echo "Remote branch exists; fetching and reusing $BRANCH_NAME"
+            git fetch origin "$BRANCH_NAME":"$BRANCH_NAME"
+            git checkout "$BRANCH_NAME"
           fi
 
-          # If local branch exists
+          # If local branch exists, check it out
           if git show-ref --verify --quiet refs/heads/"$BRANCH_NAME"; then
-            if [ "$TEST_MODE" = "true" ] || [ "$TEST_MODE" = "True" ]; then
-              echo "Test mode: local branch exists; checking out $BRANCH_NAME"
-              git checkout "$BRANCH_NAME"
-            else
-              echo "Error: branch '$BRANCH_NAME' already exists locally." >&2
-              exit 1
-            fi
+            echo "Local branch exists; checking out $BRANCH_NAME"
+            git checkout "$BRANCH_NAME"
           else
             # Create the branch locally if it hasn't been created or checked out above
             if [ "$(git rev-parse --abbrev-ref HEAD)" != "$BRANCH_NAME" ]; then
@@ -137,12 +113,8 @@ jobs:
             git commit -m "chore: bump version to $RELEASE_VERSION for release"
           fi
 
-          # Push branch. In test mode we allow updating an existing branch with --force-with-lease to avoid failures.
-          if [ "$TEST_MODE" = "true" ] || [ "$TEST_MODE" = "True" ]; then
-            git push origin "$BRANCH_NAME" --force-with-lease
-          else
-            git push origin "$BRANCH_NAME"
-          fi
+          # Push branch with --force-with-lease to allow updating existing branches during replays
+          git push origin "$BRANCH_NAME" --force-with-lease
           echo "Created or updated release branch: $BRANCH_NAME"
 
       - name: Build and Test
@@ -150,62 +122,6 @@ jobs:
             echo "----------------------------------------------------------------"
             echo "SKIP - Building and testing project"
 #            mvn -B -ntp clean verify
-
-      - name: Build and push Docker image (fallback)
-        env:
-          DOCKER_REPO: ${{ vars.DOCKER_REPO || format('{0}/{1}', github.actor, 'marstech-link-spray') }}
-          DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
-          DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-        run: |
-          set -euo pipefail
-          echo "----------------------------------------------------------------"
-          echo "Docker fallback step"
-          RELEASE_VERSION="${{ steps.bump-version.outputs.version }}"
-          TEST_MODE="${{ github.event.inputs.test }}"
-
-          echo "TEST_MODE=$TEST_MODE"
-          echo "Effective DOCKER_REPO=$DOCKER_REPO"
-
-          if [ "$TEST_MODE" = "true" ] || [ "$TEST_MODE" = "True" ]; then
-            echo "Test mode: skipping Docker build/push"
-            exit 0
-          fi
-
-          if [ -z "$DOCKER_HUB_USERNAME" ] || [ -z "$DOCKER_HUB_ACCESS_TOKEN" ]; then
-            echo "Docker credentials are missing - set DOCKER_HUB_USERNAME and DOCKER_HUB_ACCESS_TOKEN secrets" >&2
-            exit 1
-          fi
-
-          DOCKERFILE_PATH="src/jreleaser/distributions/marstech-link-spray/Dockerfile"
-          if [ ! -f "$DOCKERFILE_PATH" ]; then
-            echo "Dockerfile not found at $DOCKERFILE_PATH" >&2
-            exit 1
-          fi
-
-          echo "Docker version:"; docker --version || true
-          echo "Docker info (short):"; docker info --format '{{json .}}' | head -n 1 || true
-
-          echo "Logging in to Docker Hub as $DOCKER_HUB_USERNAME"
-          if echo "$DOCKER_HUB_ACCESS_TOKEN" | docker login -u "$DOCKER_HUB_USERNAME" --password-stdin; then
-            echo "Docker login succeeded"
-          else
-            echo "Docker login FAILED" >&2
-            exit 1
-          fi
-
-          IMAGE_NAME="$DOCKER_REPO"
-          echo "Building image $IMAGE_NAME:$RELEASE_VERSION and $IMAGE_NAME:latest"
-          docker build -f "$DOCKERFILE_PATH" -t "$IMAGE_NAME:$RELEASE_VERSION" -t "$IMAGE_NAME:latest" .
-
-          echo "Local images matching $IMAGE_NAME:"; docker images --format "{{.Repository}}:{{.Tag}}\t{{.ID}}\t{{.Size}}" | grep "^$IMAGE_NAME" || true
-
-          echo "Pushing $IMAGE_NAME:$RELEASE_VERSION"
-          docker push "$IMAGE_NAME:$RELEASE_VERSION"
-          echo "Pushing $IMAGE_NAME:latest"
-          docker push "$IMAGE_NAME:latest"
-
-          echo "Docker image pushed: $IMAGE_NAME:$RELEASE_VERSION"
-
       - name: Release with JReleaser
         env:
           JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -214,14 +130,4 @@ jobs:
           DOCKER_REPO: ${{ vars.DOCKER_REPO || 'marstech-link-spray' }}
         run: |
           echo "----------------------------------------------------------------"
-          echo "Releasing version: ${{ steps.bump-version.outputs.version }}"
-          echo "Docker Repo: $DOCKER_REPO"
-
-          TEST_MODE="${{ github.event.inputs.test }}"
-          if [ "$TEST_MODE" = "true" ] || [ "$TEST_MODE" = "True" ]; then
-            echo "Test mode enabled: running JReleaser in dry-run to avoid creating/updating GitHub release."
-            echo "Running: mvn jreleaser:full-release -Djreleaser.dry.run=true -Djreleaser.dryRun=true -Djreleaser.dry-run=true"
-            mvn jreleaser:full-release -Djreleaser.dry.run=true -Djreleaser.dryRun=true -Djreleaser.dry-run=true
-          else
-            mvn jreleaser:full-release
-          fi
+          mvn jreleaser:full-release
