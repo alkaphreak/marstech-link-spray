@@ -46,6 +46,7 @@ jobs:
           ./dev-ops/bump-version.sh ${{ github.event.inputs.bump }}
           NEW_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
           echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "Bumped version to $NEW_VERSION"
 
       - name: Create Release Branch
         run: |
@@ -82,46 +83,3 @@ jobs:
           DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
           DOCKER_REPO: ${{ vars.DOCKER_REPO || 'marstech-link-spray' }}
         run: mvn jreleaser:full-release
-
-      - name: Create Dev Bump Branch
-        id: create-dev-branch
-        run: |
-          # Ensure we start from the up-to-date main
-          git checkout main
-          git fetch origin main --depth=1
-
-          # Compute next dev snapshot from the release version (no workspace changes yet)
-          RELEASE_VERSION="${{ steps.bump-version.outputs.version }}"
-          IFS='.' read -r major minor patch <<< "$RELEASE_VERSION"
-          patch=$((patch + 1))
-          DEV_VERSION="$major.$minor.$patch-SNAPSHOT"
-
-          # Prepare branch (create branch first so any changes land on it)
-          BRANCH_NAME="release/dev-bump-$GITHUB_RUN_ID"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git config user.name "github-actions[bot]"
-
-          # Create the new branch from main (fail if branch already exists locally)
-          git checkout -b "$BRANCH_NAME"
-
-          # Apply version change on the new branch and commit there
-          mvn versions:set -DnewVersion=$DEV_VERSION
-          git add pom.xml
-          git commit -m "chore: bump to next development version $DEV_VERSION"
-
-          # Push branch and expose outputs for next step
-          git push --set-upstream origin "$BRANCH_NAME"
-          echo "dev_branch=$BRANCH_NAME" >> $GITHUB_OUTPUT
-          echo "dev_version=$DEV_VERSION" >> $GITHUB_OUTPUT
-
-      - name: Create Pull Request for Dev Bump
-        uses: peter-evans/create-pull-request@v5
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          title: "chore(release): bump to next development version ${{ steps.create-dev-branch.outputs.dev_version }}"
-          body: "After release ${{ steps.bump-version.outputs.version }}, bump to next development snapshot (${{ steps.create-dev-branch.outputs.dev_version }})."
-          base: main
-          # noinspection UndefinedParamsPresent
-          head: ${{ steps.create-dev-branch.outputs.dev_branch }}
-          draft: true
-          labels: dev-bump,auto-generated
