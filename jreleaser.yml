@@ -6,7 +6,14 @@ distributions:
     docker:
       active: ALWAYS
       dockerfile: src/jreleaser/distributions/marstech-link-spray/Dockerfile
-      imageName: marstech-link-spray
+      # Use the DOCKER_REPO env var (should be "username/marstech-link-spray") so the workflow
+      # controls the target registry/namespace.
+      imageName: '${env.DOCKER_REPO}'
       tags:
         - latest
         - '{{projectEffectiveVersion}}'
+      # Configure registries so JReleaser can authenticate and push to Docker Hub.
+      registries:
+        - serverName: docker.io
+          username: ${env.DOCKER_HUB_USERNAME}
+          password: ${env.DOCKER_HUB_ACCESS_TOKEN}
