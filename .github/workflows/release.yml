@@ -12,6 +12,11 @@ on:
           - patch
           - minor
           - major
+      test:
+        description: 'Run in test mode'
+        required: false
+        default: true
+        type: boolean
 
 permissions:
   contents: write
@@ -52,27 +57,57 @@ jobs:
         run: |
           RELEASE_VERSION="${{ steps.bump-version.outputs.version }}"
           BRANCH_NAME="release/v$RELEASE_VERSION"
+          TEST_MODE="${{ github.event.inputs.test }}"
 
-          # Fail early if the branch already exists on the remote
+          echo "Preparing release branch '$BRANCH_NAME' (test mode: $TEST_MODE)"
+
+          # If remote branch exists
           if git ls-remote --heads origin "$BRANCH_NAME" | grep -q "refs/heads/$BRANCH_NAME"; then
-            echo "Error: branch '$BRANCH_NAME' already exists on remote 'origin'." >&2
-            exit 1
+            if [ "$TEST_MODE" = "true" ] || [ "$TEST_MODE" = "True" ]; then
+              echo "Test mode: remote branch exists; fetching and reusing $BRANCH_NAME"
+              git fetch origin "$BRANCH_NAME":"$BRANCH_NAME"
+              git checkout "$BRANCH_NAME"
+            else
+              echo "Error: branch '$BRANCH_NAME' already exists on remote 'origin'." >&2
+              exit 1
+            fi
           fi
 
-          # Also fail if a local branch with the same name exists
+          # If local branch exists
           if git show-ref --verify --quiet refs/heads/"$BRANCH_NAME"; then
-            echo "Error: branch '$BRANCH_NAME' already exists locally." >&2
-            exit 1
+            if [ "$TEST_MODE" = "true" ] || [ "$TEST_MODE" = "True" ]; then
+              echo "Test mode: local branch exists; checking out $BRANCH_NAME"
+              git checkout "$BRANCH_NAME"
+            else
+              echo "Error: branch '$BRANCH_NAME' already exists locally." >&2
+              exit 1
+            fi
+          else
+            # Create the branch locally if it hasn't been created or checked out above
+            if [ "$(git rev-parse --abbrev-ref HEAD)" != "$BRANCH_NAME" ]; then
+              git checkout -b "$BRANCH_NAME"
+            fi
           fi
 
-          # Create the branch and push
-          git checkout -b "$BRANCH_NAME"
+          # Configure committer
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
+
+          # Stage and commit only if there are changes
           git add pom.xml
-          git commit -m "chore: bump version to $RELEASE_VERSION for release"
-          git push origin "$BRANCH_NAME"
-          echo "Created release branch: $BRANCH_NAME"
+          if git diff --staged --quiet; then
+            echo "No staged changes to commit on $BRANCH_NAME"
+          else
+            git commit -m "chore: bump version to $RELEASE_VERSION for release"
+          fi
+
+          # Push branch. In test mode we allow updating an existing branch with --force-with-lease to avoid failures.
+          if [ "$TEST_MODE" = "true" ] || [ "$TEST_MODE" = "True" ]; then
+            git push origin "$BRANCH_NAME" --force-with-lease
+          else
+            git push origin "$BRANCH_NAME"
+          fi
+          echo "Created or updated release branch: $BRANCH_NAME"
 
       - name: Build and Test
         run: mvn -B -ntp clean verify
