@@ -161,8 +161,8 @@ jobs:
           TEST_MODE="${{ github.event.inputs.test }}"
           if [ "$TEST_MODE" = "true" ] || [ "$TEST_MODE" = "True" ]; then
             echo "Test mode enabled: running JReleaser in dry-run to avoid creating/updating GitHub release."
-            echo "Running: mvn jreleaser:full-release -Djreleaser.dry-run=true"
-            mvn jreleaser:full-release -Djreleaser.dry-run=true
+            echo "Running: mvn jreleaser:full-release -Djreleaser.dry.run=true -Djreleaser.dryRun=true -Djreleaser.dry-run=true"
+            mvn jreleaser:full-release -Djreleaser.dry.run=true -Djreleaser.dryRun=true -Djreleaser.dry-run=true
           else
             mvn jreleaser:full-release
           fi
