@@ -51,6 +51,20 @@ jobs:
         run: |
           RELEASE_VERSION="${{ steps.bump-version.outputs.version }}"
           BRANCH_NAME="release/v$RELEASE_VERSION"
+
+          # Fail early if the branch already exists on the remote
+          if git ls-remote --heads origin "$BRANCH_NAME" | grep -q "refs/heads/$BRANCH_NAME"; then
+            echo "Error: branch '$BRANCH_NAME' already exists on remote 'origin'." >&2
+            exit 1
+          fi
+
+          # Also fail if a local branch with the same name exists
+          if git show-ref --verify --quiet refs/heads/"$BRANCH_NAME"; then
+            echo "Error: branch '$BRANCH_NAME' already exists locally." >&2
+            exit 1
+          fi
+
+          # Create the branch and push
           git checkout -b "$BRANCH_NAME"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
@@ -102,6 +116,7 @@ jobs:
           title: "chore(release): bump to next development version ${{ steps.create-dev-branch.outputs.dev_version }}"
           body: "After release ${{ steps.bump-version.outputs.version }}, bump to next development snapshot (${{ steps.create-dev-branch.outputs.dev_version }})."
           base: main
+          # noinspection UndefinedParamsPresent
           head: ${{ steps.create-dev-branch.outputs.dev_branch }}
           draft: true
           labels: dev-bump,auto-generated
