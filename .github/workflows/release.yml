@@ -61,6 +61,30 @@ jobs:
 
           echo "Preparing release branch '$BRANCH_NAME' (test mode: $TEST_MODE)"
 
+          # Track whether we stashed local changes
+          STASHED=false
+
+          # In test mode attempt to stash any local changes (including untracked) so checkouts won't fail.
+          # We always run the stash attempt in test mode because previous steps (bump-version) can modify files.
+          if [ "$TEST_MODE" = "true" ] || [ "$TEST_MODE" = "True" ]; then
+            echo "Test mode: attempting to stash local changes (if any)"
+            STASH_NAME="release-bump-$RELEASE_VERSION-$(date +%s)"
+            STASH_OUTPUT=$(git stash push -u -m "$STASH_NAME" 2>&1 || true)
+            echo "stash output: $STASH_OUTPUT"
+            if ! echo "$STASH_OUTPUT" | grep -q "No local changes to save"; then
+              STASHED=true
+              echo "Stash created: $STASH_NAME"
+            else
+              echo "No local changes to stash"
+            fi
+          else
+            # If not in test mode, fail early if there are uncommitted changes
+            if [ -n "$(git status --porcelain)" ]; then
+              echo "Error: local changes present; commit or stash before running release." >&2
+              exit 1
+            fi
+          fi
+
           # If remote branch exists
           if git ls-remote --heads origin "$BRANCH_NAME" | grep -q "refs/heads/$BRANCH_NAME"; then
             if [ "$TEST_MODE" = "true" ] || [ "$TEST_MODE" = "True" ]; then
@@ -86,6 +110,15 @@ jobs:
             # Create the branch locally if it hasn't been created or checked out above
             if [ "$(git rev-parse --abbrev-ref HEAD)" != "$BRANCH_NAME" ]; then
               git checkout -b "$BRANCH_NAME"
+            fi
+          fi
+
+          # If we stashed earlier, reapply the stash onto the release branch
+          if [ "$STASHED" = "true" ]; then
+            echo "Applying previously saved stash onto $BRANCH_NAME"
+            if ! git stash pop; then
+              echo "Failed to apply stash cleanly. Resolve conflicts manually." >&2
+              exit 1
             fi
           fi
 
