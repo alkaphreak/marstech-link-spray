@@ -131,6 +131,25 @@ jobs:
           echo "Listing JReleaser plugin version"
           mvn -q help:evaluate -Dexpression=project.build.plugins | grep -i jreleaser || true
 
+      - name: Prepare JReleaser variables
+        env:
+          JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+          DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+          DOCKER_REPO: ${{ vars.DOCKER_REPO || 'marstech-link-spray' }}
+        run: |
+          echo "----------------------------------------------------------------"
+          mkdir -p "$HOME/.jreleaser"
+          cat > "$HOME/.jreleaser/config.properties" <<EOF
+          # JReleaser variables
+          jreleaser.github.token=${JRELEASER_GITHUB_TOKEN}
+          docker.hub.username=${DOCKER_HUB_USERNAME}
+          docker.hub.password=${DOCKER_HUB_ACCESS_TOKEN}
+          docker.repo=${DOCKER_REPO}
+          EOF
+          chmod 600 "$HOME/.jreleaser/config.properties"
+          echo "Created $HOME/.jreleaser/config.properties"
+
       - name: Release with JReleaser
         env:
           JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
