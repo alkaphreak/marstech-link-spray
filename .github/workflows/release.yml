@@ -118,7 +118,7 @@ jobs:
           git push origin "$BRANCH_NAME" --force-with-lease
           echo "Created or updated release branch: $BRANCH_NAME"
 
-      - name: Build and Test (Jar for Docker)
+      - name: Build and Test (Jar)
         run: |
           echo "----------------------------------------------------------------"
           echo "Building project (includes tests)"
@@ -129,52 +129,9 @@ jobs:
         run: |
           echo "----------------------------------------------------------------"
           echo "Dumping jreleaser.yml for debug"
-          sed -n '1,120p' jreleaser.yml || true
+          sed -n '1,200p' jreleaser.yml || true
           echo "Listing JReleaser plugin version"
           mvn -q help:evaluate -Dexpression=project.build.plugins | grep -i jreleaser || true
-
-      - name: Set Docker metadata
-        id: docker-meta
-        env:
-          VERSION: ${{ steps.bump-version.outputs.version }}
-          DOCKER_REPO: ${{ vars.DOCKER_REPO || 'marstech-link-spray' }}
-          DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
-        run: |
-          IMAGE_NAME="${DOCKER_HUB_USERNAME}/${DOCKER_REPO}"
-          echo "image=$IMAGE_NAME" >> $GITHUB_OUTPUT
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
-          echo "Will build and push: $IMAGE_NAME:${VERSION} and :latest"
-
-      - name: Login to Docker Hub
-        env:
-          DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
-          DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-        run: |
-          echo "----------------------------------------------------------------"
-          if [ -z "${DOCKER_HUB_USERNAME}" ] || [ -z "${DOCKER_HUB_ACCESS_TOKEN}" ]; then
-            echo "Missing Docker Hub credentials" >&2
-            exit 1
-          fi
-          echo "Logging in to Docker Hub as ${DOCKER_HUB_USERNAME}"
-          echo "${DOCKER_HUB_ACCESS_TOKEN}" | docker login -u "${DOCKER_HUB_USERNAME}" --password-stdin
-
-      - name: Build & Push Docker Image
-        env:
-          IMAGE: ${{ steps.docker-meta.outputs.image }}
-          VERSION: ${{ steps.docker-meta.outputs.version }}
-        run: |
-          echo "----------------------------------------------------------------"
-          echo "Building Docker image $IMAGE:${VERSION}"
-          DOCKERFILE="Dockerfile"
-          if [ ! -f "$DOCKERFILE" ]; then
-            echo "Dockerfile not found" >&2
-            exit 1
-          fi
-          docker build -t "$IMAGE:${VERSION}" -t "$IMAGE:latest" .
-          echo "Pushing image tags"
-          docker push "$IMAGE:${VERSION}"
-          docker push "$IMAGE:latest"
-          echo "Image push complete"
 
       - name: Prepare JReleaser variables
         env:
@@ -200,5 +157,8 @@ jobs:
           echo "----------------------------------------------------------------"
           echo "Releasing version: ${{ steps.bump-version.outputs.version }}"
           echo "Running JReleaser with overwrite/update enabled"
-          mvn jreleaser:full-release \
-            --settings-file=jreleaser.yml
+          mvn -B -ntp jreleaser:full-release \
+            -Djreleaser.config.file=jreleaser.yml \
+            -Djreleaser.release.overwrite=true \
+            -Djreleaser.release.update=true \
+            -Djreleaser.dry.run=false

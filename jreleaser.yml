@@ -11,11 +11,11 @@ distributions:
     docker:
       active: ALWAYS
       dockerfile: src/jreleaser/distributions/marstech-link-spray/Dockerfile
-      imageName: marstech-link-spray
+      imageName: '{{docker.hub.username}}/{{docker.repo}}'
       tags:
         - latest
         - '{{projectEffectiveVersion}}'
       registries:
         - serverName: docker.io
-          username: ${env.DOCKER_HUB_USERNAME}
-          password: ${env.DOCKER_HUB_ACCESS_TOKEN}
+          username: '{{docker.hub.username}}'
+          password: '{{docker.hub.password}}'
