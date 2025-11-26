@@ -120,7 +120,7 @@ jobs:
       - name: Build and Test
         run: |
             echo "----------------------------------------------------------------"
-#            mvn -B -ntp clean verify
+            echo "mvn -B -ntp clean verify"
             echo "SKIP - Building and testing project"
 
       - name: Dump JReleaser config (debug)
