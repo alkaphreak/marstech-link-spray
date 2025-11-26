@@ -33,7 +33,15 @@ jobs:
         with:
           java-version: 21
           distribution: liberica
-          cache: maven
+
+      - name: Cache Maven repository (~/.m2/repository)
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
 
       - name: Verify Java version
         run: java -version
