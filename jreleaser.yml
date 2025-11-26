@@ -1,3 +1,8 @@
+release:
+  overwrite: true
+  update: true
+  github: {}
+
 distributions:
   marstech-link-spray:
     type: JAVA_BINARY
@@ -10,4 +15,7 @@ distributions:
       tags:
         - latest
         - '{{projectEffectiveVersion}}'
-
+      registries:
+        - serverName: docker.io
+          username: ${env.DOCKER_HUB_USERNAME}
+          password: ${env.DOCKER_HUB_ACCESS_TOKEN}
