@@ -156,9 +156,6 @@ jobs:
         run: |
           echo "----------------------------------------------------------------"
           echo "Releasing version: ${{ steps.bump-version.outputs.version }}"
-          echo "Running JReleaser with overwrite/update enabled"
+          echo "Running JReleaser full release"
           mvn -B -ntp jreleaser:full-release \
-            -Djreleaser.config.file=jreleaser.yml \
-            -Djreleaser.release.overwrite=true \
-            -Djreleaser.release.update=true \
-            -Djreleaser.dry.run=false
+            -Djreleaser.config.file=jreleaser.yml
