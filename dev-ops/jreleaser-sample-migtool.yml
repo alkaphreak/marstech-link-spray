@@ -1,0 +1,84 @@
+project:
+  name: migtool
+  description: MigTool CLI
+  longDescription: MigTool CLI tool to manage database changes
+  website: https://github.com/seqeralabs/migtool
+  authors:
+    - Seqera Labs
+  license: MPL-2.0
+  extraProperties:
+    inceptionYear: 2021
+
+release:
+  github:
+    overwrite: true
+    draft: false
+    prerelease:
+      pattern: .*-beta
+    changelog:
+      formatted: ALWAYS
+      format: '- {{commitShortHash}} {{commitTitle}}'
+      contributors:
+        format: '- {{contributorName}}{{#contributorUsernameAsLink}} ({{.}}){{/contributorUsernameAsLink}}'
+      labelers:
+        - label: 'feature'
+          title: 'Resolves #'
+          body: 'Resolves #'
+        - label: 'feature'
+          title: '[feature]'
+        - label: 'issue'
+          title: 'Fixes #'
+          body: 'Fixes #'
+        - label: 'issue'
+          title: 'Relates to #'
+          body: 'Relates to #'
+        - label: 'issue'
+          title: '[bug]'
+        - label: 'task'
+          title: '[task]'
+        - label: 'merge_pull'
+          title: 'Merge pull'
+        - label: 'merge_branch'
+          title: 'Merge branch'
+        - label: 'release'
+          title: '[release]'
+      categories:
+        - title: '🚀 Features'
+          labels:
+            - 'feature'
+        - title: '✅ Issues'
+          labels:
+            - 'issue'
+        - title: '🧰 Tasks'
+          labels:
+            - 'task'
+        - title: 'Merge'
+          labels:
+            - 'merge_pull'
+            - 'merge_branch'
+        - title: 'Release'
+          labels:
+            - 'release'
+      hide:
+        categories:
+          - 'Merge'
+          - 'Release'
+        contributors:
+          - 'GitHub'
+      replacers:
+        - search: ' \[feature\]'
+        - search: ' \[bug\]'
+        - search: ' \[task\]'
+        - search: ' \[skip ci\]'
+        - search: ' \[release\]'
+
+distributions:
+  migtool:
+    type: NATIVE_IMAGE
+    artifacts:
+      - path: "migtool-linux-x86/migtool"
+        transform: "{{distributionName}}-linux-x86_64"
+        platform: linux-x86_64
+      - path: "migtool-macos-arm64/migtool"
+        transform: "{{distributionName}}-macos-arm64"
+        platform: osx-aarch_64
