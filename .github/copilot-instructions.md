@@ -12,7 +12,7 @@ MarsTech Link Spray is a URL shortener and link management service built with:
 ## Coding Standards & Preferences
 
 ### Language Preference
-- **Always prefer Kotlin over Java** for new code
+- **Always prefer Kotlin to Java** for new code
 - Use Kotlin idiomatic patterns (data classes, extension functions, null safety)
 - Convert Java code to Kotlin when refactoring or extending
 

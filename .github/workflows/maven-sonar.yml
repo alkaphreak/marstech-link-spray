@@ -17,6 +17,11 @@ jobs:
         ports:
           - 27017:27017
 
+    env:
+      SONAR_MAVEN_PLUGIN_VERSION: 5.3.0.6276
+      MAVEN_THREADS: 1C
+      MAVEN_OPTS: -Xms256m -Xmx1024m
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -28,7 +33,15 @@ jobs:
         with:
           java-version: 21
           distribution: liberica
-          cache: maven
+
+      - name: Cache Maven repository (~/.m2/repository)
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
 
       - name: Verify Java version
         run: java -version
@@ -40,17 +53,10 @@ jobs:
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
 
-      - name: Build, test, and generate JaCoCo report
-        run: mvn -B clean verify jacoco:report
+      - name: Prefetch Maven dependencies (go-offline)
+        run: mvn -B -q dependency:go-offline || echo "go-offline failed, continuing"
 
-      - name: Upload JaCoCo coverage report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: jacoco-report
-          path: target/site/jacoco/
-
-      - name: SonarCloud analysis
+      - name: Build, test, coverage & SonarCloud (single run)
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_ORGANIZATION: ${{ secrets.SONAR_ORGANIZATION }}
@@ -59,10 +65,27 @@ jobs:
           if [ -z "${SONAR_TOKEN}" ] || [ -z "${SONAR_ORGANIZATION}" ] || [ -z "${SONAR_PROJECT_KEY}" ]; then
             echo "Missing SonarCloud secrets!" && exit 1
           fi
-          mvn org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+          echo "Using sonar-maven-plugin version ${SONAR_MAVEN_PLUGIN_VERSION}"
+          echo "Using Maven threads: ${MAVEN_THREADS}"
+          mvn -B -T ${MAVEN_THREADS} clean verify jacoco:report \
+            org.sonarsource.scanner.maven:sonar-maven-plugin:${SONAR_MAVEN_PLUGIN_VERSION}:sonar \
             -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
             -Dsonar.organization=${SONAR_ORGANIZATION} \
             -Dsonar.sources=src/main/kotlin,src/main/resources \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.token=${SONAR_TOKEN} \
             -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+
+      - name: Upload JaCoCo coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report
+          path: target/site/jacoco/
+
+      - name: Upload Surefire test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports
+          path: target/surefire-reports/

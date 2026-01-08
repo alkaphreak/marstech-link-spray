@@ -1,0 +1,501 @@
+environment:
+  properties:
+    jdkPathPrefix: 'plugins/jreleaser/build/jdks'
+    jdkFilePrefix: 'zulu25.30.17-ca-jdk25.0.1'
+    graalFilePrefix: 'graalvm-jdk-25.0.1+8.1'
+    nativeImageDir: out/jreleaser/assemble/jreleaser-native/native-image
+    jpackageDir: out/jreleaser/assemble/jreleaser-installer/jpackage
+    javaArchiveDir: out/jreleaser/assemble/jreleaser/java-archive
+
+project:
+  name: jreleaser
+  description: Release projects quickly and easily with JReleaser
+  longDescription: |
+    JReleaser is a release automation tool. Its goal is to simplify creating releases and
+    publishing artifacts to multiple package managers while providing customizable options.
+
+    JReleaser takes inputs from popular builds tools (Ant, Maven, Gradle) such as JAR files,
+    binary distributions (.zip, .tar), JLink images, or any other file that you’d like to
+    publish as a Git release on popular Git services such as GitHub, GitLab, or Gitea.
+    Distribution files may additionally be published to be consumed by popular package managers
+    such as Homebrew, Chocolatey, Snapcraft, or get ready to be launched via JBang. Releases
+    may be announced in a variety of channels such as Twitter, Zulip, SDKMAN!, and more.
+  links:
+    homepage: https://jreleaser.org
+    faq: https://{{repoHost}}/{{repoOwner}}/{{repoName}}/discussions
+    donation: https://opencollective.com/jreleaser
+    documentation: https://jreleaser.org/guide/latest
+  authors:
+    - Andres Almiray
+  license: Apache-2.0
+  inceptionYear: 2020
+  stereotype: CLI
+  vendor: JReleaser
+  screenshots:
+    - url: https://jreleaser.org/images/app-full-release-command.png
+      caption: JReleaser in action
+  icons:
+    - url: https://raw.githubusercontent.com/jreleaser/jreleaser/main/src/media/icon_256x256.png
+      width: 256
+      height: 256
+  languages:
+    java:
+      groupId: org.jreleaser
+      version: 8
+      multiProject: true
+      mainClass: org.jreleaser.cli.Main
+  tags:
+    - 'jreleaser'
+    - 'release'
+    - 'tool'
+    - 'java'
+    - 'git'
+
+platform:
+  replacements:
+    aarch_64: aarch64
+
+release:
+  github:
+    overwrite: true
+    sign: true
+    discussionCategoryName: Announcements
+    issues:
+      enabled: true
+    changelog:
+      formatted: ALWAYS
+      preset: conventional-commits
+      contributors:
+        format: '- {{contributorName}}{{#contributorUsernameAsLink}} ({{.}}){{/contributorUsernameAsLink}}'
+      contentTemplate: 'src/jreleaser/changelog.tpl'
+      extraProperties:
+        categorizeScopes: true
+      labelers:
+        - label: 'i18n'
+          title: 'regex:^(?:i18n(?:\(.*\))?!?):\s.*'
+          order: 120
+        - label: 'dependencies'
+          title: 'regex:^(?:deps(?:\(.*\))?!?):\s.*'
+          order: 130
+        - label: 'allcontributors1'
+          title: 'regex:^docs: update .all-contributorsrc.*'
+          order: -1
+        - label: 'allcontributors2'
+          title: 'regex:^docs: update CONTRIBUTORS.md.*'
+          order: -2
+      categories:
+        - title: '🌐 Translation'
+          key: 'i18n'
+          order: 70
+          labels:
+            - 'i18n'
+        - title: '⚙️  Dependencies'
+          key: 'dependencies'
+          order: 80
+          labels:
+            - 'dependencies'
+        - title: 'allcontributors'
+          order: 59
+          labels:
+            - 'allcontributors1'
+            - 'allcontributors2'
+      hide:
+        categories:
+          - 'merge'
+          - 'allcontributors'
+        contributors:
+          - 'GitHub'
+          - 'allcontributors'
+          - 'dependabot'
+      replacers:
+        - search: 'i18n: '
+        - search: 'deps: '
+
+signing:
+  active: ALWAYS
+  armored: true
+
+catalog:
+  sbom:
+    syft:
+      active: ALWAYS
+      pack:
+        enabled: true
+  swid:
+    swid-tag:
+      active: ALWAYS
+
+deploy:
+  maven:
+    mavenCentral:
+      release-deploy:
+        active: RELEASE
+        url: https://central.sonatype.com/api/v1/publisher
+        maxRetries: 150
+        retryDelay: 30
+        stagingRepositories:
+          - build/repos/local/release
+
+announce:
+  bluesky:
+    active: RELEASE
+    statusTemplate: src/jreleaser/bluesky.tpl
+  mastodon:
+    active: RELEASE
+    host: https://fosstodon.org
+    statusTemplate: src/jreleaser/mastodon.tpl
+  openCollective:
+    active: RELEASE
+    message: '{{#f_md2html}}🚀 JReleaser {{projectVersion}} has been released! [{{releaseNotesUrl}}]({{releaseNotesUrl}}){{/f_md2html}}'
+
+assemble:
+  javaArchive:
+    jreleaser:
+      active: ALWAYS
+      formats:
+        - ZIP
+        - TAR
+      fileSets:
+        - input: '.'
+          includes:
+            - NOTICE
+            - LICENSE
+        - input: licenses
+          output: licenses
+      mainJar:
+        path: 'plugins/jreleaser/build/libs/jreleaser-{{projectVersion}}.jar'
+      jars:
+        - pattern: 'plugins/jreleaser/build/dependencies/flat/*.jar'
+      swid:
+        tagRef: swid-tag
+
+  jlink:
+    jreleaser-standalone:
+      active: ALWAYS
+      java:
+        version: 25
+      imageName: '{{distributionName}}-{{projectEffectiveVersion}}'
+      executable: jreleaser
+      fileSets:
+        - input: '.'
+          includes:
+            - NOTICE
+            - LICENSE
+        - input: licenses
+          output: licenses
+      jdeps:
+        multiRelease: base
+        ignoreMissingDeps: true
+        targets:
+          - 'plugins/jreleaser/build/libs/jreleaser-{{projectVersion}}.jar'
+      additionalModuleNames:
+        - 'java.rmi'
+        - 'java.security.sasl'
+        - 'java.security.jgss'
+        - 'jdk.crypto.cryptoki'
+        - 'jdk.crypto.ec'
+        - 'jdk.localedata'
+        - 'jdk.net'
+        - 'jdk.security.auth'
+        - 'jdk.security.jgss'
+      targetJdks:
+        - path: '{{jdkPathPrefix}}/zulu25Osx/{{jdkFilePrefix}}-macosx_x64/zulu-25.jdk/Contents/Home'
+          platform: 'osx-x86_64'
+        - path: '{{jdkPathPrefix}}/zulu25OsxArm/{{jdkFilePrefix}}-macosx_aarch64/zulu-25.jdk/Contents/Home'
+          platform: 'osx-aarch_64'
+        - path: '{{jdkPathPrefix}}/zulu25Linux/{{jdkFilePrefix}}-linux_x64'
+          platform: 'linux-x86_64'
+        - path: '{{jdkPathPrefix}}/zulu25LinuxArm/{{jdkFilePrefix}}-linux_aarch64'
+          platform: 'linux-aarch_64'
+        - path: '{{jdkPathPrefix}}/zulu25LinuxMusl/{{jdkFilePrefix}}-linux_musl_x64'
+          platform: 'linux_musl-x86_64'
+        - path: '{{jdkPathPrefix}}/zulu25LinuxMuslArm/{{jdkFilePrefix}}-linux_musl_aarch64'
+          platform: 'linux_musl-aarch_64'
+        - path: '{{jdkPathPrefix}}/zulu25Windows/{{jdkFilePrefix}}-win_x64'
+          platform: 'windows-x86_64'
+        - path: '{{jdkPathPrefix}}/zulu25WindowsArm/{{jdkFilePrefix}}-win_aarch64'
+          platform: 'windows-aarch_64'
+      mainJar:
+        path: 'plugins/jreleaser/build/libs/jreleaser-{{projectVersion}}.jar'
+      jars:
+        - pattern: 'plugins/jreleaser/build/dependencies/flat/*.jar'
+      swid:
+        tagRef: swid-tag
+
+  jpackage:
+    jreleaser-installer:
+      active: ALWAYS
+      jlink: jreleaser-standalone
+      attachPlatform: true
+      exported: false
+      applicationPackage:
+        appName: jreleaser
+        appVersion: '{{projectVersionNumber}}'
+        vendor: JReleaser
+      osx:
+        types: [pkg]
+        appName: JReleaser
+        packageName: JReleaser
+        packageIdentifier: org.jreleaser.cli
+        icon: 'src/media/jreleaser.icns'
+        resourceDir: 'src/jpackage/osx'
+      linux:
+        types: [deb,rpm]
+        maintainer: jreleaser@kordamp.org
+        icon: 'src/media/icon_256x256.png'
+      windows:
+        types: [msi]
+        console: true
+        dirChooser: true
+        icon: 'src/media/jreleaser.ico'
+        resourceDir: 'src/jpackage/windows'
+
+  nativeImage:
+    jreleaser-native:
+      active: ALWAYS
+      java:
+        version: 25
+      imageName: '{{distributionName}}-{{projectEffectiveVersion}}'
+      executable: jreleaser
+      fileSets:
+        - input: '.'
+          includes:
+            - NOTICE
+            - LICENSE
+        - input: licenses
+          output: licenses
+      mainJar:
+        path: 'plugins/jreleaser/build/libs/jreleaser-{{projectVersion}}.jar'
+      jars:
+        - pattern: 'plugins/jreleaser/build/dependencies/flat/*.jar'
+        - pattern: 'plugins/jreleaser/build/dependencies/graalvm/*.jar'
+      graalJdks:
+        - path: '{{jdkPathPrefix}}/graal25Osx/{{graalFilePrefix}}/Contents/Home'
+          platform: 'osx-x86_64'
+        - path: '{{jdkPathPrefix}}/graal25OsxArm/{{graalFilePrefix}}/Contents/Home'
+          platform: 'osx-aarch_64'
+        - path: '{{jdkPathPrefix}}/graal25Linux/{{graalFilePrefix}}'
+          platform: 'linux-x86_64'
+        - path: '{{jdkPathPrefix}}/graal25LinuxArm/{{graalFilePrefix}}'
+          platform: 'linux-aarch_64'
+        - path: '{{jdkPathPrefix}}/graal25Windows/{{graalFilePrefix}}'
+          platform: 'windows-x86_64'
+      args:
+        - '-Duser.language=en'
+        - '-H:IncludeLocales=en,ca,de,es,fr,hi,it,ja,nl,pt_BR,zh_TW,ru,ko'
+        - '-H:Optimize=s'
+        - '-H:+RemoveUnusedSymbols'
+      swid:
+        tagRef: swid-tag
+
+distributions:
+  jreleaser:
+    flatpak:
+      active: ALWAYS
+      continueOnError: true
+      componentId: org.jreleaser.cli
+      developerName: JReleaser
+      runtime: FREEDESKTOP
+      runtimeVersion: 21.08
+      finishArgs:
+        - --share=network
+        - --filesystem=host
+      categories:
+        - Development
+      skipReleases:
+        - '.*-RC.*'
+        - '.*-M.*'
+      repository:
+        active: RELEASE
+        owner: flathub
+        name: org.jreleaser.cli
+        branch: master
+        branchPush: '{{projectName}}-{{tagName}}'
+    chocolatey:
+      active: ALWAYS
+      continueOnError: true
+      remoteBuild: true
+      title: JReleaser
+      iconUrl: 'https://rawcdn.githack.com/jreleaser/jreleaser/0934fa1fa3f0bd09c0c8c39fbdeb5df2ce507457/src/media/icon_128x128.png'
+      repository:
+        active: RELEASE
+    jbang:
+      active: ALWAYS
+      continueOnError: true
+    macports:
+      active: ALWAYS
+      continueOnError: true
+      categories:
+        - devel
+        - java
+      maintainers:
+        - '@aalmiray'
+      repository:
+        active: RELEASE
+        name: jreleaser-macports
+    scoop:
+      active: ALWAYS
+      continueOnError: true
+      repository:
+        active: RELEASE
+    sdkman:
+      active: RELEASE
+      continueOnError: true
+    snap:
+      active: ALWAYS
+      continueOnError: true
+      remoteBuild: true
+      base: core18
+      architectures:
+        - buildOn: [ amd64, arm64 ]
+      plugs:
+        - name: dot-config-files
+          attributes:
+            interface: personal-files
+          writes:
+            - $HOME/.jreleaser
+          reads:
+            - $HOME/.gnupg
+            - $HOME/.gitconfig
+            - $HOME/.config/jgit
+      localPlugs:
+        - network
+        - home
+        - dot-config-files
+    spec:
+      active: ALWAYS
+      continueOnError: true
+      repository:
+        active: RELEASE
+        name: jreleaser-copr
+    artifacts:
+      - path: '{{javaArchiveDir}}/{{distributionName}}-{{projectVersion}}.zip'
+        transform: '{{distributionName}}/{{distributionName}}-{{projectEffectiveVersion}}.zip'
+        extraProperties:
+          skipSpec: true
+      - path: '{{javaArchiveDir}}/{{distributionName}}-{{projectVersion}}.tar'
+        transform: '{{distributionName}}/{{distributionName}}-{{projectEffectiveVersion}}.tar'
+        extraProperties:
+          skipFlatpak: true
+
+  jreleaser-tool-provider:
+    type: SINGLE_JAR
+    artifacts:
+      - path: plugins/{{distributionName}}/build/libs/{{distributionName}}-{{projectVersion}}.jar
+        transform: '{{distributionName}}/{{distributionName}}-{{projectEffectiveVersion}}.jar'
+
+  jreleaser-standalone:
+    appImage:
+      active: ALWAYS
+      continueOnError: true
+      componentId: org.jreleaser.cli
+      developerName: JReleaser
+      categories:
+        - Development
+      repository:
+        active: RELEASE
+        name: jreleaser-appimage
+        commitMessage: 'jreleaser {{tagName}}'
+      skipReleases:
+        - .*-RC.*
+        - .*-M.*
+    brew:
+      active: ALWAYS
+      continueOnError: true
+      formulaName: jreleaser
+      multiPlatform: true
+      repository:
+        active: RELEASE
+        commitMessage: 'jreleaser {{tagName}}'
+    docker:
+      active: ALWAYS
+      continueOnError: true
+      repository:
+        active: ALWAYS
+        commitMessage: 'jreleaser {{tagName}}'
+      registries:
+        - serverName: DEFAULT
+          username: jreleaser
+      labels:
+        'org.opencontainers.image.title': 'jreleaser'
+      postCommands:
+        - 'VOLUME /workspace'
+      specs:
+        jreleaser-slim:
+          imageNames:
+            - 'jreleaser/{{dockerSpecName}}:{{tagName}}'
+            - 'jreleaser/{{dockerSpecName}}:latest'
+          matchers:
+            platform: 'linux-x86_64'
+          preCommands:
+            - 'ARG DEBIAN_FRONTEND=noninteractive'
+            - 'ENV TZ=Europe/Zurich'
+            - 'RUN apt-get update && apt-get install -y unzip binutils fakeroot rpm git'
+        jreleaser-alpine:
+          imageNames:
+            - 'jreleaser/{{dockerSpecName}}:{{tagName}}'
+            - 'jreleaser/{{dockerSpecName}}:latest'
+          matchers:
+            platform: 'linux_musl-x86_64'
+          preCommands:
+            - 'RUN apk add unzip binutils fakeroot rpm bash git'
+
+  jreleaser-installer:
+    type: NATIVE_PACKAGE
+    winget:
+      active: RELEASE
+      continueOnError: true
+      package:
+        name: jreleaser
+      repository:
+        active: ALWAYS
+        name: jreleaser-winget
+        commitMessage: 'jreleaser {{tagName}}'
+    executable:
+      name: jreleaser
+      windowsExtension: exe
+    artifacts:
+      - path: '{{jpackageDir}}/JReleaser-{{projectVersionNumber}}-osx-x86_64.pkg'
+        transform: '{{distributionName}}/{{distributionName}}-{{projectEffectiveVersion}}-osx-x86_64.pkg'
+        platform: 'osx-x86_64'
+      - path: '{{jpackageDir}}/JReleaser-{{projectVersionNumber}}-osx-aarch64.pkg'
+        transform: '{{distributionName}}/{{distributionName}}-{{projectEffectiveVersion}}-osx-aarch64.pkg'
+        platform: 'osx-aarch_64'
+      - path: '{{jpackageDir}}/jreleaser_{{projectVersionNumber}}_amd64.deb'
+        transform: '{{distributionName}}/{{distributionName}}_{{projectEffectiveVersion}}-1_amd64.deb'
+        platform: 'linux-x86_64'
+      - path: '{{jpackageDir}}/jreleaser-{{projectVersionNumber}}-1.x86_64.rpm'
+        transform: '{{distributionName}}/{{distributionName}}-{{projectEffectiveVersion}}-1.x86_64.rpm'
+        platform: 'linux-x86_64'
+      - path: '{{jpackageDir}}/jreleaser_{{projectVersionNumber}}_arm64.deb'
+        transform: '{{distributionName}}/{{distributionName}}_{{projectEffectiveVersion}}-1_arm64.deb'
+        platform: 'linux-aarch_64'
+      - path: '{{jpackageDir}}/jreleaser-{{projectVersionNumber}}-1.aarch64.rpm'
+        transform: '{{distributionName}}/{{distributionName}}-{{projectEffectiveVersion}}-1.aarch64.rpm'
+        platform: 'linux-aarch_64'
+      - path: '{{jpackageDir}}/jreleaser-{{projectVersionNumber}}-windows-x86_64.msi'
+        transform: '{{distributionName}}/{{distributionName}}-{{projectEffectiveVersion}}-windows-x86_64.msi'
+        platform: 'windows-x86_64'
+
+  jreleaser-native:
+    artifacts:
+      - path: '{{nativeImageDir}}/{{distributionName}}-{{projectEffectiveVersion}}-osx-aarch64.zip'
+        platform: 'osx-aarch_64'
+      - path: '{{nativeImageDir}}/{{distributionName}}-{{projectEffectiveVersion}}-osx-x86_64.zip'
+        platform: 'osx-x86_64'
+      - path: '{{nativeImageDir}}/{{distributionName}}-{{projectEffectiveVersion}}-linux-x86_64.zip'
+        platform: 'linux-x86_64'
+      - path: '{{nativeImageDir}}/{{distributionName}}-{{projectEffectiveVersion}}-linux-aarch64.zip'
+        platform: 'linux-aarch_64'
+      - path: '{{nativeImageDir}}/{{distributionName}}-{{projectEffectiveVersion}}-windows-x86_64.zip'
+        platform: 'windows-x86_64'
+
+files:
+  artifacts:
+    - path: VERSION
+      extraProperties:
+        skipChecksum: true
+        skipSigning: true
+        skipSbom: true
+    - path: plugins/jreleaser-ant-tasks/build/distributions/jreleaser-ant-tasks-{{projectVersion}}.zip
+      transform: 'jreleaser-ant-tasks/jreleaser-ant-tasks-{{projectEffectiveVersion}}.zip'

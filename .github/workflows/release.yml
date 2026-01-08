@@ -29,10 +29,11 @@ jobs:
           persist-credentials: true
 
       - name: Setup Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: '21'
           distribution: 'temurin'
+          cache: maven
 
       - name: Cache Maven dependencies
         uses: actions/cache@v3
@@ -43,70 +44,118 @@ jobs:
       - name: Bump Version
         id: bump-version
         run: |
+          echo "----------------------------------------------------------------"
+          echo "Bumping version with type: ${{ github.event.inputs.bump }}"
           ./dev-ops/bump-version.sh ${{ github.event.inputs.bump }}
           NEW_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
           echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "Bumped version to $NEW_VERSION"
 
       - name: Create Release Branch
         run: |
+          echo "----------------------------------------------------------------"
           RELEASE_VERSION="${{ steps.bump-version.outputs.version }}"
           BRANCH_NAME="release/v$RELEASE_VERSION"
-          git checkout -b "$BRANCH_NAME"
+
+          echo "Preparing release branch '$BRANCH_NAME' (replay-friendly mode)"
+
+          # Track whether we stashed local changes
+          STASHED=false
+
+          # Attempt to stash any local changes (including untracked) so checkouts won't fail.
+          # This is necessary because previous steps (bump-version) can modify files.
+          echo "Attempting to stash local changes (if any)"
+          STASH_NAME="release-bump-$RELEASE_VERSION-$(date +%s)"
+          STASH_OUTPUT=$(git stash push -u -m "$STASH_NAME" 2>&1 || true)
+          echo "stash output: $STASH_OUTPUT"
+          if ! echo "$STASH_OUTPUT" | grep -q "No local changes to save"; then
+            STASHED=true
+            echo "Stash created: $STASH_NAME"
+          else
+            echo "No local changes to stash"
+          fi
+
+          # If remote branch exists, fetch and reuse it
+          if git ls-remote --heads origin "$BRANCH_NAME" | grep -q "refs/heads/$BRANCH_NAME"; then
+            echo "Remote branch exists; fetching and reusing $BRANCH_NAME"
+            git fetch origin "$BRANCH_NAME":"$BRANCH_NAME"
+            git checkout "$BRANCH_NAME"
+          fi
+
+          # If local branch exists, check it out
+          if git show-ref --verify --quiet refs/heads/"$BRANCH_NAME"; then
+            echo "Local branch exists; checking out $BRANCH_NAME"
+            git checkout "$BRANCH_NAME"
+          else
+            # Create the branch locally if it hasn't been created or checked out above
+            if [ "$(git rev-parse --abbrev-ref HEAD)" != "$BRANCH_NAME" ]; then
+              git checkout -b "$BRANCH_NAME"
+            fi
+          fi
+
+          # If we stashed earlier, reapply the stash onto the release branch
+          if [ "$STASHED" = "true" ]; then
+            echo "Applying previously saved stash onto $BRANCH_NAME"
+            if ! git stash pop; then
+              echo "Failed to apply stash cleanly. Resolve conflicts manually." >&2
+              exit 1
+            fi
+          fi
+
+          # Configure committer
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
-          git add pom.xml
-          git commit -m "chore: bump version to $RELEASE_VERSION for release"
-          git push origin "$BRANCH_NAME"
-          echo "Created release branch: $BRANCH_NAME"
 
-      - name: Build and Test
-        run: mvn -B -ntp clean verify
-      - name: Release with JReleaser
+          # Stage and commit only if there are changes
+          git add pom.xml
+          if git diff --staged --quiet; then
+            echo "No staged changes to commit on $BRANCH_NAME"
+          else
+            git commit -m "chore: bump version to $RELEASE_VERSION for release"
+          fi
+
+          # Push branch with --force-with-lease to allow updating existing branches during replays
+          git push origin "$BRANCH_NAME" --force-with-lease
+          echo "Created or updated release branch: $BRANCH_NAME"
+
+      - name: Build and Test (Jar)
+        run: |
+          echo "----------------------------------------------------------------"
+          echo "Building project (includes tests)"
+          mvn -B -ntp clean verify
+          ls -lh target/*.jar || true
+
+      - name: Dump JReleaser config (debug)
+        run: |
+          echo "----------------------------------------------------------------"
+          echo "Dumping jreleaser.yml for debug"
+          sed -n '1,200p' jreleaser.yml || true
+          echo "Listing JReleaser plugin version"
+          mvn -q help:evaluate -Dexpression=project.build.plugins | grep -i jreleaser || true
+
+      - name: Prepare JReleaser variables
         env:
           JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
           DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
           DOCKER_REPO: ${{ vars.DOCKER_REPO || 'marstech-link-spray' }}
-        run: mvn jreleaser:full-release
-
-      - name: Create Dev Bump Branch
-        id: create-dev-branch
         run: |
-          # Ensure we start from the up-to-date main
-          git checkout main
-          git fetch origin main --depth=1
+          echo "----------------------------------------------------------------"
+          mkdir -p "$HOME/.jreleaser"
+          cat > "$HOME/.jreleaser/config.properties" <<EOF
+          # JReleaser variables
+          jreleaser.github.token=${JRELEASER_GITHUB_TOKEN}
+          docker.hub.username=${DOCKER_HUB_USERNAME}
+          docker.hub.password=${DOCKER_HUB_ACCESS_TOKEN}
+          docker.repo=${DOCKER_REPO}
+          EOF
+          chmod 600 "$HOME/.jreleaser/config.properties"
+          echo "Created $HOME/.jreleaser/config.properties"
 
-          # Compute next dev snapshot from the release version (no workspace changes yet)
-          RELEASE_VERSION="${{ steps.bump-version.outputs.version }}"
-          IFS='.' read -r major minor patch <<< "$RELEASE_VERSION"
-          patch=$((patch + 1))
-          DEV_VERSION="$major.$minor.$patch-SNAPSHOT"
-
-          # Prepare branch (create branch first so any changes land on it)
-          BRANCH_NAME="release/dev-bump-$GITHUB_RUN_ID"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git config user.name "github-actions[bot]"
-
-          # Create the new branch from main (fail if branch already exists locally)
-          git checkout -b "$BRANCH_NAME"
-
-          # Apply version change on the new branch and commit there
-          mvn versions:set -DnewVersion=$DEV_VERSION
-          git add pom.xml
-          git commit -m "chore: bump to next development version $DEV_VERSION"
-
-          # Push branch and expose outputs for next step
-          git push --set-upstream origin "$BRANCH_NAME"
-          echo "dev_branch=$BRANCH_NAME" >> $GITHUB_OUTPUT
-          echo "dev_version=$DEV_VERSION" >> $GITHUB_OUTPUT
-
-      - name: Create Pull Request for Dev Bump
-        uses: peter-evans/create-pull-request@v5
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          title: "chore(release): bump to next development version ${{ steps.create-dev-branch.outputs.dev_version }}"
-          body: "After release ${{ steps.bump-version.outputs.version }}, bump to next development snapshot (${{ steps.create-dev-branch.outputs.dev_version }})."
-          base: main
-          head: ${{ steps.create-dev-branch.outputs.dev_branch }}
-          draft: true
-          labels: dev-bump,auto-generated
+      - name: Release with JReleaser
+        run: |
+          echo "----------------------------------------------------------------"
+          echo "Releasing version: ${{ steps.bump-version.outputs.version }}"
+          echo "Running JReleaser full release"
+          mvn -B -ntp jreleaser:full-release \
+            -Djreleaser.config.file=jreleaser.yml
