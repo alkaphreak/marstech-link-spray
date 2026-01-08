@@ -1,24 +1,20 @@
 project:
-  name: app
-  version: 1.0.0-SNAPSHOT
-  description: Awesome App
-  longDescription: Awesome App
-  authors:
-    - Duke
-  license: Apache-2.0
-  links:
-    homepage: https://acme.com/app
   languages:
     java:
-      groupId: com.acme
-      version: 8
-  inceptionYear: 2025
+      version: 21
 
 release:
   github:
-    owner: duke
+    owner: alkaphreak
 
 distributions:
-  app:
+  mt-link-spray:
+    type: SINGLE_JAR
     artifacts:
-      - path: path/to/{{distributionName}}-{{projectVersion}}.zip
+      - path: target/mt-link-spray-{{projectVersion}}.jar
+    docker:
+      active: ALWAYS
+      baseImage: eclipse-temurin:21-jre-jammy
+      imageNames:
+        - alkaphreak/marstech-link-spray:{{projectVersion}}
+        - alkaphreak/marstech-link-spray:latest

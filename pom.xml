@@ -16,6 +16,38 @@
     <version>0.0.4-SNAPSHOT</version>
     <name>mt-link-spray</name>
     <description>MarsTech Link Spray project</description>
+    <url>https://github.com/alkaphreak/marstech-link-spray</url>
+    <inceptionYear>2024</inceptionYear>
+    <organization>
+        <name>MarsTech</name>
+        <url>https://marstech.fr</url>
+    </organization>
+
+    <licenses>
+        <license>
+            <name>MIT</name>
+            <url>https://opensource.org/licenses/MIT</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>alkaphreak</id>
+            <name>Alkaphreak</name>
+        </developer>
+        <developer>
+            <id>marstech</id>
+            <name>Marstech</name>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:https://github.com/alkaphreak/marstech-link-spray.git</connection>
+        <developerConnection>scm:git:ssh://github.com/alkaphreak/marstech-link-spray.git</developerConnection>
+        <url>https://github.com/alkaphreak/marstech-link-spray</url>
+        <tag>HEAD</tag>
+    </scm>
 
     <properties>
         <java.version>21</java.version>
@@ -179,6 +211,38 @@
                 </excludes>
             </resource>
         </resources>
+
+        <pluginManagement>
+            <plugins>
+                <!-- This plugin's configuration is used to store Eclipse m2e settings only.
+                     It has no influence on the Maven build itself. -->
+                <plugin>
+                    <groupId>org.eclipse.m2e</groupId>
+                    <artifactId>lifecycle-mapping</artifactId>
+                    <version>1.0.0</version>
+                    <configuration>
+                        <lifecycleMappingMetadata>
+                            <pluginExecutions>
+                                <pluginExecution>
+                                    <pluginExecutionFilter>
+                                        <groupId>org.jetbrains.kotlin</groupId>
+                                        <artifactId>kotlin-maven-plugin</artifactId>
+                                        <versionRange>[1.0.0,)</versionRange>
+                                        <goals>
+                                            <goal>compile</goal>
+                                            <goal>test-compile</goal>
+                                        </goals>
+                                    </pluginExecutionFilter>
+                                    <action>
+                                        <execute/>
+                                    </action>
+                                </pluginExecution>
+                            </pluginExecutions>
+                        </lifecycleMappingMetadata>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
 
         <plugins>
             <plugin>

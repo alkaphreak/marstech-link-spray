@@ -153,6 +153,11 @@ jobs:
           echo "Created $HOME/.jreleaser/config.properties"
 
       - name: Release with JReleaser
+        env:
+          JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+          DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+          DOCKER_REPO: ${{ vars.DOCKER_REPO || 'marstech-link-spray' }}
         run: |
           echo "----------------------------------------------------------------"
           echo "Releasing version: ${{ steps.bump-version.outputs.version }}"
