@@ -12,6 +12,12 @@ jobs:
       contents: read
       packages: write
 
+    services:
+      mongo:
+        image: mongo:latest
+        ports:
+          - 27018:27017
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -20,7 +26,7 @@ jobs:
         uses: actions/setup-java@v5
         with:
           java-version: '21'
-          distribution: 'liberica'
+          distribution: 'temurin'
           server-id: github
           settings-path: ${{ github.workspace }}
           cache: maven
