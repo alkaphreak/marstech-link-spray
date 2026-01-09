@@ -35,6 +35,7 @@ distributions:
     artifacts:
       - path: target/mt-link-spray-{{projectVersion}}.jar
     docker:
+      templateDirectory:
       active: ALWAYS
       continueOnError: false
       repository:
