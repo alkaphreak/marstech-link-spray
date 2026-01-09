@@ -1,11 +1,33 @@
 project:
   languages:
     java:
-      version: "21"
+      version: '21'
+  stereotype: WEB
+  links:
+    homepage: https://sol4.space/
+    vcsBrowser: https://github.com/alkaphreak/marstech-link-spray
+    contact: https://linktr.ee/StephaneRobinJob
+    bugTracker: https://marstech.myjetbrains.com/youtrack/projects/MLS
+    donation: https://buymeacoffee.com/alkapheak
+  icons:
+    - url: https://raw.githubusercontent.com/alkaphreak/marstech-link-spray/refs/heads/main/src/main/resources/static/assets/img/favicons/favicon-256.png
+      width: 256
+      height: 256
+  screenshots:
+    - url: https://raw.githubusercontent.com/alkaphreak/marstech-link-spray/3fa79c987fe3ebdf4229fb2d327a8aa676e79e27/docs/Screenshot_2026-01-09T15-33-27.078Z--.png
+      caption: Main Interface
 
 release:
   github:
+    overwrite: true
     owner: alkaphreak
+    changelog:
+      formatted: ALWAYS
+      preset: conventional-commits
+      contributors:
+        format: '- {{contributorName}}{{#contributorUsernameAsLink}} ({{.}}){{/contributorUsernameAsLink}}'
+        enabled: true
+    uploadAssets: ALWAYS
 
 distributions:
   mt-link-spray:
@@ -14,7 +36,14 @@ distributions:
       - path: target/mt-link-spray-{{projectVersion}}.jar
     docker:
       active: ALWAYS
-      baseImage: eclipse-temurin:21-jre-jammy
+      continueOnError: false
+      repository:
+        active: ALWAYS
+        commitMessage: "chore: release {{projectVersion}}"
       imageNames:
-        - alkaphreak/marstech-link-spray:{{projectVersion}}
-        - alkaphreak/marstech-link-spray:latest
+        - "alkaphreak/marstech-link-spray:{{projectVersion}}"
+        - "alkaphreak/marstech-link-spray:latest"
+      registries:
+        - serverName: docker.io
+          username: "alkaphreak"
+          password: "{{docker.io.password}}"
