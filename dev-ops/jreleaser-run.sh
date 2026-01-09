@@ -6,19 +6,16 @@ usage() {
     echo "Usage: $0 [options]"
     echo "Options:"
     echo "  --dry-run           Run JReleaser in dry-run mode (no publishing)"
-    echo "  --overwrite-config  Overwrite existing JReleaser config file"
     echo "  --help              Display this help message"
     exit 1
 }
 
 DRY_RUN=false
-OVERWRITE_CONFIG=false
 
 # Parse arguments
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         --dry-run) DRY_RUN=true ;;
-        --overwrite-config) OVERWRITE_CONFIG=true ;;
         --help) usage ;;
         *) echo "Unknown parameter: $1"; usage ;;
     esac
@@ -35,25 +32,12 @@ if [[ -z "${DOCKER_PASSWORD:-}" ]]; then
     echo "Warning: DOCKER_PASSWORD environment variable is not set. Docker release might fail if authentication is required."
 fi
 
-# Create default config.properties if it doesn't exist or overwrite if requested
-CONFIG_FILE="$HOME/.jreleaser/config.properties"
-if [[ ! -f "$CONFIG_FILE" ]] || [[ "$OVERWRITE_CONFIG" = true ]]; then
-    if [[ -f "$CONFIG_FILE" ]] && [[ "$OVERWRITE_CONFIG" = true ]]; then
-        echo "Overwriting existing config file: $CONFIG_FILE"
-    else
-        echo "Config file $CONFIG_FILE not found. Creating it..."
-    fi
-    mkdir -p "$(dirname "$CONFIG_FILE")"
-    cat > "$CONFIG_FILE" <<EOF
-# JReleaser variables
-jreleaser.github.token=${GITHUB_TOKEN:-}
-docker.io.username=${DOCKER_HUB_USERNAME:-alkaphreak}
-docker.io.password=${DOCKER_PASSWORD:-}
-EOF
-    chmod 600 "$CONFIG_FILE"
-    echo "Created/Updated $CONFIG_FILE"
+# Verify required environment variables
+if [[ -z "${DOCKER_PASSWORD:-}" ]]; then
+    echo "Error: DOCKER_PASSWORD is not set. Cannot proceed with Docker release."
+    exit 1
 else
-    echo "Using existing config file: $CONFIG_FILE"
+    echo "DOCKER_PASSWORD is set"
 fi
 
 # Check if Docker is running, attempt to start if not (macOS)
@@ -80,7 +64,6 @@ cd "$(dirname "$(realpath "$0")")/.."
 echo "----------------------------------------------------------------"
 echo "Starting Release Process..."
 echo "Dry Run Mode: $DRY_RUN"
-echo "Overwrite Config: $OVERWRITE_CONFIG"
 echo "----------------------------------------------------------------"
 
 # Build the project (skip tests to speed up release if CI already verified)
@@ -100,6 +83,7 @@ if [ "$DRY_RUN" = true ]; then
       -Djreleaser.strict=true
 else
     echo "Performing LIVE release..."
+    export JRELEASER_DOCKER_DEFAULT_PASSWORD="${DOCKER_PASSWORD}"
     mvn -B -ntp jreleaser:full-release \
       -Djreleaser.config.file=jreleaser.yml \
       -Djreleaser.strict=true
