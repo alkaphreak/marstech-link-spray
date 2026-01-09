@@ -40,9 +40,3 @@ packagers:
       - "alkaphreak/marstech-link-spray:{{tagName}}"
       - "alkaphreak/marstech-link-spray:latest"
     useLocalArtifact: true
-
-distributions:
-  mt-link-spray:
-    type: SINGLE_JAR
-    artifacts:
-      - path: target/{{projectName}}-{{projectVersion}}.jar
