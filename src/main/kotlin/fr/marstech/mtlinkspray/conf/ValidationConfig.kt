@@ -11,11 +11,14 @@ class ValidationConfig {
     @Bean
     fun validator(): LocalValidatorFactoryBean = LocalValidatorFactoryBean()
 
-    @Bean
-    fun methodValidationPostProcessor(validator: LocalValidatorFactoryBean): MethodValidationPostProcessor {
-        val processor = MethodValidationPostProcessor()
-        processor.setValidator(validator)
-        processor.setAdaptConstraintViolations(true)
-        return processor
+    companion object {
+        @Bean
+        @JvmStatic
+        fun methodValidationPostProcessor(validator: LocalValidatorFactoryBean): MethodValidationPostProcessor {
+            val processor = MethodValidationPostProcessor()
+            processor.setValidator(validator)
+            processor.setAdaptConstraintViolations(true)
+            return processor
+        }
     }
 }

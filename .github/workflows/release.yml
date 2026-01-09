@@ -125,34 +125,20 @@ jobs:
           mvn -B -ntp clean verify
           ls -lh target/*.jar || true
 
-      - name: Dump JReleaser config (debug)
-        run: |
-          echo "----------------------------------------------------------------"
-          echo "Dumping jreleaser.yml for debug"
-          sed -n '1,200p' jreleaser.yml || true
-          echo "Listing JReleaser plugin version"
-          mvn -q help:evaluate -Dexpression=project.build.plugins | grep -i jreleaser || true
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-      - name: Prepare JReleaser variables
-        env:
-          JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
-          DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-          DOCKER_REPO: ${{ vars.DOCKER_REPO || 'marstech-link-spray' }}
-        run: |
-          echo "----------------------------------------------------------------"
-          mkdir -p "$HOME/.jreleaser"
-          cat > "$HOME/.jreleaser/config.properties" <<EOF
-          # JReleaser variables
-          jreleaser.github.token=${JRELEASER_GITHUB_TOKEN}
-          docker.hub.username=${DOCKER_HUB_USERNAME}
-          docker.hub.password=${DOCKER_HUB_ACCESS_TOKEN}
-          docker.repo=${DOCKER_REPO}
-          EOF
-          chmod 600 "$HOME/.jreleaser/config.properties"
-          echo "Created $HOME/.jreleaser/config.properties"
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
       - name: Release with JReleaser
+        env:
+          JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          JRELEASER_DOCKER_DEFAULT_PASSWORD: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+          JRELEASER_DOCKER_DEFAULT_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
         run: |
           echo "----------------------------------------------------------------"
           echo "Releasing version: ${{ steps.bump-version.outputs.version }}"
