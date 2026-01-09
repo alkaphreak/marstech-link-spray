@@ -12,12 +12,6 @@ jobs:
       contents: read
       packages: write
 
-    services:
-      mongo:
-        image: mongo:latest
-        ports:
-          - 27018:27017
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
