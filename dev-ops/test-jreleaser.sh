@@ -1,6 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
+# Navigate to project root
+cd "$(dirname "$(realpath "$0")")/.."
+
 echo "Testing JReleaser setup..."
 
 # Build the project

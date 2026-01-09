@@ -20,7 +20,7 @@ jobs:
         uses: actions/setup-java@v5
         with:
           java-version: '21'
-          distribution: 'liberica'
+          distribution: 'temurin'
           server-id: github
           settings-path: ${{ github.workspace }}
           cache: maven
@@ -51,9 +51,10 @@ jobs:
       - name: Publish to GitHub Packages
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: mvn -B deploy --file pom.xml
+        run: mvn -B deploy --file pom.xml -s ${{ github.workspace }}/settings.xml
 
       # Optional: Clean up artifacts to save space
       - name: Cleanup workspace
         if: always()
         run: rm -rf target
+        
