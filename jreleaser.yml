@@ -36,6 +36,7 @@ packagers:
     continueOnError: false
     repository:
       active: NEVER
+    templateDirectory: src/jreleaser/templates/docker
     imageNames:
       - "alkaphreak/marstech-link-spray:{{tagName}}"
       - "alkaphreak/marstech-link-spray:latest"
