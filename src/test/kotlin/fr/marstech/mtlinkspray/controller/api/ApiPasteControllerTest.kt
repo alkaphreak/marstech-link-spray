@@ -121,7 +121,9 @@ class ApiPasteControllerTest {
             .let(mockMvc::perform)
             .andExpect(status().isInternalServerError)
             .andExpect(content().contentType(APPLICATION_JSON))
-            .andExpect(jsonPath("$.error").value("Test exception"))
+            .andExpect(jsonPath("$.message").value("Test exception"))
+            .andExpect(jsonPath("$.status").value(500))
+            .andExpect(jsonPath("$.error").value("Internal Server Error"))
     }
 
     @Test
@@ -183,6 +185,8 @@ class ApiPasteControllerTest {
         get("/api/paste/nonexistent")
             .let(mockMvc::perform)
             .andExpect(status().isInternalServerError)
+            .andExpect(jsonPath("$.status").value(500))
+            .andExpect(jsonPath("$.message").value("Paste not found"))
     }
 
     @Test
@@ -192,6 +196,8 @@ class ApiPasteControllerTest {
             .content("{\"invalid_json\":0 }")
             .let(mockMvc::perform)
             .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.error").value("Bad Request"))
     }
 
     // ========== Validation Tests ==========
@@ -208,7 +214,9 @@ class ApiPasteControllerTest {
             .content(objectMapper.writeValueAsString(request))
             .let(mockMvc::perform)
             .andExpect(status().isBadRequest)
-            .andExpect(jsonPath("$.error").exists())
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.error").value("Validation Failed"))
+            .andExpect(jsonPath("$.fieldErrors").isArray)
     }
 
     @Test
@@ -223,7 +231,9 @@ class ApiPasteControllerTest {
             .content(objectMapper.writeValueAsString(request))
             .let(mockMvc::perform)
             .andExpect(status().isBadRequest)
-            .andExpect(jsonPath("$.error").exists())
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.error").value("Validation Failed"))
+            .andExpect(jsonPath("$.fieldErrors").isArray)
     }
 
     @Test
@@ -239,7 +249,9 @@ class ApiPasteControllerTest {
             .content(objectMapper.writeValueAsString(request))
             .let(mockMvc::perform)
             .andExpect(status().isBadRequest)
-            .andExpect(jsonPath("$.error").exists())
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.error").value("Validation Failed"))
+            .andExpect(jsonPath("$.fieldErrors").isArray)
     }
 
     @Test
@@ -255,7 +267,9 @@ class ApiPasteControllerTest {
             .content(objectMapper.writeValueAsString(request))
             .let(mockMvc::perform)
             .andExpect(status().isBadRequest)
-            .andExpect(jsonPath("$.error").exists())
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.error").value("Validation Failed"))
+            .andExpect(jsonPath("$.fieldErrors").isArray)
     }
 
     @Test
@@ -271,7 +285,9 @@ class ApiPasteControllerTest {
             .content(objectMapper.writeValueAsString(request))
             .let(mockMvc::perform)
             .andExpect(status().isBadRequest)
-            .andExpect(jsonPath("$.error").exists())
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.error").value("Validation Failed"))
+            .andExpect(jsonPath("$.fieldErrors").isArray)
     }
 
     @Test
@@ -286,7 +302,9 @@ class ApiPasteControllerTest {
             .content(objectMapper.writeValueAsString(request))
             .let(mockMvc::perform)
             .andExpect(status().isBadRequest)
-            .andExpect(jsonPath("$.error").exists())
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.error").value("Validation Failed"))
+            .andExpect(jsonPath("$.fieldErrors").isArray)
     }
 
     @Test
@@ -302,7 +320,9 @@ class ApiPasteControllerTest {
             .content(objectMapper.writeValueAsString(request))
             .let(mockMvc::perform)
             .andExpect(status().isBadRequest)
-            .andExpect(jsonPath("$.error").exists())
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.error").value("Validation Failed"))
+            .andExpect(jsonPath("$.fieldErrors").isArray)
     }
 
     @Test
@@ -370,6 +390,8 @@ class ApiPasteControllerTest {
         get("/api/paste/ ")
             .let(mockMvc::perform)
             .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.error").exists())
     }
 
     @Test
