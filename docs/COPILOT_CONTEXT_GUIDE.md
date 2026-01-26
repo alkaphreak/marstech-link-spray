@@ -10,9 +10,11 @@ I've created context files for your project. Here are **all the locations** wher
 
 **Location**: `.github/copilot-instructions.md`
 
-**Purpose**: Project-wide coding standards, patterns, and conventions that Copilot uses for ALL suggestions in this repository.
+**Purpose**: Project-wide coding standards, patterns, and conventions that Copilot uses for ALL suggestions in this
+repository.
 
 **What Copilot reads**:
+
 - Coding style preferences
 - Framework conventions
 - Architecture patterns
@@ -20,6 +22,7 @@ I've created context files for your project. Here are **all the locations** wher
 - Technology stack details
 
 **✅ I've created this file for you** with:
+
 - Kotlin preference over Java
 - Spring Boot conventions
 - MongoDB patterns
@@ -37,11 +40,13 @@ I've created context files for your project. Here are **all the locations** wher
 **Purpose**: IntelliJ IDEA workspace-specific context, quick references, and patterns.
 
 **What Copilot reads**:
+
 - Quick command references
 - Common code patterns
 - Workspace-specific preferences
 
 **✅ I've created this file for you** with:
+
 - Quick reference patterns
 - Common commands
 - Code generation templates
@@ -52,7 +57,8 @@ I've created context files for your project. Here are **all the locations** wher
 
 ## 📄 3. README Files (Already Exists)
 
-**Locations**: 
+**Locations**:
+
 - `README.md` (root)
 - `docs/README.md`
 - Any README in subdirectories
@@ -60,6 +66,7 @@ I've created context files for your project. Here are **all the locations** wher
 **Purpose**: Copilot automatically reads README files to understand project context.
 
 **What to include**:
+
 - Project description
 - Setup instructions
 - Architecture overview
@@ -76,6 +83,7 @@ I've created context files for your project. Here are **all the locations** wher
 **Purpose**: File-specific context for Copilot when working in that file.
 
 **Example**:
+
 ```kotlin
 // Copilot: When generating code in this file:
 // - Use reactive patterns
@@ -96,12 +104,14 @@ interface UserRepository : MongoRepository<User, String> {
 
 **Location**: Settings → Tools → GitHub Copilot
 
-**Access**: 
+**Access**:
+
 1. Open IntelliJ IDEA
 2. Go to: **File → Settings** (Windows/Linux) or **IntelliJ IDEA → Settings** (Mac)
 3. Navigate to: **Tools → GitHub Copilot**
 
 **What you can configure**:
+
 - Enable/disable Copilot
 - Language preferences
 - Suggestion behavior
@@ -116,6 +126,7 @@ interface UserRepository : MongoRepository<User, String> {
 **Purpose**: Code style preferences (indentation, line endings, etc.)
 
 **Example**:
+
 ```editorconfig
 [*.kt]
 indent_style = space
@@ -133,6 +144,7 @@ indent_size = 4
 **Purpose**: File-specific instructions for code generation.
 
 **Format**:
+
 ```kotlin
 /**
  * Copilot Instructions:
@@ -174,23 +186,24 @@ Copilot reads context in this priority order:
    ```kotlin
    // Create a new Spring Boot REST controller for managing items
    ```
-   
+
    Copilot should suggest Kotlin code with:
-   - `@RestController` annotation
-   - Constructor injection
-   - `ResponseEntity` returns
-   - RESTful patterns
+    - `@RestController` annotation
+    - Constructor injection
+    - `ResponseEntity` returns
+    - RESTful patterns
 
 4. **Use Copilot Chat**:
-   - Open Copilot Chat panel (Alt + 4 or View → Tool Windows → GitHub Copilot Chat)
-   - Ask: "Generate a service for managing items following the project conventions"
-   - Copilot will use your instructions automatically
+    - Open Copilot Chat panel (Alt + 4 or View → Tool Windows → GitHub Copilot Chat)
+    - Ask: "Generate a service for managing items following the project conventions"
+    - Copilot will use your instructions automatically
 
 ---
 
 ## ✏️ How to Edit These Instructions
 
 ### To modify project-wide instructions:
+
 ```bash
 # Edit the repository-level file
 open .github/copilot-instructions.md
@@ -199,6 +212,7 @@ nano .github/copilot-instructions.md
 ```
 
 ### To modify workspace instructions:
+
 ```bash
 # Edit the workspace-level file
 open .idea/copilot-instructions.md
@@ -207,6 +221,7 @@ nano .idea/copilot-instructions.md
 ```
 
 ### Commit to Git:
+
 ```bash
 # Add repository-level instructions to Git (recommended)
 git add .github/copilot-instructions.md
@@ -221,18 +236,19 @@ git push origin main
 
 ## 📊 What I've Set Up For You
 
-| Location | File | Status | In Git? | Purpose |
-|----------|------|--------|---------|---------|
+| Location   | File                      | Status    | In Git?           | Purpose             |
+|------------|---------------------------|-----------|-------------------|---------------------|
 | `.github/` | `copilot-instructions.md` | ✅ Created | Yes (recommended) | Project conventions |
-| `.idea/` | `copilot-instructions.md` | ✅ Created | No (local) | Quick reference |
-| Root | `README.md` | ✅ Exists | Yes | Project overview |
-| Root | `RELEASE_GUIDE.md` | ✅ Exists | Yes | Release process |
+| `.idea/`   | `copilot-instructions.md` | ✅ Created | No (local)        | Quick reference     |
+| Root       | `README.md`               | ✅ Exists  | Yes               | Project overview    |
+| Root       | `RELEASE_GUIDE.md`        | ✅ Exists  | Yes               | Release process     |
 
 ---
 
 ## 🎯 Best Practices
 
 ### ✅ DO:
+
 - Keep instructions **concise and specific**
 - Use **examples** of good patterns
 - Specify **technology stack** clearly
@@ -241,6 +257,7 @@ git push origin main
 - Commit `.github/copilot-instructions.md` to Git
 
 ### ❌ DON'T:
+
 - Write a novel (keep it scannable)
 - Include sensitive information
 - Contradict yourself across files
@@ -254,10 +271,10 @@ git push origin main
 2. Type a comment like: `// Create a service for user management`
 3. Press Enter and wait for suggestions
 4. Check if suggestions follow your conventions:
-   - Uses Kotlin (not Java)
-   - Constructor injection
-   - Proper annotations
-   - Follows your patterns
+    - Uses Kotlin (not Java)
+    - Constructor injection
+    - Proper annotations
+    - Follows your patterns
 
 ---
 
@@ -265,13 +282,15 @@ git push origin main
 
 - **GitHub Copilot Docs**: https://docs.github.com/en/copilot
 - **IntelliJ Copilot Plugin**: https://plugins.jetbrains.com/plugin/17718-github-copilot
-- **Copilot Best Practices**: https://github.blog/developer-skills/github/how-to-use-github-copilot-in-your-ide-tips-tricks-and-best-practices/
+- **Copilot Best Practices
+  **: https://github.blog/developer-skills/github/how-to-use-github-copilot-in-your-ide-tips-tricks-and-best-practices/
 
 ---
 
 ## 🎉 You're All Set!
 
 GitHub Copilot is now configured with your project's context. It will:
+
 - ✅ Prefer Kotlin over Java
 - ✅ Use Spring Boot best practices
 - ✅ Follow your MongoDB patterns
