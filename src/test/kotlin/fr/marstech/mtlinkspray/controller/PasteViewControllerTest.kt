@@ -54,7 +54,7 @@ class PasteViewControllerTest {
 
     @Test
     fun getViewPasteReturnsProtectedViewWhenPasswordProtected() {
-        `when`(pasteService.isPassordProtected("abc")).thenReturn(true)
+        `when`(pasteService.isPasswordProtected("abc")).thenReturn(true)
         mockMvc.perform(get("/paste/abc")).andExpect(status().isOk).andExpect(model().attribute("isProtected", true))
             .andExpect(model().attribute("pasteId", "abc")).andExpect(model().attribute("create", false))
             .andExpect(view().name(ViewNameEnum.PASTE.viewName))
@@ -69,7 +69,7 @@ class PasteViewControllerTest {
         )
         val response = PasteResponse.fromEntity(entity)
 
-        `when`(pasteService.isPassordProtected("xyz")).thenReturn(false)
+        `when`(pasteService.isPasswordProtected("xyz")).thenReturn(false)
         `when`(pasteService.getPaste("xyz", null)).thenReturn(entity)
 
         mockMvc.perform(get("/paste/xyz")).andExpect(status().isOk).andExpect(model().attribute("isProtected", false))
