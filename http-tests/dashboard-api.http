@@ -19,14 +19,18 @@ Content-Type: application/json
 {
   "name": "My Dashboard",
   "description": "Test dashboard for development",
-  "items": []
+  "items": [],
+  "id": ""
 }
 
 ### Create dashboard - Minimal data
 POST {{baseUrl}}/api/dashboard
 Content-Type: application/json
 
-{}
+{
+  "id": "",
+  "items": []
+}
 
 ### Update dashboard - Success
 PUT {{baseUrl}}/api/dashboard/test-dashboard-id
@@ -45,7 +49,9 @@ Content-Type: application/json
 
 {
   "name": "Updated Dashboard",
-  "description": "Updated description"
+  "description": "Updated description",
+  "id": "",
+  "items": []
 }
 
 ### Update dashboard - Invalid JSON
@@ -54,5 +60,7 @@ Content-Type: application/json
 
 {
   "name": "Invalid",
-  "description":""
+  "description":"",
+  "id": "",
+  "items": []
 }
