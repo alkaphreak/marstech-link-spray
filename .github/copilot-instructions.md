@@ -159,6 +159,35 @@ interface MyRepository : MongoRepository<MyEntity, String> {
 - `jreleaser.yml` - Release automation config
 - `RELEASE_GUIDE.md` - Release process documentation
 
+## Documentation & LLM-Generated Files
+
+### LLM Documentation Location
+- **All LLM-generated specifications, analyses, and summaries** must be saved in `.local/llm/`
+- **DO NOT** save specification files in the project root directory
+
+### Naming Conventions for LLM Docs
+- Specifications: `{ISSUE-ID}-specification.md` (e.g., `MLS-129-specification.md`)
+- Implementation summaries: `{ISSUE-ID}-{PHASE}-COMPLETE.md` (e.g., `MLS-129-PHASE2-COMPLETE.md`)
+- Progress tracking: `{ISSUE-ID}-progress.md`
+- Session summaries: `{ISSUE-ID}-session{N}-{topic}.md`
+- Quick guides: `{ISSUE-ID}-quick-guide.md`
+
+### What Goes in `.local/llm/`
+- ✅ Issue analysis and specifications
+- ✅ Implementation plans and summaries
+- ✅ Progress tracking documents
+- ✅ Session notes and summaries
+- ✅ Quick reference guides
+- ✅ Test result summaries
+
+### What Stays in Project Root
+- ❌ NOT specification files
+- ❌ NOT LLM analysis documents
+- ✅ Official project documentation (README, CHANGELOG, etc.)
+- ✅ Release guides and contribution docs
+
+See `.local/llm/README.md` for complete documentation conventions.
+
 ## Avoid
 - ❌ Java-style code in Kotlin files
 - ❌ Field injection (`@Autowired` on fields)

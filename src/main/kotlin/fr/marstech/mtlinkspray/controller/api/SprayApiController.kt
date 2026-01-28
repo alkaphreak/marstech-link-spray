@@ -3,6 +3,7 @@ package fr.marstech.mtlinkspray.controller.api
 import fr.marstech.mtlinkspray.service.SprayService
 import jakarta.servlet.http.HttpServletRequest
 import fr.marstech.mtlinkspray.validation.NotEmptyNotBlank
+import fr.marstech.mtlinkspray.validation.ValidUrlList
 
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.GetMapping
@@ -18,7 +19,10 @@ class SprayApiController {
     @GetMapping
     fun getSprayLink(
         httpServletRequest: HttpServletRequest,
-        @RequestParam @NotEmptyNotBlank inputLinkList: List<String>,
+        @RequestParam
+        @NotEmptyNotBlank
+        @ValidUrlList(maxSize = 100, message = "Invalid URL list")
+        inputLinkList: List<String>,
     ): String =
         SprayService.getLinkSpray(httpServletRequest, inputLinkList)
 }

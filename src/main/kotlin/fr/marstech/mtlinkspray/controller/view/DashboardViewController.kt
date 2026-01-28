@@ -21,7 +21,7 @@ class DashboardViewController(val dashboardService: DashboardService) : Thymelea
 
     @GetMapping("/{id}")
     fun getDashboardById(
-        @PathVariable(name = "id") @NotBlank id: String, httpServletRequest: HttpServletRequest
+        @PathVariable @NotBlank id: String, httpServletRequest: HttpServletRequest
     ): ModelAndView = getModelAndView(httpServletRequest).addObject("dashboard", dashboardService.getDashboard(id))
 
     override fun getModelAndView(): ModelAndView = getModelAndView(DASHBOARD)
