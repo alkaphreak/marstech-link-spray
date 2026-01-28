@@ -18,14 +18,11 @@ class PasteApiController(private val pasteService: PasteService) {
 
     @PostMapping
     fun createPaste(
-        @RequestBody @Valid request: PasteRequest,
-        httpServletRequest: HttpServletRequest
-    ): ResponseEntity<PasteResponse> {
-        val pasteId = pasteService.createPaste(request, httpServletRequest)
-        val pasteEntity = pasteService.getPaste(pasteId, request.password)
-        val response = fromEntity(pasteEntity)
-        return ResponseEntity.ok(response)
-    }
+        @RequestBody @Valid request: PasteRequest, httpServletRequest: HttpServletRequest
+    ): ResponseEntity<PasteResponse> =
+        pasteService.createPaste(request, httpServletRequest)
+            .let { pasteService.getPaste(it, request.password) }
+            .let { return ResponseEntity.ok(fromEntity(it)) }
 
     @GetMapping("/{pasteId}")
     fun getPaste(
