@@ -76,7 +76,7 @@ class ApiPasteControllerTest {
     }
 
     @Test
-    fun `should get paste by id`() {
+    fun shouldGetPasteById() {
         val pasteId = "abc123"
         val pasteEntity = PasteEntity(
             id = pasteId,

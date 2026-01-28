@@ -25,13 +25,13 @@ class DashboardViewControllerTest {
     }
 
     @Test
-    fun `getView should return ModelAndView`() {
+    fun getViewShouldReturnModelAndView() {
         val result = controller.getView(request)
         assertTrue(result.viewName == "dashboard")
     }
 
     @Test
-    fun `postView should create dashboard and redirect`() {
+    fun postViewShouldCreateDashboardAndRedirect() {
         val dto = DashboardDto("123", "Test Dashboard")
         `when`(dashboardService.createDashboard("Test Dashboard")).thenReturn(dto)
 
@@ -40,7 +40,7 @@ class DashboardViewControllerTest {
     }
 
     @Test
-    fun `getDashboardById should add dashboard to model`() {
+    fun getDashboardByIdShouldAddDashboardToModel() {
         val dashboard = DashboardDto("456", "Another Dashboard")
         `when`(dashboardService.getDashboard("456")).thenReturn(dashboard)
 

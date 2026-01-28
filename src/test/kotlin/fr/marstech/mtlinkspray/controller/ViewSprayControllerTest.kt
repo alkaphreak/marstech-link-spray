@@ -12,7 +12,7 @@ class ViewSprayControllerTest {
     private val controller = ViewSprayController()
 
     @Test
-    fun `GET spray page returns correct view`() {
+    fun getSprayPageShouldReturnCorrectView() {
         val request = MockHttpServletRequest()
         val result: ModelAndView = controller.getSprayPage(request)
         
@@ -21,7 +21,7 @@ class ViewSprayControllerTest {
     }
 
     @Test
-    fun `POST spray returns correct view with model`() {
+    fun postSpraShouldReturnCorrectViewWithModel() {
         val request = MockHttpServletRequest()
         val result: ModelAndView = controller.getLink("https://example.com", request)
         
@@ -32,7 +32,7 @@ class ViewSprayControllerTest {
     }
 
     @Test
-    fun `GET spray open returns correct view with model`() {
+    fun getSprayOpenShouldReturnCorrectViewWithModel() {
         val sprayList = listOf("https://example.com")
         val result: ModelAndView = controller.getSpray(sprayList)
         

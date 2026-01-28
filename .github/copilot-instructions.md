@@ -47,8 +47,9 @@ MarsTech Link Spray is a URL shortener and link management service built with:
 - Test profile: `test` (uses port 27018 for MongoDB)
 - Aim for **high code coverage**
 - Use **Given-When-Then** structure for test methods
-- Use **camelCase** method names (e.g., `shouldReturnUserWhenUserExists`)
-- Add `@DisplayName` for human-readable descriptions
+- **ALWAYS use camelCase** method names (e.g., `shouldReturnUserWhenUserExists`)
+- **NEVER use backticks** in test method names (e.g., ❌ `fun \`should return user\`()`)
+- Add `@DisplayName` for human-readable descriptions (optional)
 
 ### API Design
 - Follow **RESTful conventions**
@@ -207,4 +208,50 @@ See `.local/llm/README.md` for complete documentation conventions.
 - ✅ Data classes for DTOs
 - ✅ Functional programming patterns
 - ✅ Comprehensive tests
+
+## Test Naming Convention Examples
+
+### ✅ Correct (camelCase)
+```kotlin
+@Test
+fun shouldReturnUserWhenUserExists() {
+    // Given-When-Then test implementation
+}
+
+@Test
+fun shouldThrowExceptionWhenUserNotFound() {
+    // Given-When-Then test implementation
+}
+
+@Test
+fun getSprayPageShouldReturnCorrectView() {
+    // Given-When-Then test implementation
+}
+
+@Test
+fun postViewShouldAddInputLinkAndShortenedLinkToModel() {
+    // Given-When-Then test implementation
+}
+```
+
+### ❌ Incorrect (backticks - DO NOT USE)
+```text
+@Test
+fun `should return user when user exists`() { }  // ❌ NO BACKTICKS
+
+@Test
+fun `GET spray page returns correct view`() { }  // ❌ NO BACKTICKS
+
+@Test
+fun `POST spray returns correct view with model`() { }  // ❌ NO BACKTICKS
+```
+
+### Optional: @DisplayName for readability
+```kotlin
+@Test
+@DisplayName("Should return user when user exists")
+fun shouldReturnUserWhenUserExists() {
+    // Given-When-Then test implementation
+}
+```
 
