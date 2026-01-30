@@ -1,5 +1,13 @@
 @baseUrl = http://localhost:8096
 
+###
+### Dashboard API Tests
+### Controller: DashboardApiController
+### Validation: @NotBlank on id path parameter, @Valid on request body
+### Response: Returns DashboardDto JSON on success
+### Error format: JSON {"error": "message"} for validation/not found errors
+###
+
 ### Get dashboard by ID - Success
 GET {{baseUrl}}/api/dashboard/test-dashboard-id
 Accept: application/json
@@ -8,7 +16,7 @@ Accept: application/json
 GET {{baseUrl}}/api/dashboard/non-existent-id
 Accept: application/json
 
-### Get dashboard by ID - Invalid ID (blank)
+### Get dashboard by ID - Invalid ID (blank) - expects 404 Not Found
 GET {{baseUrl}}/api/dashboard/
 Accept: application/json
 
@@ -19,16 +27,14 @@ Content-Type: application/json
 {
   "name": "My Dashboard",
   "description": "Test dashboard for development",
-  "items": [],
-  "id": ""
+  "items": []
 }
 
-### Create dashboard - Minimal data
+### Create dashboard - Minimal data (id will be auto-generated)
 POST {{baseUrl}}/api/dashboard
 Content-Type: application/json
 
 {
-  "id": "",
   "items": []
 }
 
@@ -50,17 +56,14 @@ Content-Type: application/json
 {
   "name": "Updated Dashboard",
   "description": "Updated description",
-  "id": "",
   "items": []
 }
 
-### Update dashboard - Invalid JSON
+### Update dashboard - Invalid JSON (expects 400 Bad Request)
 PUT {{baseUrl}}/api/dashboard/test-id
 Content-Type: application/json
 
 {
   "name": "Invalid",
-  "description":"",
-  "id": "",
+  "description": "",
   "items": []
-}

@@ -1,5 +1,13 @@
 @baseUrl = http://localhost:8096
 
+###
+### Paste API Tests
+### Controller: PasteApiController
+### Validation: @NotBlank and @Size on content field in PasteRequest, @Valid on request body
+### Response: Returns PasteResponse JSON on success (200 OK)
+### Error format: JSON {"error": "message"} for validation/not found errors
+###
+
 ### Create paste - Basic text
 POST {{baseUrl}}/api/paste
 Content-Type: application/json
@@ -37,7 +45,7 @@ Content-Type: application/json
   "isPrivate": true
 }
 
-### Create paste - Minimal required fields
+### Create paste - Minimal required fields (only content is required)
 POST {{baseUrl}}/api/paste
 Content-Type: application/json
 
@@ -45,7 +53,7 @@ Content-Type: application/json
   "content": "Just content, no title"
 }
 
-### Create paste - Invalid (empty content)
+### Create paste - Invalid (empty content - expects 400 Bad Request)
 POST {{baseUrl}}/api/paste
 Content-Type: application/json
 
