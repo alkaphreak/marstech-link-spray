@@ -66,7 +66,7 @@ Convert HTTP requests to curl commands for command-line testing.
 
 - ✅ 404 Not Found
 - ✅ 400 Bad Request
-- ✅ 405 Methods Not Allowed
+- ✅ 405 Method Not Allowed
 - ✅ 415 Unsupported Media Type
 - ✅ Validation errors
 - ✅ Invalid JSON payloads

@@ -3,8 +3,8 @@
 ###
 ### Error Handling Tests
 ### Tests various error scenarios: 404, 405, 400, 415, validation errors, etc.
-### All errors return JSON {"error": "message"} format
-### Handled by GlobalRestExceptionHandler
+### All errors return structured JSON ErrorResponse: { "status", "error", "message", "path", "fieldErrors" (optional) }
+### Key fields for quick checks: "error" and "message" (set by GlobalRestExceptionHandler)
 ###
 
 ### Test 404 - Non-existent endpoint

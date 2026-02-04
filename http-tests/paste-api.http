@@ -3,9 +3,9 @@
 ###
 ### Paste API Tests
 ### Controller: PasteApiController
-### Validation: @NotBlank and @Size on content field in PasteRequest, @Valid on request body
+### Validation: Bean Validation on PasteRequest (title, content, password, language, expiration) with @Valid on request body
 ### Response: Returns PasteResponse JSON on success (200 OK)
-### Error format: JSON {"error": "message"} for validation/not found errors
+### Error format: Structured ErrorResponse JSON with fieldErrors for validation/not found errors
 ###
 
 ### Create paste - Basic text
