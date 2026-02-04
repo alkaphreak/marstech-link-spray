@@ -10,7 +10,7 @@ class GlobalExceptionHandlerTest {
     private val handler = GlobalExceptionHandler()
 
     @Test
-    fun `handleException should add errorMessage to model`() {
+    fun handleExceptionShouldAddErrorMessageToModel() {
         val ex = Exception("Something went wrong")
         val mav: ModelAndView = handler.handleException(ex)
         assertEquals(ERROR.viewName, mav.viewName)
@@ -18,7 +18,7 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
-    fun `handleIllegalArgument should add errorMessage to model`() {
+    fun handleIllegalArgumentShouldAddErrorMessageToModel() {
         val ex = IllegalArgumentException("Invalid argument")
         val mav: ModelAndView = handler.handleIllegalArgument(ex)
         assertEquals(ERROR.viewName, mav.viewName)

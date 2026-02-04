@@ -18,7 +18,7 @@ class UrlRedirectController(val shortenerService: ShortenerService) : ThymeleafV
      */
     @GetMapping("/{shortUrlUid}")
     fun getTarget(
-        @PathVariable(name = "shortUrlUid") @NotBlank shortUrlUid: String,
+        @PathVariable @NotBlank shortUrlUid: String,
     ): ModelAndView = getModelAndViewToRedirect(shortenerService.getTarget(shortUrlUid))
 
     override fun getModelAndView(): ModelAndView? {

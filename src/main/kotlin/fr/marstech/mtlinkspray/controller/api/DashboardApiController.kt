@@ -17,7 +17,7 @@ class DashboardApiController(
     @GetMapping("/{id}")
     @Validated
     fun getDashboard(
-        @PathVariable(name = "id") @NotBlank(message = "ID cannot be blank") id: String
+        @PathVariable @NotBlank(message = "ID cannot be blank") id: String
     ): DashboardDto = dashboardService.getDashboard(id)
 
     @PostMapping
@@ -28,7 +28,7 @@ class DashboardApiController(
     @PutMapping("/{id}")
     @Validated
     fun updateDashboard(
-        @PathVariable(name = "id") @NotBlank(message = "ID cannot be blank") id: String,
+        @PathVariable @NotBlank(message = "ID cannot be blank") id: String,
         @RequestBody @Valid dashboardDto: DashboardDto
     ): DashboardDto = dashboardService.updateDashboard(id, dashboardDto)
 }

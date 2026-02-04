@@ -1,5 +1,6 @@
 # Enable auto-env through the sdkman_auto_env config
 # Add key=value pairs of SDKs to use below
-java=21.0.6-librca
-maven=3.9.9
-kotlin=2.1.10
+java=21.0.9-tem
+maven=3.9.12
+kotlin=2.3.0
+springboot=3.5.10

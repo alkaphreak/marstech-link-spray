@@ -43,7 +43,7 @@ class PasteServiceImpl(
             )
         ).id
 
-    override fun isPassordProtected(id: String): Boolean = getPaste(id).isPasswordProtected
+    override fun isPasswordProtected(id: String): Boolean = getPaste(id).isPasswordProtected
 
     override fun getPaste(id: String, password: String?): PasteEntity = getPaste(id).also {
         if (!checkPassword(password, it)) throw IllegalAccessException("Invalid password")

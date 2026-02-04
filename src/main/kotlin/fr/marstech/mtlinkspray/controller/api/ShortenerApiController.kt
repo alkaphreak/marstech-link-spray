@@ -1,9 +1,11 @@
 package fr.marstech.mtlinkspray.controller.api
 
 import fr.marstech.mtlinkspray.service.ShortenerService
+import fr.marstech.mtlinkspray.validation.ValidUrl
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.Size
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -20,7 +22,12 @@ class ShortenerApiController(
     @GetMapping("/shorten")
     @Validated
     fun getShort(
-        @RequestParam(name = "url") @Valid @NotBlank(message = "URL cannot be blank") inputUrl: String,
+        @RequestParam(name = "url")
+        @Valid
+        @NotBlank(message = "URL cannot be blank")
+        @ValidUrl(message = "Invalid URL format or protocol")
+        @Size(max = 2048, message = "URL cannot exceed 2048 characters")
+        inputUrl: String,
         httpServletRequest: HttpServletRequest
     ): String = when {
         // In some case the validation may be bypassed

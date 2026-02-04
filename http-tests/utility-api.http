@@ -1,5 +1,12 @@
 @baseUrl = http://localhost:8096
 
+###
+### Utility API Tests
+### Controller: UuidApiController
+### Validation: None
+### Response: Returns plain text UUID string
+###
+
 ### Generate UUID - Standard request
 GET {{baseUrl}}/api/uuid
 Accept: text/plain
