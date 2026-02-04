@@ -1,5 +1,13 @@
 @baseUrl = http://localhost:8096
 
+###
+### URL Shortener API Tests
+### Controller: ShortenerApiController
+### Validation: @NotBlank, @ValidUrl, @Size(max = 2048) on url parameter (400 Bad Request on violation)
+### Response: Returns plain text shortened URL on success
+### Error format: application/json structured ErrorResponse object for validation and other API errors
+###
+
 ### Shorten URL - Valid HTTPS URL
 GET {{baseUrl}}/api/url-shortener/shorten?url=https://example.com
 Accept: text/plain
@@ -26,14 +34,19 @@ Accept: text/plain
 GET {{baseUrl}}/api/url-shortener/shorten?url=not-a-url
 Accept: text/plain
 
-### Shorten URL - Empty URL
+### Shorten URL - Empty URL (expects 400 Bad Request)
 GET {{baseUrl}}/api/url-shortener/shorten?url=
 Accept: text/plain
 
-### Shorten URL - Missing URL parameter
+### Shorten URL - Missing URL parameter (expects 400 Bad Request)
 GET {{baseUrl}}/api/url-shortener/shorten
 Accept: text/plain
 
 ### Shorten URL - URL with special characters
 GET {{baseUrl}}/api/url-shortener/shorten?url=https://example.com/path with spaces
 Accept: text/plain
+
+### Shorten URL - URL with encoded characters
+GET {{baseUrl}}/api/url-shortener/shorten?url=https://example.com/%7Euser%2Fprofile%3Fid%3D123
+Accept: text/plain
+

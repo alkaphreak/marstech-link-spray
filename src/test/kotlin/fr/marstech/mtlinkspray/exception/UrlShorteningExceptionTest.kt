@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test
 class UrlShorteningExceptionTest {
 
     @Test
-    fun `should create exception with message and cause`() {
+    fun shouldCreateExceptionWithMessageAndCause() {
         val cause = RuntimeException("Root cause")
         val exception = UrlShorteningException("Error occurred", cause)
         assertEquals("Error occurred", exception.message)

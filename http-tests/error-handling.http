@@ -1,5 +1,12 @@
 @baseUrl = http://localhost:8096
 
+###
+### Error Handling Tests
+### Tests various error scenarios: 404, 405, 400, 415, validation errors, etc.
+### All errors return structured JSON ErrorResponse: { "status", "error", "message", "path", "fieldErrors" (optional) }
+### Key fields for quick checks: "error" and "message" (set by GlobalRestExceptionHandler)
+###
+
 ### Test 404 - Non-existent endpoint
 GET {{baseUrl}}/api/nonexistent
 Accept: application/json
@@ -11,13 +18,12 @@ Content-Type: application/json
 {}
 
 ### Test 400 - Bad Request (Invalid JSON)
-POST {{baseUrl}}/api/paste
+POST {{baseUrl}}/api/dashboard
 Content-Type: application/json
 
 {
-  "content": "test",
-  "invalid": json
-}
+  "invalid": "json",
+  "missing": "closing brace"
 
 ### Test 400 - Missing required parameter
 GET {{baseUrl}}/api/url-shortener/shorten
@@ -33,7 +39,7 @@ Content-Type: text/plain
 
 content=test
 
-### Test validation error - Invalid paste content
+### Test validation error - Invalid paste content (empty content)
 POST {{baseUrl}}/api/paste
 Content-Type: application/json
 
@@ -46,7 +52,7 @@ POST {{baseUrl}}/api/paste
 Content-Type: application/json
 
 {
-  "content": "{{ $randomLoremParagraphs(100) }}"
+  "content": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. This content is repeated many times to simulate a large payload..."
 }
 
 ### Test special characters in URL parameters

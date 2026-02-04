@@ -47,8 +47,9 @@ MarsTech Link Spray is a URL shortener and link management service built with:
 - Test profile: `test` (uses port 27018 for MongoDB)
 - Aim for **high code coverage**
 - Use **Given-When-Then** structure for test methods
-- Use **camelCase** method names (e.g., `shouldReturnUserWhenUserExists`)
-- Add `@DisplayName` for human-readable descriptions
+- **ALWAYS use camelCase** method names (e.g., `shouldReturnUserWhenUserExists`)
+- **NEVER use backticks** in test method names (e.g., ❌ `fun \`should return user\`()`)
+- Add `@DisplayName` for human-readable descriptions (optional)
 
 ### API Design
 - Follow **RESTful conventions**
@@ -159,6 +160,35 @@ interface MyRepository : MongoRepository<MyEntity, String> {
 - `jreleaser.yml` - Release automation config
 - `RELEASE_GUIDE.md` - Release process documentation
 
+## Documentation & LLM-Generated Files
+
+### LLM Documentation Location
+- **All LLM-generated specifications, analyses, and summaries** must be saved in `.local/llm/`
+- **DO NOT** save specification files in the project root directory
+
+### Naming Conventions for LLM Docs
+- Specifications: `{ISSUE-ID}-specification.md` (e.g., `MLS-129-specification.md`)
+- Implementation summaries: `{ISSUE-ID}-{PHASE}-COMPLETE.md` (e.g., `MLS-129-PHASE2-COMPLETE.md`)
+- Progress tracking: `{ISSUE-ID}-progress.md`
+- Session summaries: `{ISSUE-ID}-session{N}-{topic}.md`
+- Quick guides: `{ISSUE-ID}-quick-guide.md`
+
+### What Goes in `.local/llm/`
+- ✅ Issue analysis and specifications
+- ✅ Implementation plans and summaries
+- ✅ Progress tracking documents
+- ✅ Session notes and summaries
+- ✅ Quick reference guides
+- ✅ Test result summaries
+
+### What Stays in Project Root
+- ❌ NOT specification files
+- ❌ NOT LLM analysis documents
+- ✅ Official project documentation (README, CHANGELOG, etc.)
+- ✅ Release guides and contribution docs
+
+See `.local/llm/README.md` for complete documentation conventions.
+
 ## Avoid
 - ❌ Java-style code in Kotlin files
 - ❌ Field injection (`@Autowired` on fields)
@@ -178,4 +208,50 @@ interface MyRepository : MongoRepository<MyEntity, String> {
 - ✅ Data classes for DTOs
 - ✅ Functional programming patterns
 - ✅ Comprehensive tests
+
+## Test Naming Convention Examples
+
+### ✅ Correct (camelCase)
+```kotlin
+@Test
+fun shouldReturnUserWhenUserExists() {
+    // Given-When-Then test implementation
+}
+
+@Test
+fun shouldThrowExceptionWhenUserNotFound() {
+    // Given-When-Then test implementation
+}
+
+@Test
+fun getSprayPageShouldReturnCorrectView() {
+    // Given-When-Then test implementation
+}
+
+@Test
+fun postViewShouldAddInputLinkAndShortenedLinkToModel() {
+    // Given-When-Then test implementation
+}
+```
+
+### ❌ Incorrect (backticks - DO NOT USE)
+```text
+@Test
+fun `should return user when user exists`() { }  // ❌ NO BACKTICKS
+
+@Test
+fun `GET spray page returns correct view`() { }  // ❌ NO BACKTICKS
+
+@Test
+fun `POST spray returns correct view with model`() { }  // ❌ NO BACKTICKS
+```
+
+### Optional: @DisplayName for readability
+```kotlin
+@Test
+@DisplayName("Should return user when user exists")
+fun shouldReturnUserWhenUserExists() {
+    // Given-When-Then test implementation
+}
+```
 

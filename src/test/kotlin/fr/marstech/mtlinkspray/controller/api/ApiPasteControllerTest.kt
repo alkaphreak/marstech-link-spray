@@ -76,7 +76,7 @@ class ApiPasteControllerTest {
     }
 
     @Test
-    fun `should get paste by id`() {
+    fun shouldGetPasteById() {
         val pasteId = "abc123"
         val pasteEntity = PasteEntity(
             id = pasteId,
@@ -121,7 +121,9 @@ class ApiPasteControllerTest {
             .let(mockMvc::perform)
             .andExpect(status().isInternalServerError)
             .andExpect(content().contentType(APPLICATION_JSON))
-            .andExpect(jsonPath("$.error").value("Test exception"))
+            .andExpect(jsonPath("$.message").value("Test exception"))
+            .andExpect(jsonPath("$.status").value(500))
+            .andExpect(jsonPath("$.error").value("Internal Server Error"))
     }
 
     @Test
@@ -183,6 +185,8 @@ class ApiPasteControllerTest {
         get("/api/paste/nonexistent")
             .let(mockMvc::perform)
             .andExpect(status().isInternalServerError)
+            .andExpect(jsonPath("$.status").value(500))
+            .andExpect(jsonPath("$.message").value("Paste not found"))
     }
 
     @Test
@@ -192,5 +196,231 @@ class ApiPasteControllerTest {
             .content("{\"invalid_json\":0 }")
             .let(mockMvc::perform)
             .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.error").value("Bad Request"))
+    }
+
+    // ========== Validation Tests ==========
+
+    @Test
+    fun shouldReturn400WhenContentIsBlank() {
+        val request = mapOf(
+            "content" to "",
+            "language" to "TEXT"
+        )
+
+        post("/api/paste")
+            .contentType(APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request))
+            .let(mockMvc::perform)
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.error").value("Validation Failed"))
+            .andExpect(jsonPath("$.fieldErrors").isArray)
+    }
+
+    @Test
+    fun shouldReturn400WhenContentExceedsMaxSize() {
+        val request = mapOf(
+            "content" to "a".repeat(500001),
+            "language" to "TEXT"
+        )
+
+        post("/api/paste")
+            .contentType(APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request))
+            .let(mockMvc::perform)
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.error").value("Validation Failed"))
+            .andExpect(jsonPath("$.fieldErrors").isArray)
+    }
+
+    @Test
+    fun shouldReturn400WhenPasswordIsTooShort() {
+        val request = mapOf(
+            "content" to "Test content",
+            "password" to "abc",
+            "language" to "TEXT"
+        )
+
+        post("/api/paste")
+            .contentType(APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request))
+            .let(mockMvc::perform)
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.error").value("Validation Failed"))
+            .andExpect(jsonPath("$.fieldErrors").isArray)
+    }
+
+    @Test
+    fun shouldReturn400WhenPasswordExceedsMaxSize() {
+        val request = mapOf(
+            "content" to "Test content",
+            "password" to "a".repeat(101),
+            "language" to "TEXT"
+        )
+
+        post("/api/paste")
+            .contentType(APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request))
+            .let(mockMvc::perform)
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.error").value("Validation Failed"))
+            .andExpect(jsonPath("$.fieldErrors").isArray)
+    }
+
+    @Test
+    fun shouldReturn400WhenTitleExceedsMaxSize() {
+        val request = mapOf(
+            "title" to "a".repeat(201),
+            "content" to "Test content",
+            "language" to "TEXT"
+        )
+
+        post("/api/paste")
+            .contentType(APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request))
+            .let(mockMvc::perform)
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.error").value("Validation Failed"))
+            .andExpect(jsonPath("$.fieldErrors").isArray)
+    }
+
+    @Test
+    fun shouldReturn400WhenLanguageIsBlank() {
+        val request = mapOf(
+            "content" to "Test content",
+            "language" to ""
+        )
+
+        post("/api/paste")
+            .contentType(APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request))
+            .let(mockMvc::perform)
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.error").value("Validation Failed"))
+            .andExpect(jsonPath("$.fieldErrors").isArray)
+    }
+
+    @Test
+    fun shouldReturn400WhenExpirationIsBlank() {
+        val request = mapOf(
+            "content" to "Test content",
+            "language" to "TEXT",
+            "expiration" to ""
+        )
+
+        post("/api/paste")
+            .contentType(APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request))
+            .let(mockMvc::perform)
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.error").value("Validation Failed"))
+            .andExpect(jsonPath("$.fieldErrors").isArray)
+    }
+
+    @Test
+    fun shouldAcceptValidPasswordWithMinLength() {
+        val request = PasteRequest(
+            content = "Test content",
+            password = "abcd", // Exactly 4 chars (min)
+            language = "TEXT"
+        )
+        val pasteId = "test123"
+        val pasteEntity = PasteEntity(
+            id = pasteId,
+            title = null,
+            content = request.content,
+            language = PastebinTextLanguageEnum.TEXT,
+            passwordHash = "hashed",
+            isPrivate = false,
+            isPasswordProtected = true,
+            author = HistoryItem("user1")
+        )
+
+        `when`(pasteService.createPaste(any(), any())).thenReturn(pasteId)
+        `when`(pasteService.getPaste(pasteId, request.password)).thenReturn(pasteEntity)
+
+        post("/api/paste")
+            .contentType(APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request))
+            .let(mockMvc::perform)
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.id").value(pasteId))
+    }
+
+    @Test
+    fun shouldAcceptValidTitleWithMaxLength() {
+        val request = PasteRequest(
+            title = "a".repeat(200), // Exactly 200 chars (max)
+            content = "Test content",
+            language = "TEXT"
+        )
+        val pasteId = "test456"
+        val pasteEntity = PasteEntity(
+            id = pasteId,
+            title = request.title,
+            content = request.content,
+            language = PastebinTextLanguageEnum.TEXT,
+            passwordHash = null,
+            isPrivate = false,
+            isPasswordProtected = false,
+            author = HistoryItem("user1")
+        )
+
+        `when`(pasteService.createPaste(any(), any())).thenReturn(pasteId)
+        `when`(pasteService.getPaste(pasteId, null)).thenReturn(pasteEntity)
+
+        post("/api/paste")
+            .contentType(APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request))
+            .let(mockMvc::perform)
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.id").value(pasteId))
+    }
+
+    @Test
+    fun shouldReturn400WhenPasteIdIsBlank() {
+        get("/api/paste/ ")
+            .let(mockMvc::perform)
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.error").exists())
+    }
+
+    @Test
+    fun shouldAcceptContentAtMaxSize() {
+        val maxContent = "a".repeat(500000) // Exactly 500,000 chars (max)
+        val request = PasteRequest(
+            content = maxContent,
+            language = "TEXT"
+        )
+        val pasteId = "test789"
+        val pasteEntity = PasteEntity(
+            id = pasteId,
+            title = null,
+            content = request.content,
+            language = PastebinTextLanguageEnum.TEXT,
+            passwordHash = null,
+            isPrivate = false,
+            isPasswordProtected = false,
+            author = HistoryItem("user1")
+        )
+
+        `when`(pasteService.createPaste(any(), any())).thenReturn(pasteId)
+        `when`(pasteService.getPaste(pasteId, null)).thenReturn(pasteEntity)
+
+        post("/api/paste")
+            .contentType(APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request))
+            .let(mockMvc::perform)
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.id").value(pasteId))
     }
 }

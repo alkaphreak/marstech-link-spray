@@ -1,7 +1,16 @@
 @baseUrl = http://localhost:8096
 
+###
+### Spray API Tests
+### Controller: SprayApiController
+### Validation: @NotEmptyNotBlank on inputLinkList parameter (list must not be empty and contain no blank strings)
+### Response: Returns plain text spray URL on success
+### Error format: JSON {"error": "message"} for validation errors
+###
+
 ### Spray links - Multiple valid URLs
-GET {{baseUrl}}/api/spray?inputLinkList=https://example.com&inputLinkList=https://google.com&inputLinkList=https://github.com
+GET {{baseUrl}}/api/spray?inputLinkList=https://example.com&inputLinkList=https://google.com&
+    inputLinkList=https://github.com
 Accept: text/plain
 
 ### Spray links - Two URLs
@@ -20,19 +29,19 @@ Accept: text/plain
 GET {{baseUrl}}/api/spray?inputLinkList=https://example.com/search?q=test&inputLinkList=https://example.org/page?id=123
 Accept: text/plain
 
-### Spray links - Empty list
+### Spray links - Empty list (expects 400 Bad Request - @NotEmptyNotBlank validation)
 GET {{baseUrl}}/api/spray
 Accept: text/plain
 
-### Spray links - Invalid URLs
+### Spray links - Invalid URLs (expects validation error)
 GET {{baseUrl}}/api/spray?inputLinkList=not-a-url&inputLinkList=also-invalid
 Accept: text/plain
 
-### Spray links - Mixed valid and invalid URLs
+### Spray links - Mixed valid and invalid URLs (expects validation error)
 GET {{baseUrl}}/api/spray?inputLinkList=https://example.com&inputLinkList=invalid-url
 Accept: text/plain
 
-### Spray links - Blank URLs
+### Spray links - Blank URLs (expects 400 Bad Request - @NotEmptyNotBlank validation)
 GET {{baseUrl}}/api/spray?inputLinkList=&inputLinkList=https://example.com
 Accept: text/plain
 

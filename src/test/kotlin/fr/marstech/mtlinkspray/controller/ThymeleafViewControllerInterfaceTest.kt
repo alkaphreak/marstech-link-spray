@@ -29,7 +29,7 @@ class ThymeleafViewControllerInterfaceTest {
     }
 
     @Test
-    fun `getModelAndView should return ModelAndView with correct view name and attribute`() {
+    fun getModelAndViewShouldReturnModelAndViewWithCorrectViewNameAndAttribute() {
         val viewNameEnum = ViewNameEnum.ABUSE
         val result = controller.getModelAndView(viewNameEnum)
         assertEquals(viewNameEnum.viewName, result.viewName)
@@ -37,7 +37,7 @@ class ThymeleafViewControllerInterfaceTest {
     }
 
     @Test
-    fun `getModelAndView with request should add headers`() {
+    fun getModelAndViewWithRequestShouldAddHeaders() {
         val viewNameEnum = ViewNameEnum.ABUSE
         val request = mock(HttpServletRequest::class.java)
         val result = controller.getModelAndView(viewNameEnum, request)
@@ -47,13 +47,13 @@ class ThymeleafViewControllerInterfaceTest {
     }
 
     @Test
-    fun `getModelAndViewToForward should return ModelAndView with forward url`() {
+    fun getModelAndViewToForwardShouldReturnModelAndViewWithForwardUrl() {
         val result = controller.getModelAndViewToForward("/forwardUrl")
         assertEquals("forward:/forwardUrl", result.viewName)
     }
 
     @Test
-    fun `getRedirectUrl should return redirect string`() {
+    fun getRedirectUrlShouldReturnRedirectString() {
         val result = controller.getRedirectUrl("/redirectUrl")
         assertEquals("redirect:/redirectUrl", result)
     }

@@ -24,7 +24,7 @@ class PasteViewController(private val pasteService: PasteService) : ThymeleafVie
         @PathVariable pasteId: String,
         httpServletRequest: HttpServletRequest,
     ): ModelAndView = getModelAndView().let { modelAndView ->
-        pasteService.isPassordProtected(pasteId).let { isProtected ->
+        pasteService.isPasswordProtected(pasteId).let { isProtected ->
             modelAndView.addObject("isProtected", isProtected)
             when {
                 isProtected -> modelAndView.addObject("pasteId", pasteId)

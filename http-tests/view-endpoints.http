@@ -44,7 +44,7 @@ Accept: text/html
 POST {{baseUrl}}/shortener
 Content-Type: application/x-www-form-urlencoded
 
-inputUrl=https://example.com/very/long/url/that/needs/shortening
+input-link=https://example.com/very/long/url/that/needs/shortening
 
 ### UUID generator page
 GET {{baseUrl}}/uuid
