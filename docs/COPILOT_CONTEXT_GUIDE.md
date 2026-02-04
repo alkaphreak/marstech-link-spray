@@ -282,8 +282,7 @@ git push origin main
 
 - **GitHub Copilot Docs**: https://docs.github.com/en/copilot
 - **IntelliJ Copilot Plugin**: https://plugins.jetbrains.com/plugin/17718-github-copilot
-- **Copilot Best Practices
-  **: https://github.blog/developer-skills/github/how-to-use-github-copilot-in-your-ide-tips-tricks-and-best-practices/
+- **Copilot Best Practices**: https://github.blog/developer-skills/github/how-to-use-github-copilot-in-your-ide-tips-tricks-and-best-practices/
 
 ---
 
