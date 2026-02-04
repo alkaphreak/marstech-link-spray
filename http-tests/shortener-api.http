@@ -3,9 +3,9 @@
 ###
 ### URL Shortener API Tests
 ### Controller: ShortenerApiController
-### Validation: @NotBlank on url parameter (returns 400 if missing or blank)
+### Validation: @NotBlank, @ValidUrl, @Size(max = 2048) on url parameter (400 Bad Request on violation)
 ### Response: Returns plain text shortened URL on success
-### Error format: JSON {"error": "message"} for validation errors
+### Error format: application/json structured ErrorResponse object for validation and other API errors
 ###
 
 ### Shorten URL - Valid HTTPS URL
