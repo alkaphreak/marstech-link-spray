@@ -3,9 +3,9 @@
 ###
 ### Dashboard API Tests
 ### Controller: DashboardApiController
-### Validation: @NotBlank on id path parameter, @Valid on request body
-### Response: Returns DashboardDto JSON on success
-### Error format: JSON {"error": "message"} for validation/not found errors
+### Validation: @NotBlank on id path parameter; @Valid on Dashboard request body (field-level constraints)
+### Response: Returns DashboardDto JSON on success (e.g. 200/201)
+### Error format: Structured ErrorResponse JSON for validation, JSON parsing, and not-found errors (e.g. 400/404)
 ###
 
 ### Get dashboard by ID - Success
