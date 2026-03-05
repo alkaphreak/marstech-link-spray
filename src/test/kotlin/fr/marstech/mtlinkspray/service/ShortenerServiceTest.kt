@@ -80,8 +80,9 @@ internal class ShortenerServiceTest {
         whenever(randomIdGeneratorService.getGeneratedFreeId()).thenReturn(id)
         shortenerService.shorten("https://www.example.com", httpServletRequest).let {
             Assertions.assertNotNull(it)
-            Assertions.assertTrue(it.contains("http://localhost:8080/"))
-            Assertions.assertTrue(isValidUrl(it))
+            val shortenedUrl = it!!
+            Assertions.assertTrue(shortenedUrl.contains("http://localhost:8080/"))
+            Assertions.assertTrue(isValidUrl(shortenedUrl))
         }
     }
 
@@ -114,7 +115,7 @@ internal class ShortenerServiceTest {
         whenever(linkItemRepository.findById(id)).thenReturn(Optional.of(linkItem))
         whenever(randomIdGeneratorService.getGeneratedFreeId()).thenReturn(id)
         val shortened = shortenerService.shorten(url, httpServletRequest)
-        val uid = shortened.substring(shortened.lastIndexOf('/') + 1)
+        val uid = shortened!!.substring(shortened.lastIndexOf('/') + 1)
         val target = shortenerService.getTarget(uid)
         Assertions.assertEquals(url, target)
     }
@@ -146,7 +147,7 @@ internal class ShortenerServiceTest {
         whenever(linkItemRepository.findById(id)).thenReturn(Optional.of(linkItem))
         whenever(randomIdGeneratorService.getGeneratedFreeId()).thenReturn(id)
         val shortened = shortenerService.shorten(url, httpServletRequest)
-        val uid = shortened.substring(shortened.lastIndexOf('/') + 1)
+        val uid = shortened!!.substring(shortened.lastIndexOf('/') + 1)
         val item = linkItemRepository.findById(uid)
         Assertions.assertTrue(item.isPresent)
         Assertions.assertEquals(url, item.get().target.targetUrl)
