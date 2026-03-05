@@ -41,12 +41,15 @@
                                 required
                                 rows="5"
                         ></textarea>
+                        <div class="invalid-feedback" id="abuseValidationWarning">
+                            Please describe the abuse before submitting.
+                        </div>
                         <div class="form-text" id="inputAbuseDecsriptionHelp">
                             Please provide a detailed description of the abuse and your contact information if we need
                             to go further on the inspection.
                         </div>
                     </div>
-                    <button class="btn btn-primary" type="submit">Send report</button>
+                    <button class="btn btn-primary" id="abuseSubmitBtn" type="submit" disabled>Send report</button>
                 </form>
             </div>
             <div id="liveAlertPlaceholder">

@@ -19,7 +19,7 @@ class RandomNumberApiController {
 
     @Validated
     @GetMapping
-    fun generateRandom(
+    fun getRandom(
         @RequestParam(name = "min", required = false) min: String?,
         @RequestParam(name = "max", required = false) max: String?
     ): RandomNumberResponse {
