@@ -1,6 +1,9 @@
 #!/bin/bash
 # Unified Database Management Script for Marstech Link Spray
 
+# Ensure Docker CLI is on PATH regardless of how the script is invoked
+export PATH="/Applications/Docker.app/Contents/Resources/bin:$PATH"
+
 if [[ "$(uname)" == "Darwin" ]]; then
     if ! pgrep -x "Docker\ Desktop" > /dev/null; then
         echo "Starting Docker Desktop..."
