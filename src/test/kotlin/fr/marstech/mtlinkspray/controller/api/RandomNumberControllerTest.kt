@@ -1,6 +1,7 @@
 package fr.marstech.mtlinkspray.controller.api
 
 import fr.marstech.mtlinkspray.controller.commons.GlobalRestExceptionHandler
+import fr.marstech.mtlinkspray.service.RandomNumberServiceImpl
 import org.junit.jupiter.api.Test
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
@@ -10,7 +11,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 
 class RandomNumberControllerTest {
 
-    private val controller = RandomNumberApiController()
+    private val randomNumberService = RandomNumberServiceImpl()
+    private val controller = RandomNumberApiController(randomNumberService)
     private val mockMvc: MockMvc = MockMvcBuilders.standaloneSetup(controller)
         .setControllerAdvice(GlobalRestExceptionHandler())
         .build()
