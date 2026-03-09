@@ -7,6 +7,16 @@ simple steps to generate a unique link that will open all the specified URLs.
 
 [![SonarQube](https://github.com/alkaphreak/marstech-link-spray/actions/workflows/maven-sonar.yml/badge.svg)](https://github.com/alkaphreak/marstech-link-spray/actions/workflows/maven-sonar.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=alkaphreak_marstech-link-spray&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=alkaphreak_marstech-link-spray)
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=alkaphreak_marstech-link-spray&metric=bugs)](https://sonarcloud.io/summary/new_code?id=alkaphreak_marstech-link-spray)
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=alkaphreak_marstech-link-spray&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=alkaphreak_marstech-link-spray)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=alkaphreak_marstech-link-spray&metric=coverage)](https://sonarcloud.io/summary/new_code?id=alkaphreak_marstech-link-spray)
+[![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=alkaphreak_marstech-link-spray&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=alkaphreak_marstech-link-spray)
+[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=alkaphreak_marstech-link-spray&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=alkaphreak_marstech-link-spray)
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=alkaphreak_marstech-link-spray&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=alkaphreak_marstech-link-spray)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=alkaphreak_marstech-link-spray&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=alkaphreak_marstech-link-spray)
+[![Technical Debt](https://sonarcloud.io/api/project_badges/measure?project=alkaphreak_marstech-link-spray&metric=sqale_index)](https://sonarcloud.io/summary/new_code?id=alkaphreak_marstech-link-spray)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=alkaphreak_marstech-link-spray&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=alkaphreak_marstech-link-spray)
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=alkaphreak_marstech-link-spray&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=alkaphreak_marstech-link-spray)
 
 ## Features
 
