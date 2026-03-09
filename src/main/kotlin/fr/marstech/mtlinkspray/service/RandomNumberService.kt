@@ -2,7 +2,7 @@ package fr.marstech.mtlinkspray.service
 
 import fr.marstech.mtlinkspray.dto.RandomNumberResponse
 
-interface RandomNumberService {
+fun interface RandomNumberService {
 
     /**
      * Generate a random number within the given range.
