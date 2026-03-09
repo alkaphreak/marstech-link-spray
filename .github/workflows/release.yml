@@ -16,6 +16,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  packages: write
 
 jobs:
   release:
@@ -145,3 +146,38 @@ jobs:
           echo "Running JReleaser full release"
           mvn -B -ntp jreleaser:full-release \
             -Djreleaser.config.file=jreleaser.yml
+
+      - name: Setup Maven settings.xml
+        uses: s4u/maven-settings-action@v2.8.0
+        with:
+          servers: |
+            [{
+              "id": "github",
+              "username": "${{ github.actor }}",
+              "password": "${{ secrets.GITHUB_TOKEN }}"
+            }]
+
+      - name: Publish to GitHub Packages
+        run: |
+          echo "----------------------------------------------------------------"
+          echo "Publishing version ${{ steps.bump-version.outputs.version }} to GitHub Packages"
+          mvn -B -ntp deploy -DskipTests
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Merge release branch to main
+        if: success()
+        run: |
+          echo "----------------------------------------------------------------"
+          RELEASE_VERSION="${{ steps.bump-version.outputs.version }}"
+          BRANCH_NAME="release/v$RELEASE_VERSION"
+          echo "Merging $BRANCH_NAME into main"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git fetch origin main
+          git checkout main
+          git merge --no-ff "$BRANCH_NAME" \
+            -m "chore: merge release v$RELEASE_VERSION to main"
+          git push origin main
+          echo "Successfully merged $BRANCH_NAME into main"
+
