@@ -36,7 +36,7 @@ jobs:
           cache: maven
 
       - name: Cache Maven repository (~/.m2/repository)
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.m2/repository
@@ -48,7 +48,7 @@ jobs:
         run: java -version
 
       - name: Cache SonarQube packages
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
@@ -79,14 +79,14 @@ jobs:
 
       - name: Upload JaCoCo coverage report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: jacoco-report
           path: target/site/jacoco/
 
       - name: Upload Surefire test reports
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: surefire-reports
           path: target/surefire-reports/
