@@ -16,7 +16,7 @@ interface ShortenerService {
      * @param httpServletRequest the request
      * @return the shortened UID
      */
-    fun shorten(url: String, httpServletRequest: HttpServletRequest): String
+    fun shorten(url: String, httpServletRequest: HttpServletRequest): String?
 
     /**
      * Get the target URL from the shortened UID

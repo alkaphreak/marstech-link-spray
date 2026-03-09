@@ -1,8 +1,8 @@
 package fr.marstech.mtlinkspray.controller.view
 
-import fr.marstech.mtlinkspray.controller.api.RandomNumberApiController
 import fr.marstech.mtlinkspray.dto.RandomNumberResponse
 import fr.marstech.mtlinkspray.enums.ViewNameEnum
+import fr.marstech.mtlinkspray.service.RandomNumberService
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
@@ -11,8 +11,8 @@ import java.time.Instant
 
 class RandomViewControllerTest {
 
-    private val randomNumberApiController = mock(RandomNumberApiController::class.java)
-    private val controller = RandomViewController(randomNumberApiController)
+    private val randomNumberService = mock(RandomNumberService::class.java)
+    private val controller = RandomViewController(randomNumberService)
 
     @Test
     fun shouldProvideModelAndViewWithViewNameEnum() {
@@ -30,7 +30,7 @@ class RandomViewControllerTest {
     fun viewRandomShouldAddRandomNumberToModel() {
         // Given
         val response = RandomNumberResponse(value = 42, min = 0, max = 100, timestamp = Instant.now())
-        `when`(randomNumberApiController.getRandom(RandomViewController.DEFAULT_MIN, RandomViewController.DEFAULT_MAX))
+        `when`(randomNumberService.generate(RandomViewController.DEFAULT_MIN, RandomViewController.DEFAULT_MAX))
             .thenReturn(response)
 
         // When
