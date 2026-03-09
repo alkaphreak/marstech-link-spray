@@ -49,7 +49,7 @@ const formFieldValidation = (fieldId, submitBtnId) => {
     const hasInput = field.value.trim().length > 0;
     submitBtn.disabled = !hasInput;
 
-    // Only apply is-invalid after the user has interacted with the field
+    // Only apply is invalid after the user has interacted with the field
     const touched = field.dataset.touched === 'true';
     field.classList.toggle('is-invalid', touched && !hasInput);
 };
@@ -57,10 +57,10 @@ const formFieldValidation = (fieldId, submitBtnId) => {
 // Validate the spray form textarea and toggle submit button + warning state
 const sprayFormValidation = () => formFieldValidation('inputLinkList', 'spraySubmitBtn');
 
-// Validate the shortener form input and toggle submit button + warning state
+// Validate the shortener form input and toggle the Submit button + warning state
 const shortenerFormValidation = () => formFieldValidation('input-link', 'shortenerSubmitBtn');
 
-// Validate the paste form textarea and toggle submit button + warning state
+// Validate the paste form textarea and toggle the Submit button + warning state
 const pasteFormValidation = () => formFieldValidation('inputPasteBinTextArea', 'pasteSubmitBtn');
 
 // Validate the abuse form textarea and toggle submit button + warning state
@@ -84,7 +84,7 @@ const randomFormValidation = () => {
     }
 };
 
-// Enable Copy button only when the generated value output is non-empty
+// Enable the Copy button only when the generated value output is non-empty
 const randomCopyValidation = () => {
     const valueInput = document.getElementById('randomFormValue');
     const copyBtn = document.getElementById('copyBtn');
