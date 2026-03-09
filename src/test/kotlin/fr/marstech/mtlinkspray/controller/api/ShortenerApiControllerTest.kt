@@ -66,4 +66,15 @@ class ShortenerApiControllerTest {
         mockMvc.perform(get("/api/url-shortener/shorten").param("url", "https://example.com"))
             .andExpect(status().isBadRequest)
     }
+
+    @Test
+    fun shouldReturn500WhenServiceReturnsNull() {
+        // Given
+        val inputUrl = "https://example.com"
+        whenever(shortenerService.shorten(any<String>(), any())).thenReturn(null)
+
+        // When / Then
+        mockMvc.perform(get("/api/url-shortener/shorten").param("url", inputUrl))
+            .andExpect(status().isInternalServerError)
+    }
 }

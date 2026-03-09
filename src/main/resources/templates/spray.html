@@ -38,11 +38,14 @@
                                   id="inputLinkList" name="inputLinkList" rows="5"
                                   th:text="${linkListText?:''}">
                         </textarea>
+                        <div class="invalid-feedback" id="sprayValidationWarning">
+                            Please enter at least one URL before submitting.
+                        </div>
                         <div class="form-text" id="inputLinkListHelp">
                             Fill in the URLs you wish to open, one URL by line.
                         </div>
                     </div>
-                    <button class="btn btn-primary" type="submit">Generate URL</button>
+                    <button class="btn btn-primary" id="spraySubmitBtn" type="submit" disabled>Generate URL</button>
                 </form>
             </div>
         </div>
