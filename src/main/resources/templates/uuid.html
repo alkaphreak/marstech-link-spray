@@ -33,14 +33,15 @@
                            th:value="${uuid}"
                            type="text"
                     >
-                    <button class="btn btn-outline-primary btn-sm"
+                    <button class="btn btn-primary"
                             onclick="location.reload()"
                             type="button">
                         <i class="bi bi-arrow-clockwise"></i> New UUID
                     </button>
-                    <button class="btn btn-outline-secondary btn-sm"
+                    <button class="btn btn-primary"
                             onclick="copyFormInputValueToClipboard('uuid-value','liveAlertPlaceholder')"
-                            type="button"><i class="bi bi-clipboard"></i> Copy UUID
+                            type="button">
+                        <i class="bi bi-clipboard"></i> Copy UUID
                     </button>
                     <div id="liveAlertPlaceholder"></div>
                 </form>

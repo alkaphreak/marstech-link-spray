@@ -31,7 +31,10 @@ class ShortenerApiController(
         httpServletRequest: HttpServletRequest
     ): String = when {
         // In some case the validation may be bypassed
-        inputUrl.isNotBlank() -> shortenerService.shorten(inputUrl, httpServletRequest)
+        inputUrl.isNotBlank() ->
+            shortenerService.shorten(inputUrl, httpServletRequest)
+                ?: throw IllegalStateException("Failed to shorten URL")
+
         else -> throw IllegalArgumentException("URL cannot be blank")
     }
 }

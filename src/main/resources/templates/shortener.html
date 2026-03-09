@@ -35,9 +35,12 @@
                                type="url"
                                required="required"
                         />
+                        <div class="invalid-feedback" id="shortenerValidationWarning">
+                            Please enter a URL before submitting.
+                        </div>
                     </div>
                     <div class="mb-3">
-                        <button class="btn btn-primary" type="submit">Get shortened link</button>
+                        <button class="btn btn-primary" id="shortenerSubmitBtn" type="submit" disabled>Get shortened link</button>
                     </div>
 
                     <!--/*@thymesVar id="shortenedLink" type="java.lang.String"*/-->

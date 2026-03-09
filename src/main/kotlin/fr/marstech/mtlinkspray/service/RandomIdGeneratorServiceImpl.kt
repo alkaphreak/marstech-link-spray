@@ -55,7 +55,7 @@ class RandomIdGeneratorServiceImpl(
                     .forEach { cacheIds.add(it) }
             }
         }
-        return cacheIds.removeFirst()
+        return cacheIds.first().also { cacheIds.remove(it) }
     }
 
     fun generateRandomIds(count: Int): Set<String> = (1..count)
