@@ -37,6 +37,7 @@
     <method v="2">
       <option name="Make" enabled="true" />
       <option name="RunConfigurationTask" enabled="true" run_configuration_name="db.sh dev start" run_configuration_type="ShConfigurationType" />
+      <option name="RunConfigurationTask" enabled="true" run_configuration_name="mt-link-spray clean install skip test" run_configuration_type="MavenRunConfiguration" />
     </method>
   </configuration>
 </component>

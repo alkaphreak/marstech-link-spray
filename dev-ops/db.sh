@@ -1,6 +1,14 @@
 #!/bin/bash
 # Unified Database Management Script for Marstech Link Spray
 
+# Ensure Docker CLI is on PATH on macOS when the script is invoked directly
+if [[ "$(uname)" == "Darwin" ]]; then
+    docker_macos_cli="/Applications/Docker.app/Contents/Resources/bin"
+    if [[ -d "$docker_macos_cli" ]]; then
+        export PATH="$docker_macos_cli:$PATH"
+    fi
+fi
+
 if [[ "$(uname)" == "Darwin" ]]; then
     if ! pgrep -x "Docker\ Desktop" > /dev/null; then
         echo "Starting Docker Desktop..."

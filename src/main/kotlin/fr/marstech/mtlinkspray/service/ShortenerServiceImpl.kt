@@ -21,7 +21,7 @@ class ShortenerServiceImpl(
     override fun shorten(
         url: String,
         httpServletRequest: HttpServletRequest
-    ): String = LinkItem(
+    ): String? = LinkItem(
         id = randomIdGeneratorService.getGeneratedFreeId(),
         creationDate = LocalDateTime.now(),
         expiresAt = null,

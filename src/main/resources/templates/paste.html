@@ -35,11 +35,14 @@
                         <textarea aria-describedby="inputPasteBinTextAreaHelp" class="form-control"
                                   id="inputPasteBinTextArea" name="inputPasteBinTextArea" rows="10"
                         ></textarea>
+                        <div class="invalid-feedback" id="pasteValidationWarning">
+                            Please enter some text before submitting.
+                        </div>
                         <div class="form-text" id="inputPasteBinTextAreaHelp">
                             Your text here
                         </div>
                     </div>
-                    <button class="btn btn-primary" type="submit">Submit</button>
+                    <button class="btn btn-primary" id="pasteSubmitBtn" type="submit" disabled>Submit</button>
                 </form>
             </div>
 
@@ -60,9 +63,11 @@
                            th:value="${pasteBinUrl}"
                            type="text"/>
 
-                    <button class="btn btn-outline-secondary btn-sm"
+                    <button class="btn btn-primary"
                             onclick="copyFormInputValueToClipboard('inputPasteBinUrl','liveAlertPlaceholder')"
-                            type="button"><i class="bi bi-clipboard"></i> Copy my paste URL
+                            type="button">
+                        <i class="bi bi-clipboard"></i>
+                        Copy my paste URL
                     </button>
                     <div id="liveAlertPlaceholder"></div>
 
