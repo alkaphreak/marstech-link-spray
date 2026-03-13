@@ -41,6 +41,11 @@ packagers:
       - "alkaphreak/marstech-link-spray:{{tagName}}"
       - "alkaphreak/marstech-link-spray:latest"
     useLocalArtifact: true
+    buildx:
+      enabled: true
+      platforms:
+        - linux/amd64
+        - linux/arm64
 
 distributions:
   mt-link-spray:
