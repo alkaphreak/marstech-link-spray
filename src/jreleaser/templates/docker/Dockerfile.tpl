@@ -9,4 +9,7 @@ WORKDIR /app
 COPY assembly/{{distributionName}}-{{projectVersion}}.jar app.jar
 EXPOSE 8096
 
+HEALTHCHECK --interval=30s --timeout=3s --start-period=40s \
+  CMD curl -f http://localhost:8096/actuator/health || exit 1
+
 ENTRYPOINT ["java", "-Dspring.profiles.active=prod", "-jar", "app.jar"]
