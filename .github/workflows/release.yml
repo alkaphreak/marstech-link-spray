@@ -126,6 +126,24 @@ jobs:
           mvn -B -ntp clean verify
           ls -lh target/*.jar || true
 
+      - name: Setup Maven settings.xml
+        uses: s4u/maven-settings-action@v2.8.0
+        with:
+          servers: |
+            [{
+              "id": "github",
+              "username": "${{ github.actor }}",
+              "password": "${{ secrets.GITHUB_TOKEN }}"
+            }]
+
+      - name: Publish to GitHub Packages
+        run: |
+          echo "----------------------------------------------------------------"
+          echo "Publishing version ${{ steps.bump-version.outputs.version }} to GitHub Packages"
+          mvn -B -ntp deploy -DskipTests
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
         with:
@@ -152,23 +170,6 @@ jobs:
           mvn -B -ntp jreleaser:full-release \
             -Djreleaser.config.file=jreleaser.yml
 
-      - name: Setup Maven settings.xml
-        uses: s4u/maven-settings-action@v2.8.0
-        with:
-          servers: |
-            [{
-              "id": "github",
-              "username": "${{ github.actor }}",
-              "password": "${{ secrets.GITHUB_TOKEN }}"
-            }]
-
-      - name: Publish to GitHub Packages
-        run: |
-          echo "----------------------------------------------------------------"
-          echo "Publishing version ${{ steps.bump-version.outputs.version }} to GitHub Packages"
-          mvn -B -ntp deploy -DskipTests
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Merge release branch to main
         if: success()
