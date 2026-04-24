@@ -126,15 +126,6 @@ jobs:
           mvn -B -ntp clean verify
           ls -lh target/*.jar || true
 
-      - name: Setup Maven settings.xml
-        uses: s4u/maven-settings-action@v2.8.0
-        with:
-          servers: |
-            [{
-              "id": "github",
-              "username": "${{ github.actor }}",
-              "password": "${{ secrets.GITHUB_TOKEN }}"
-            }]
 
       - name: Publish to GitHub Packages
         run: |
@@ -145,7 +136,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
         with:
           platforms: linux/amd64,linux/arm64
 
@@ -171,19 +162,29 @@ jobs:
             -Djreleaser.config.file=jreleaser.yml
 
 
-      - name: Merge release branch to main
+      - name: Create PR and merge release branch to main
         if: success()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "----------------------------------------------------------------"
           RELEASE_VERSION="${{ steps.bump-version.outputs.version }}"
           BRANCH_NAME="release/v$RELEASE_VERSION"
-          echo "Merging $BRANCH_NAME into main"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git config user.name "github-actions[bot]"
-          git fetch origin main
-          git checkout main
-          git merge --no-ff "$BRANCH_NAME" \
-            -m "chore: merge release v$RELEASE_VERSION to main"
-          git push origin main
+          echo "Creating PR to merge $BRANCH_NAME into main"
+
+          # Create PR (idempotent: won't fail if PR already exists)
+          gh pr create \
+            --base main \
+            --head "$BRANCH_NAME" \
+            --title "chore: release v$RELEASE_VERSION" \
+            --body "Automated release merge for v$RELEASE_VERSION" || echo "PR may already exist, continuing..."
+
+          # Squash merge: avoids merge commits, GitHub signs the resulting commit
+          gh pr merge "$BRANCH_NAME" \
+            --squash \
+            --subject "chore: release v$RELEASE_VERSION" \
+            --body "Automated release merge for v$RELEASE_VERSION" \
+            --delete-branch
+
           echo "Successfully merged $BRANCH_NAME into main"
 
