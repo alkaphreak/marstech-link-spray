@@ -56,7 +56,7 @@
         <dependency.details.enabled>false</dependency.details.enabled>
         <timestamp>${maven.build.timestamp}</timestamp>
         <maven.build.timestamp.format>yyyyMMdd-HHmmss</maven.build.timestamp.format>
-        <kotlin.version>2.3.10</kotlin.version>
+        <kotlin.version>2.3.21</kotlin.version>
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
         <!--suppress XmlUnresolvedReference -->
         <sonar.organization>${env.SONAR_ORGANIZATION}</sonar.organization>
