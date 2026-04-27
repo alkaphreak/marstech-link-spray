@@ -1,0 +1,217 @@
+# MarsTech Link Spray - Release Workflow (ASCII)
+
+```
+╔════════════════════════════════════════════════════════════════════════╗
+║                    MARSTECH LINK SPRAY RELEASE WORKFLOW                 ║
+║                   Automated GitHub Actions Release Process              ║
+╚════════════════════════════════════════════════════════════════════════╝
+
+                              ┌─────────────────┐
+                              │   🚀 TRIGGER    │
+                              │ GitHub Actions  │
+                              │Release Workflow │
+                              └────────┬────────┘
+                                       │
+                                       ▼
+                              ┌─────────────────┐
+                              │  👤 USER INPUT  │
+                              │Select Bump Type │
+                              └────────┬────────┘
+                                       │
+                    ┌──────────────────┼──────────────────┐
+                    │                  │                  │
+                    ▼                  ▼                  ▼
+            ┌───────────┐      ┌───────────┐     ┌───────────┐
+            │   PATCH   │      │   MINOR   │     │   MAJOR   │
+            │ 0.0.4→0.0.5│      │ 0.0.4→0.1.0│     │ 0.0.4→1.0.0│
+            │ Bug fixes │      │  Features │     │  Breaking │
+            └─────┬─────┘      └─────┬─────┘     └─────┬─────┘
+                  │                  │                  │
+                  └──────────────────┼──────────────────┘
+                                     │
+                                     ▼
+                            ┌────────────────┐
+                            │ 📦 CHECKOUT    │
+                            │ Code from main │
+                            │ fetch-depth: 0 │
+                            └───────┬────────┘
+                                    │
+                                    ▼
+                            ┌────────────────┐
+                            │ ☕ SETUP JAVA  │
+                            │   Java 21      │
+                            │ Temurin + Cache│
+                            └───────┬────────┘
+                                    │
+                                    ▼
+                            ┌────────────────┐
+                            │ 🔢 BUMP VERSION│
+                            │bump-version.sh │
+                            │ Update pom.xml │
+                            └───────┬────────┘
+                                    │
+                                    ▼
+                       ┌─────────────────────┐
+                       │ 🌿 CREATE RELEASE   │
+                       │      BRANCH         │
+                       │ release/v[VERSION]  │
+                       └──────────┬──────────┘
+                                  │
+                                  ▼
+                       ┌─────────────────────┐
+                       │ 🔨 BUILD & TEST     │
+                       │  mvn clean verify   │
+                       └──────────┬──────────┘
+                                  │
+                                  ▼
+                            ┌──────────┐
+                            │  Tests?  │
+                            └────┬─────┘
+                                 │
+                    ┌────────────┴────────────┐
+                    │                         │
+                    ▼ Pass                    ▼ Fail
+        ┌──────────────────────┐      ┌──────────────┐
+        │                      │      │ ❌ FAILURE   │
+        │ 📋 JRELEASER         │      │  Check logs  │
+        │  full-release        │      │   & retry    │
+        │                      │      └──────────────┘
+        └──────────┬───────────┘
+                   │
+    ╔══════════════╧══════════════════════════════════════╗
+    ║          JRELEASER EXECUTION STEPS                  ║
+    ╠═════════════════════════════════════════════════════╣
+    ║                                                     ║
+    ║  1. ┌────────────────────────────────────┐         ║
+    ║     │ 🏷️  CREATE GIT TAG                 │         ║
+    ║     │     v[VERSION]                     │         ║
+    ║     └──────────────┬─────────────────────┘         ║
+    ║                    │                               ║
+    ║  2.                ▼                               ║
+    ║     ┌────────────────────────────────────┐         ║
+    ║     │ 📝 GENERATE CHANGELOG              │         ║
+    ║     │    From conventional commits       │         ║
+    ║     └──────────────┬─────────────────────┘         ║
+    ║                    │                               ║
+    ║  3.                ▼                               ║
+    ║     ┌────────────────────────────────────┐         ║
+    ║     │ 🎉 CREATE GITHUB RELEASE           │         ║
+    ║     │    Upload JAR + checksums          │         ║
+    ║     └──────────────┬─────────────────────┘         ║
+    ║                    │                               ║
+    ║  4.                ▼                               ║
+    ║     ┌────────────────────────────────────┐         ║
+    ║     │ 🐳 BUILD DOCKER IMAGE              │         ║
+    ║     │    marstech-link-spray             │         ║
+    ║     └──────────────┬─────────────────────┘         ║
+    ║                    │                               ║
+    ║  5.                ▼                               ║
+    ║     ┌────────────────────────────────────┐         ║
+    ║     │ 📤 PUSH TO DOCKER HUB              │         ║
+    ║     │    Tags: v[VERSION] + latest       │         ║
+    ║     └──────────────┬─────────────────────┘         ║
+    ║                    │                               ║
+    ╚════════════════════╧═══════════════════════════════╝
+                         │
+                         ▼
+              ┌─────────────────────┐
+              │ 🔄 UPDATE MAIN      │
+              │   Next dev version  │
+              │ [VERSION+1]-SNAPSHOT│
+              └──────────┬──────────┘
+                         │
+                         ▼
+              ┌─────────────────────┐
+              │ ✅ SUCCESS!         │
+              │                     │
+              │ • GitHub Release ✓  │
+              │ • Docker Images  ✓  │
+              │ • Main Updated   ✓  │
+              └─────────────────────┘
+
+
+╔════════════════════════════════════════════════════════════════════════╗
+║                           RELEASE ARTIFACTS                             ║
+╠════════════════════════════════════════════════════════════════════════╣
+║                                                                         ║
+║  📦 JAR File:       mt-link-spray-[VERSION].jar                        ║
+║  🐳 Docker Image:   username/marstech-link-spray:v[VERSION]            ║
+║  🐳 Docker Latest:  username/marstech-link-spray:latest                ║
+║  📝 Release Notes:  Auto-generated changelog                           ║
+║  🔒 Checksums:      SHA-256 hashes                                     ║
+║                                                                         ║
+╚════════════════════════════════════════════════════════════════════════╝
+
+╔════════════════════════════════════════════════════════════════════════╗
+║                          REQUIRED SECRETS                               ║
+╠════════════════════════════════════════════════════════════════════════╣
+║                                                                         ║
+║  🔐 GITHUB_TOKEN             - Auto-provided by GitHub Actions         ║
+║  🔐 DOCKER_HUB_USERNAME      - Your Docker Hub username                ║
+║  🔐 DOCKER_HUB_ACCESS_TOKEN  - Docker Hub access token                 ║
+║                                                                         ║
+╚════════════════════════════════════════════════════════════════════════╝
+
+╔════════════════════════════════════════════════════════════════════════╗
+║                          VERSION STATES                                 ║
+╠════════════════════════════════════════════════════════════════════════╣
+║                                                                         ║
+║  BEFORE:  main branch @ 0.0.4-SNAPSHOT                                 ║
+║                                                                         ║
+║  DURING:  release/v0.0.5 @ 0.0.5                                       ║
+║                                                                         ║
+║  AFTER:   main branch @ 0.0.6-SNAPSHOT                                 ║
+║           release/v0.0.5 @ 0.0.5 (preserved)                           ║
+║           tag v0.0.5 (created)                                         ║
+║                                                                         ║
+╚════════════════════════════════════════════════════════════════════════╝
+
+═══════════════════════════════════════════════════════════════════════════
+                          QUICK REFERENCE
+═══════════════════════════════════════════════════════════════════════════
+
+To release:
+  1. Go to: GitHub → Actions → Release workflow
+  2. Click: "Run workflow"
+  3. Select: patch/minor/major
+  4. Click: "Run workflow"
+  5. Wait: ~5-10 minutes
+  6. Done! 🎉
+
+Current Version: 0.0.4-SNAPSHOT
+Next Patch:      0.0.5
+Next Minor:      0.1.0
+Next Major:      1.0.0
+
+═══════════════════════════════════════════════════════════════════════════
+```
+
+## Legend
+
+| Symbol | Meaning |
+|--------|---------|
+| 🚀 | Trigger/Start |
+| 👤 | User Input |
+| 📦 | Checkout/Package |
+| ☕ | Java Setup |
+| 🔢 | Version Management |
+| 🌿 | Git Branch Operations |
+| 🔨 | Build Process |
+| 📋 | JReleaser |
+| 🏷️ | Git Tag |
+| 📝 | Documentation |
+| 🎉 | GitHub Release |
+| 🐳 | Docker |
+| 📤 | Publish/Push |
+| 🔄 | Update |
+| ✅ | Success |
+| ❌ | Failure |
+| 🔐 | Security/Secrets |
+
+---
+
+For more details, see:
+- RELEASE_GUIDE.md - Complete release documentation
+- release-workflow.dot - Graphviz diagram
+- release-workflow.mmd - Mermaid diagram
+

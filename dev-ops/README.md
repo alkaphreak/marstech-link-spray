@@ -1,4 +1,4 @@
-To find branches ordered by commit date:
+To find branches ordered by the commit date:
 
 ``` sh
 git for-each-ref \

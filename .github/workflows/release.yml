@@ -1,0 +1,207 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: 'Version bump type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: write
+  pull-requests: write
+  packages: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          ref: main
+          persist-credentials: true
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@v5
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+
+      - name: Bump Version
+        id: bump-version
+        run: |
+          echo "----------------------------------------------------------------"
+          echo "Bumping version with type: ${{ github.event.inputs.bump }}"
+          ./dev-ops/bump-version.sh ${{ github.event.inputs.bump }}
+          NEW_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "Bumped version to $NEW_VERSION"
+
+      - name: Create Release Branch
+        run: |
+          echo "----------------------------------------------------------------"
+          RELEASE_VERSION="${{ steps.bump-version.outputs.version }}"
+          BRANCH_NAME="release/v$RELEASE_VERSION"
+
+          echo "Preparing release branch '$BRANCH_NAME' (replay-friendly mode)"
+
+          # Track whether we stashed local changes
+          STASHED=false
+
+          # Attempt to stash any local changes (including untracked) so checkouts won't fail.
+          # This is necessary because previous steps (bump-version) can modify files.
+          echo "Attempting to stash local changes (if any)"
+          STASH_NAME="release-bump-$RELEASE_VERSION-$(date +%s)"
+          STASH_OUTPUT=$(git stash push -u -m "$STASH_NAME" 2>&1 || true)
+          echo "stash output: $STASH_OUTPUT"
+          if ! echo "$STASH_OUTPUT" | grep -q "No local changes to save"; then
+            STASHED=true
+            echo "Stash created: $STASH_NAME"
+          else
+            echo "No local changes to stash"
+          fi
+
+          # If remote branch exists, fetch and reuse it
+          if git ls-remote --heads origin "$BRANCH_NAME" | grep -q "refs/heads/$BRANCH_NAME"; then
+            echo "Remote branch exists; fetching and reusing $BRANCH_NAME"
+            git fetch origin "$BRANCH_NAME":"$BRANCH_NAME"
+            git checkout "$BRANCH_NAME"
+          fi
+
+          # If local branch exists, check it out
+          if git show-ref --verify --quiet refs/heads/"$BRANCH_NAME"; then
+            echo "Local branch exists; checking out $BRANCH_NAME"
+            git checkout "$BRANCH_NAME"
+          else
+            # Create the branch locally if it hasn't been created or checked out above
+            if [ "$(git rev-parse --abbrev-ref HEAD)" != "$BRANCH_NAME" ]; then
+              git checkout -b "$BRANCH_NAME"
+            fi
+          fi
+
+          # If we stashed earlier, reapply the stash onto the release branch
+          if [ "$STASHED" = "true" ]; then
+            echo "Applying previously saved stash onto $BRANCH_NAME"
+            if ! git stash pop; then
+              echo "Failed to apply stash cleanly. Resolve conflicts manually." >&2
+              exit 1
+            fi
+          fi
+
+          # Configure committer
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+
+          # Stage and commit only if there are changes
+          git add pom.xml
+          if git diff --staged --quiet; then
+            echo "No staged changes to commit on $BRANCH_NAME"
+          else
+            git commit -m "chore: bump version to $RELEASE_VERSION for release"
+          fi
+
+          # Push branch with --force-with-lease to allow updating existing branches during replays
+          git push origin "$BRANCH_NAME" --force-with-lease
+          echo "Created or updated release branch: $BRANCH_NAME"
+
+      - name: Build and Test (Jar)
+        run: |
+          echo "----------------------------------------------------------------"
+          echo "Building project (includes tests)"
+          mvn -B -ntp clean verify
+          ls -lh target/*.jar || true
+
+
+      - name: Publish to GitHub Packages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "----------------------------------------------------------------"
+          echo "Publishing version ${{ steps.bump-version.outputs.version }} to GitHub Packages"
+          set +e
+          mvn -B -ntp deploy -DskipTests 2>&1 | tee /tmp/deploy-output.txt
+          DEPLOY_EXIT=${PIPESTATUS[0]}
+          set -e
+          if [ $DEPLOY_EXIT -ne 0 ]; then
+            if grep -q "status code: 409" /tmp/deploy-output.txt; then
+              echo "Version ${{ steps.bump-version.outputs.version }} already exists in GitHub Packages (409 Conflict) — skipping."
+            else
+              echo "Deploy failed with an unexpected error (exit $DEPLOY_EXIT)"
+              exit $DEPLOY_EXIT
+            fi
+          else
+            echo "Successfully published version ${{ steps.bump-version.outputs.version }}"
+          fi
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
+        with:
+          platforms: linux/amd64,linux/arm64
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: Release with JReleaser
+        env:
+          JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          JRELEASER_DOCKER_DEFAULT_PASSWORD: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+          JRELEASER_DOCKER_DEFAULT_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+        run: |
+          echo "----------------------------------------------------------------"
+          echo "Releasing version: ${{ steps.bump-version.outputs.version }}"
+          echo "Running JReleaser full release"
+          mvn -B -ntp jreleaser:full-release \
+            -Djreleaser.config.file=jreleaser.yml
+
+
+      - name: Create PR and merge release branch to main
+        if: success()
+        env:
+          # RELEASE_GH_TOKEN must be a PAT with 'repo' scope and repository admin rights.
+          # GITHUB_TOKEN cannot bypass branch protection rules (required reviews).
+          GH_TOKEN: ${{ secrets.RELEASE_GH_TOKEN }}
+        run: |
+          echo "----------------------------------------------------------------"
+          RELEASE_VERSION="${{ steps.bump-version.outputs.version }}"
+          BRANCH_NAME="release/v$RELEASE_VERSION"
+          echo "Creating PR to merge $BRANCH_NAME into main"
+
+          # Create PR (idempotent: won't fail if PR already exists)
+          gh pr create \
+            --base main \
+            --head "$BRANCH_NAME" \
+            --title "chore: release v$RELEASE_VERSION" \
+            --body "Automated release merge for v$RELEASE_VERSION" || echo "PR may already exist, continuing..."
+
+          # --admin bypasses branch protection rules (required reviews).
+          # Requires GH_TOKEN to belong to a repository admin.
+          gh pr merge "$BRANCH_NAME" \
+            --admin \
+            --squash \
+            --subject "chore: release v$RELEASE_VERSION" \
+            --body "Automated release merge for v$RELEASE_VERSION" \
+            --delete-branch
+
+          echo "Successfully merged $BRANCH_NAME into main"
+

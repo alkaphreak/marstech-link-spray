@@ -1,0 +1,23 @@
+services:
+  mongodb-test:
+    image: mongo:8
+    container_name: marstech-mongodb-dev
+    restart: unless-stopped
+    ports:
+      - "27019:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: devuser
+      MONGO_INITDB_ROOT_PASSWORD: devpass
+      MONGO_INITDB_DATABASE: link-spray-dev
+    volumes:
+      - mongodb_dev_data:/data/db
+      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+    networks:
+      - test-network
+
+volumes:
+  mongodb_dev_data:
+
+networks:
+  test-network:
+    driver: bridge

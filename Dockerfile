@@ -1,12 +1,5 @@
-FROM eclipse-temurin:21-jdk-jammy
-
+FROM eclipse-temurin:21-jre-jammy
 WORKDIR /app
-
-COPY pom.xml .
-COPY mvnw .
-COPY .mvn ./.mvn
-COPY src ./src
-
-RUN ./mvnw clean install
-
-CMD ["java", "-jar", "target/*.jar"]
+COPY target/*.jar app.jar
+EXPOSE 8096
+ENTRYPOINT ["java", "-Dspring.profiles.active=prod", "-jar", "app.jar"]

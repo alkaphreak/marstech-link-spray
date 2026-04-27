@@ -1,0 +1,264 @@
+digraph ReleaseWorkflow {
+    // Graph attributes
+    graph [
+        rankdir=TB
+        bgcolor="#f8f9fa"
+        fontname="Arial"
+        fontsize=12
+        label="MarsTech Link Spray - Release Workflow\nAutomated GitHub Actions Release Process"
+        labelloc=t
+        fontsize=16
+        pad=0.5
+    ]
+
+    // Node defaults
+    node [
+        fontname="Arial"
+        fontsize=11
+        style=filled
+        margin=0.2
+    ]
+
+    // Edge defaults
+    edge [
+        fontname="Arial"
+        fontsize=10
+        color="#495057"
+    ]
+
+    // Trigger node
+    trigger [
+        label="🚀 GitHub Actions\nRelease Workflow\nTRIGGER"
+        shape=doubleoctagon
+        fillcolor="#28a745"
+        fontcolor=white
+        fontsize=12
+    ]
+
+    // User input
+    user_input [
+        label="👤 User Selects\nVersion Bump Type"
+        shape=box
+        fillcolor="#ffc107"
+        fontcolor=black
+        style="filled,rounded"
+    ]
+
+    // Decision node for bump type
+    bump_choice [
+        label="Version Bump?"
+        shape=diamond
+        fillcolor="#17a2b8"
+        fontcolor=white
+        width=1.5
+        height=1.2
+    ]
+
+    // Version options
+    patch [label="PATCH\n0.0.4 → 0.0.5\n(Bug fixes)" shape=box fillcolor="#d4edda" style="filled,rounded"]
+    minor [label="MINOR\n0.0.4 → 0.1.0\n(New features)" shape=box fillcolor="#cce5ff" style="filled,rounded"]
+    major [label="MAJOR\n0.0.4 → 1.0.0\n(Breaking changes)" shape=box fillcolor="#f8d7da" style="filled,rounded"]
+
+    // Checkout
+    checkout [
+        label="📦 Checkout Code\nfrom main branch\nfetch-depth: 0"
+        shape=box
+        fillcolor="#e7f3ff"
+        style="filled,rounded"
+    ]
+
+    // Setup Java
+    setup_java [
+        label="☕ Setup Java 21\nTemurin Distribution\n+ Maven Cache"
+        shape=box
+        fillcolor="#fff3cd"
+        style="filled,rounded"
+    ]
+
+    // Bump version
+    bump_version [
+        label="🔢 Bump Version\n./dev-ops/bump-version.sh\nUpdate pom.xml"
+        shape=box
+        fillcolor="#d1ecf1"
+        style="filled,rounded"
+    ]
+
+    // Create release branch
+    create_branch [
+        label="🌿 Create Release Branch\nrelease/v[VERSION]\nCommit: 'bump version for release'"
+        shape=box
+        fillcolor="#d4edda"
+        style="filled,rounded"
+    ]
+
+    // Build and test
+    build_test [
+        label="🔨 Build & Test\nmvn clean verify\nRun all unit & integration tests"
+        shape=box
+        fillcolor="#fff3cd"
+        style="filled,rounded"
+    ]
+
+    // Test success check
+    test_check [
+        label="Tests Pass?"
+        shape=diamond
+        fillcolor="#dc3545"
+        fontcolor=white
+        width=1.3
+    ]
+
+    // JReleaser
+    jreleaser [
+        label="📋 JReleaser\nfull-release"
+        shape=box
+        fillcolor="#6f42c1"
+        fontcolor=white
+        fontsize=12
+    ]
+
+    // JReleaser substeps
+    create_tag [
+        label="🏷️ Create Git Tag\nv[VERSION]"
+        shape=box
+        fillcolor="#e7e7ff"
+        style="filled,rounded"
+    ]
+
+    generate_changelog [
+        label="📝 Generate Changelog\nFrom conventional commits"
+        shape=box
+        fillcolor="#e7e7ff"
+        style="filled,rounded"
+    ]
+
+    github_release [
+        label="🎉 Create GitHub Release\nUpload JAR artifacts\n+ checksums"
+        shape=box
+        fillcolor="#e7e7ff"
+        style="filled,rounded"
+    ]
+
+    build_docker [
+        label="🐳 Build Docker Image\nmarstech-link-spray:v[VERSION]"
+        shape=box
+        fillcolor="#e7e7ff"
+        style="filled,rounded"
+    ]
+
+    push_docker [
+        label="📤 Push to Docker Hub\nTags: v[VERSION] + latest"
+        shape=box
+        fillcolor="#e7e7ff"
+        style="filled,rounded"
+    ]
+
+    // Update main branch
+    update_main [
+        label="🔄 Update Main Branch\nCheckout main\nBump to next dev version\n[VERSION+1]-SNAPSHOT"
+        shape=box
+        fillcolor="#d1ecf1"
+        style="filled,rounded"
+    ]
+
+    // Success
+    success [
+        label="✅ RELEASE COMPLETE!\n\n• GitHub Release Created\n• Docker Images Published\n• Main Branch Updated"
+        shape=box
+        fillcolor="#28a745"
+        fontcolor=white
+        fontsize=11
+        style="filled,rounded"
+    ]
+
+    // Failure
+    failure [
+        label="❌ WORKFLOW FAILED\nCheck logs\nFix issues\nRetry"
+        shape=box
+        fillcolor="#dc3545"
+        fontcolor=white
+        style="filled,rounded"
+    ]
+
+    // Artifacts
+    artifacts [
+        label="📦 Release Artifacts\n\n• mt-link-spray-[VERSION].jar\n• Docker: username/repo:v[VERSION]\n• Docker: username/repo:latest\n• Release Notes\n• Checksums"
+        shape=note
+        fillcolor="#ffffcc"
+        style="filled"
+    ]
+
+    // Environment requirements
+    env [
+        label="🔐 Required Secrets\n\n• GITHUB_TOKEN\n• DOCKER_HUB_USERNAME\n• DOCKER_HUB_ACCESS_TOKEN"
+        shape=note
+        fillcolor="#ffe6e6"
+        style="filled"
+    ]
+
+    // Flow connections
+    trigger -> user_input
+    user_input -> bump_choice
+
+    bump_choice -> patch [label="patch"]
+    bump_choice -> minor [label="minor"]
+    bump_choice -> major [label="major"]
+
+    patch -> checkout
+    minor -> checkout
+    major -> checkout
+
+    checkout -> setup_java
+    setup_java -> bump_version
+    bump_version -> create_branch
+    create_branch -> build_test
+    build_test -> test_check
+
+    test_check -> jreleaser [label="✓ Yes"]
+    test_check -> failure [label="✗ No"]
+
+    jreleaser -> create_tag
+    create_tag -> generate_changelog
+    generate_changelog -> github_release
+    github_release -> build_docker
+    build_docker -> push_docker
+    push_docker -> update_main
+    update_main -> success
+
+    // Artifact and environment connections (dashed)
+    success -> artifacts [style=dashed, constraint=false]
+    trigger -> env [style=dashed, constraint=false]
+
+    // Subgraph for JReleaser steps
+    subgraph cluster_jreleaser {
+        label="JReleaser Execution Steps"
+        style=dashed
+        color="#6f42c1"
+        fontcolor="#6f42c1"
+
+        create_tag
+        generate_changelog
+        github_release
+        build_docker
+        push_docker
+    }
+
+    // Version state annotations
+    version_before [
+        label="Version State:\n0.0.4-SNAPSHOT"
+        shape=plaintext
+        fontcolor="#666666"
+        fontsize=10
+    ]
+
+    version_after [
+        label="Version States:\n• Release: 0.0.5\n• Main: 0.0.6-SNAPSHOT"
+        shape=plaintext
+        fontcolor="#666666"
+        fontsize=10
+    ]
+
+    version_before -> bump_version [style=dotted, constraint=false]
+    success -> version_after [style=dotted, constraint=false]
+}
+

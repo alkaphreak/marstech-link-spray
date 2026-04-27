@@ -1,0 +1,74 @@
+@baseUrl = http://localhost:8096
+
+###
+### Security Tests
+### Tests various security scenarios: XSS, SQL injection, path traversal, DoS, etc.
+### All errors return JSON {"error": "message"} format
+### Application should sanitize inputs and handle malicious payloads gracefully
+###
+
+### XSS Test - Script in paste content
+POST {{baseUrl}}/api/paste
+Content-Type: application/json
+
+{
+  "title": "XSS Test",
+  "content": "<script>alert('XSS')</script>",
+  "language": "HTML",
+  "isPrivate": false
+}
+
+### XSS Test - Script in paste title
+POST {{baseUrl}}/api/paste
+Content-Type: application/json
+
+{
+  "title": "<script>alert('XSS')</script>",
+  "content": "Normal content"
+}
+
+### SQL Injection Test - In URL parameter
+GET {{baseUrl}}/api/url-shortener/shorten?url=https://example.com'; DROP TABLE urls; --
+Accept: text/plain
+
+### Path Traversal Test - In paste ID
+GET {{baseUrl}}/api/paste/../../../etc/passwd
+Accept: application/json
+
+### CSRF Test - Missing CSRF token (if implemented)
+POST {{baseUrl}}/api/paste
+Content-Type: application/json
+Origin: https://malicious-site.com
+
+{
+  "content": "CSRF test content"
+}
+
+### Large Payload Test - DoS attempt
+POST {{baseUrl}}/api/paste
+Content-Type: application/json
+
+{
+  "content": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. ".repeat(1000)
+}
+
+### Header Injection Test
+GET {{baseUrl}}/api/uuid
+X-Forwarded-For: 127.0.0.1\r\nMalicious-Header: injected
+
+### Command Injection Test - In URL
+GET {{baseUrl}}/api/url-shortener/shorten?url=https://example.com; ls -la
+Accept: text/plain
+
+### Unicode/UTF-8 Test - Special characters
+POST {{baseUrl}}/api/paste
+Content-Type: application/json
+
+{
+  "title": "Unicode Test 🚀",
+  "content": "Testing unicode: 你好世界 🌍 émojis 🎉 and special chars: ñáéíóú"
+}
+
+### Null Byte Test
+GET {{baseUrl}}/api/paste/test%00.txt
+Accept: application/json

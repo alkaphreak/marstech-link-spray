@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{index.html :: html-head}">
+    <title></title>
+</head>
+
+<body>
+<header th:replace="~{index.html :: body-header}">
+    <!-- nav bar-->
+</header>
+
+<section class="intro-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col">
+                <h3>Error</h3>
+
+                <!--/*@thymesVar id="errorMessage" type="java.lang.String"*/-->
+                <div class="alert alert-danger" th:if="${errorMessage}" th:text="${errorMessage}">
+                    Une erreur est survenue.
+                </div>
+                <a href="/" class="btn btn-primary mt-3">Retour à l'accueil</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer class="footer bg-black text-white" th:replace="~{index.html :: body-footer}">
+    <!-- footer -->
+</footer>
+
+<div class="d-none" th:replace="~{index.html :: footer-div-script}">
+    <!-- footer script -->
+</div>
+</body>
+</html>

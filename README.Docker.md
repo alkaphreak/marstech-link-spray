@@ -17,3 +17,22 @@ Then, push it to your registry, e.g. `docker push myregistry.com/myapp`.
 
 Consult Docker's [getting started](https://docs.docker.com/go/get-started-sharing/)
 docs for more detail on building and pushing.
+
+## Local vs JReleaser Dockerfile Usage
+
+This project uses two Dockerfiles:
+
+- **Root Dockerfile**: For local builds, uses `COPY target/*.jar app.jar`.
+- **JReleaser Dockerfile**: Located at `src/jreleaser/distributions/marstech-link-spray/Dockerfile`, uses JReleaser template tokens and is used only by JReleaser during release packaging.
+
+### Local Build
+To build and run locally:
+```
+docker build -t myapp .
+docker run -p 8096:8096 myapp
+```
+
+### JReleaser Build
+JReleaser will use its own Dockerfile and artifact naming conventions. See `jreleaser.yml` for configuration.
+
+For more details, see the [JReleaser documentation](https://jreleaser.org/guide/latest/).

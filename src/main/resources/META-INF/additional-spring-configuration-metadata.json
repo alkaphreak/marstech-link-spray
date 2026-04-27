@@ -74,6 +74,11 @@
       "name": "mt.link-spray.notification.mail.receiver",
       "type": "java.lang.String",
       "description": "The receiver email address of the notification mail, eg:my.link.spray@address.com."
+    },
+    {
+      "name": "spring.mongodb.embedded.version",
+      "type": "java.lang.String",
+      "description": "The version of the embedded mongodb."
     }
   ]
 }
