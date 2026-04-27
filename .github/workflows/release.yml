@@ -128,12 +128,25 @@ jobs:
 
 
       - name: Publish to GitHub Packages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "----------------------------------------------------------------"
           echo "Publishing version ${{ steps.bump-version.outputs.version }} to GitHub Packages"
-          mvn -B -ntp deploy -DskipTests
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          set +e
+          mvn -B -ntp deploy -DskipTests 2>&1 | tee /tmp/deploy-output.txt
+          DEPLOY_EXIT=${PIPESTATUS[0]}
+          set -e
+          if [ $DEPLOY_EXIT -ne 0 ]; then
+            if grep -q "status code: 409" /tmp/deploy-output.txt; then
+              echo "Version ${{ steps.bump-version.outputs.version }} already exists in GitHub Packages (409 Conflict) — skipping."
+            else
+              echo "Deploy failed with an unexpected error (exit $DEPLOY_EXIT)"
+              exit $DEPLOY_EXIT
+            fi
+          else
+            echo "Successfully published version ${{ steps.bump-version.outputs.version }}"
+          fi
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v4
