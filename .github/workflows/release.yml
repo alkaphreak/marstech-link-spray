@@ -165,7 +165,9 @@ jobs:
       - name: Create PR and merge release branch to main
         if: success()
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # RELEASE_GH_TOKEN must be a PAT with 'repo' scope and repository admin rights.
+          # GITHUB_TOKEN cannot bypass branch protection rules (required reviews).
+          GH_TOKEN: ${{ secrets.RELEASE_GH_TOKEN }}
         run: |
           echo "----------------------------------------------------------------"
           RELEASE_VERSION="${{ steps.bump-version.outputs.version }}"
@@ -179,8 +181,10 @@ jobs:
             --title "chore: release v$RELEASE_VERSION" \
             --body "Automated release merge for v$RELEASE_VERSION" || echo "PR may already exist, continuing..."
 
-          # Squash merge: avoids merge commits, GitHub signs the resulting commit
+          # --admin bypasses branch protection rules (required reviews).
+          # Requires GH_TOKEN to belong to a repository admin.
           gh pr merge "$BRANCH_NAME" \
+            --admin \
             --squash \
             --subject "chore: release v$RELEASE_VERSION" \
             --body "Automated release merge for v$RELEASE_VERSION" \
