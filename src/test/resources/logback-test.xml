@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Suppress noisy MongoDB monitor connection errors during tests (repos are mocked) -->
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/base.xml"/>
+
+    <!-- Suppress MongoDB driver monitor noise - repos are mocked, real connection is not needed -->
+    <logger name="org.mongodb.driver.cluster" level="ERROR"/>
+    <logger name="org.mongodb.driver.connection" level="ERROR"/>
+    <logger name="org.mongodb.driver.protocol" level="ERROR"/>
+    <logger name="org.mongodb.driver.client" level="WARN"/>
+
+    <!-- Keep application logs at INFO -->
+    <logger name="fr.marstech" level="INFO"/>
+
+    <!-- Root: WARN to keep test output concise -->
+    <root level="WARN">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+</configuration>
+
