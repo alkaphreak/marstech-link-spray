@@ -2,5 +2,5 @@
 # Add key=value pairs of SDKs to use below
 java=21.0.9-tem
 maven=3.9.12
-kotlin=2.3.0
+kotlin=2.3.21
 springboot=3.5.10
