@@ -16,6 +16,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  packages: write
 
 jobs:
   release:
@@ -125,6 +126,33 @@ jobs:
           mvn -B -ntp clean verify
           ls -lh target/*.jar || true
 
+
+      - name: Publish to GitHub Packages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "----------------------------------------------------------------"
+          echo "Publishing version ${{ steps.bump-version.outputs.version }} to GitHub Packages"
+          set +e
+          mvn -B -ntp deploy -DskipTests 2>&1 | tee /tmp/deploy-output.txt
+          DEPLOY_EXIT=${PIPESTATUS[0]}
+          set -e
+          if [ $DEPLOY_EXIT -ne 0 ]; then
+            if grep -q "status code: 409" /tmp/deploy-output.txt; then
+              echo "Version ${{ steps.bump-version.outputs.version }} already exists in GitHub Packages (409 Conflict) — skipping."
+            else
+              echo "Deploy failed with an unexpected error (exit $DEPLOY_EXIT)"
+              exit $DEPLOY_EXIT
+            fi
+          else
+            echo "Successfully published version ${{ steps.bump-version.outputs.version }}"
+          fi
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
+        with:
+          platforms: linux/amd64,linux/arm64
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
@@ -145,3 +173,35 @@ jobs:
           echo "Running JReleaser full release"
           mvn -B -ntp jreleaser:full-release \
             -Djreleaser.config.file=jreleaser.yml
+
+
+      - name: Create PR and merge release branch to main
+        if: success()
+        env:
+          # RELEASE_GH_TOKEN must be a PAT with 'repo' scope and repository admin rights.
+          # GITHUB_TOKEN cannot bypass branch protection rules (required reviews).
+          GH_TOKEN: ${{ secrets.RELEASE_GH_TOKEN }}
+        run: |
+          echo "----------------------------------------------------------------"
+          RELEASE_VERSION="${{ steps.bump-version.outputs.version }}"
+          BRANCH_NAME="release/v$RELEASE_VERSION"
+          echo "Creating PR to merge $BRANCH_NAME into main"
+
+          # Create PR (idempotent: won't fail if PR already exists)
+          gh pr create \
+            --base main \
+            --head "$BRANCH_NAME" \
+            --title "chore: release v$RELEASE_VERSION" \
+            --body "Automated release merge for v$RELEASE_VERSION" || echo "PR may already exist, continuing..."
+
+          # --admin bypasses branch protection rules (required reviews).
+          # Requires GH_TOKEN to belong to a repository admin.
+          gh pr merge "$BRANCH_NAME" \
+            --admin \
+            --squash \
+            --subject "chore: release v$RELEASE_VERSION" \
+            --body "Automated release merge for v$RELEASE_VERSION" \
+            --delete-branch
+
+          echo "Successfully merged $BRANCH_NAME into main"
+
