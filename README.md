@@ -36,7 +36,7 @@ simple steps to generate a unique link that will open all the specified URLs.
 
 | Technology                  | Version        |
 |-----------------------------|----------------|
-| Kotlin                      | 2.3.0          |
+| Kotlin                      | 2.3.21         |
 | Java                        | 21 (Temurin)   |
 | Spring Boot                 | 3.5.14         |
 | Spring WebMVC               | (via Boot)     |
@@ -123,6 +123,7 @@ springboot=3.5.14
 1. Install SDKMan if not already installed:
     ```bash
     curl -s "https://get.sdkman.io" | bash
+    source "$HOME/.sdkman/bin/sdkman-init.sh"
     ```
 
 2. Enable auto-env switching in `~/.sdkman/etc/config`:
