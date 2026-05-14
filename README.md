@@ -36,9 +36,9 @@ simple steps to generate a unique link that will open all the specified URLs.
 
 | Technology                  | Version        |
 |-----------------------------|----------------|
-| Kotlin                      | 2.3.0          |
+| Kotlin                      | 2.3.21         |
 | Java                        | 21 (Temurin)   |
-| Spring Boot                 | 3.5.10         |
+| Spring Boot                 | 3.5.14         |
 | Spring WebMVC               | (via Boot)     |
 | Spring Data MongoDB         | (via Boot)     |
 | Spring Security Crypto      | (via Boot)     |
@@ -105,6 +105,46 @@ src/main/kotlin/fr/marstech/mtlinkspray/
 | GET    | `/api/random`                | Generate a random number            |
 | GET    | `/api/uuid`                  | Generate a random UUID              |
 | GET    | `/{shortUrlUid}`             | Redirect to the target URL          |
+
+## SDK Version Management
+
+This project uses [SDKMan](https://sdkman.io/) to manage SDK versions consistently across environments.
+A `.sdkmanrc` file at the project root pins the exact versions used:
+
+```properties
+java=21.0.11-tem
+maven=3.9.15
+kotlin=2.3.21
+springboot=3.5.14
+```
+
+### Enable automatic SDK switching
+
+1. Install SDKMan if not already installed:
+    ```bash
+    curl -s "https://get.sdkman.io" | bash
+    source "$HOME/.sdkman/bin/sdkman-init.sh"
+    ```
+
+2. Enable auto-env switching in `~/.sdkman/etc/config`:
+    ```properties
+    sdkman_auto_env=true
+    ```
+
+3. SDKMan will automatically switch to the correct SDK versions when entering the project directory:
+    ```bash
+    cd marstech-link-spray
+    # SDKMan applies .sdkmanrc automatically
+    java -version  # Should show Java 21 (Temurin)
+    ```
+
+4. To apply manually without auto-env:
+    ```bash
+    sdk env install  # Install all versions declared in .sdkmanrc
+    sdk env          # Apply versions for current session
+    ```
+
+See [docs/setup-guide.md](docs/setup-guide.md) for full environment setup instructions.
 
 ## Installation
 
