@@ -18,6 +18,8 @@ simple steps to generate a unique link that will open all the specified URLs.
 [![Technical Debt](https://sonarcloud.io/api/project_badges/measure?project=alkaphreak_marstech-link-spray&metric=sqale_index)](https://sonarcloud.io/summary/new_code?id=alkaphreak_marstech-link-spray)
 [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=alkaphreak_marstech-link-spray&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=alkaphreak_marstech-link-spray)
 [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=alkaphreak_marstech-link-spray&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=alkaphreak_marstech-link-spray)
+[![Docker Image Version](https://img.shields.io/docker/v/alkaphreak/marstech-link-spray/latest?label=Docker%20Hub)](https://hub.docker.com/r/alkaphreak/marstech-link-spray)
+[![Docker Pulls](https://img.shields.io/docker/pulls/alkaphreak/marstech-link-spray)](https://hub.docker.com/r/alkaphreak/marstech-link-spray)
 
 ## Features
 
@@ -250,7 +252,7 @@ echo "testcontainers.reuse.enable=true" >> $HOME/.testcontainers.properties
 
 ## Releases
 
-This project uses **JReleaser** for automated, professional releases. Current version: **0.0.5**
+This project uses **JReleaser** for automated, professional releases. Current version: **0.2.0**
 
 ### Quick Release
 1. Go to GitHub Actions → "Release" workflow
@@ -258,6 +260,31 @@ This project uses **JReleaser** for automated, professional releases. Current ve
 3. Automated release with changelog and artifacts
 
 See [RELEASE.md](RELEASE.md) for detailed release documentation.
+
+## Docker
+
+The application is available as a multi-arch Docker image (`linux/amd64`, `linux/arm64`) on Docker Hub.
+
+- Docker Hub repository: https://hub.docker.com/r/alkaphreak/marstech-link-spray
+- All tags and versions: https://hub.docker.com/r/alkaphreak/marstech-link-spray/tags
+
+### Pull and run
+
+```bash
+# Pull latest
+docker pull alkaphreak/marstech-link-spray:latest
+
+# Pull a specific version
+docker pull alkaphreak/marstech-link-spray:v0.2.0
+
+# Run (replace with your MongoDB URI)
+docker run -d \
+  --name marstech-link-spray \
+  --restart unless-stopped \
+  -p 8096:8096 \
+  -e MONGODB_URI_LINK_SPRAY="mongodb://your-mongo-host:27017/linkspray" \
+  alkaphreak/marstech-link-spray:latest
+```
 
 ## Contributing
 
