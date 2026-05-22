@@ -423,4 +423,99 @@ class ApiPasteControllerTest {
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.id").value(pasteId))
     }
+
+    @Test
+    fun shouldGetRawPasteByIdAsPlainText() {
+        // Given
+        val pasteId = "raw123"
+        val content = "Raw plain text content"
+        val pasteEntity = PasteEntity(
+            id = pasteId,
+            title = "Raw Test",
+            content = content,
+            language = KOTLIN,
+            passwordHash = null,
+            isPrivate = false,
+            isPasswordProtected = false,
+            author = HistoryItem("user1")
+        )
+        `when`(pasteService.getPaste(pasteId, null)).thenReturn(pasteEntity)
+
+        // When / Then
+        get("/api/paste/$pasteId/raw")
+            .let(mockMvc::perform)
+            .andExpect(status().isOk)
+            .andExpect(content().contentType("text/plain;charset=UTF-8"))
+            .andExpect(content().string(content))
+            .andExpect(header().string("Content-Disposition", "inline; filename=\"paste-$pasteId.txt\""))
+            .andExpect(header().string("X-Content-Type-Options", "nosniff"))
+    }
+
+    @Test
+    fun shouldReturn404ForRawNonExistentPaste() {
+        // Given
+        val pasteId = "nonexistent"
+        `when`(pasteService.getPaste(pasteId, null))
+            .thenThrow(NoSuchElementException("Paste not found"))
+
+        // When / Then
+        get("/api/paste/$pasteId/raw")
+            .let(mockMvc::perform)
+            .andExpect(status().isNotFound)
+            .andExpect(content().contentType("text/plain;charset=UTF-8"))
+            .andExpect(content().string("Not found: paste $pasteId does not exist"))
+    }
+
+    @Test
+    fun shouldReturn401ForRawPasswordProtectedPasteWithoutPassword() {
+        // Given
+        val pasteId = "protected456"
+        org.mockito.kotlin.doAnswer { throw IllegalAccessException("Password required") }
+            .`when`(pasteService).getPaste(pasteId, null)
+
+        // When / Then
+        get("/api/paste/$pasteId/raw")
+            .let(mockMvc::perform)
+            .andExpect(status().isUnauthorized)
+            .andExpect(content().contentType("text/plain;charset=UTF-8"))
+            .andExpect(content().string("Unauthorized: password required or incorrect"))
+    }
+
+    @Test
+    fun shouldGetRawPasteWithCorrectPassword() {
+        // Given
+        val pasteId = "protected456"
+        val password = "s3cr3t"
+        val content = "Secret raw content"
+        val pasteEntity = PasteEntity(
+            id = pasteId,
+            title = "Protected Raw",
+            content = content,
+            language = KOTLIN,
+            passwordHash = "hash",
+            isPrivate = false,
+            isPasswordProtected = true,
+            author = HistoryItem("user1")
+        )
+        `when`(pasteService.getPaste(pasteId, password)).thenReturn(pasteEntity)
+
+        // When / Then
+        get("/api/paste/$pasteId/raw")
+            .param("password", password)
+            .let(mockMvc::perform)
+            .andExpect(status().isOk)
+            .andExpect(content().contentType("text/plain;charset=UTF-8"))
+            .andExpect(content().string(content))
+    }
+
+    @Test
+    fun shouldReturn400ForRawBlankPasteId() {
+        // Given - blank/whitespace-only pasteId bypasses routing but triggers manual guard
+        // When / Then
+        get("/api/paste/   /raw")
+            .let(mockMvc::perform)
+            .andExpect(status().isBadRequest)
+            .andExpect(content().contentType("text/plain;charset=UTF-8"))
+            .andExpect(content().string("Bad request: paste ID cannot be blank"))
+    }
 }
