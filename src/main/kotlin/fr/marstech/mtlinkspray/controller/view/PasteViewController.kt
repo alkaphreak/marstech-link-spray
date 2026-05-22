@@ -8,6 +8,9 @@ import fr.marstech.mtlinkspray.utils.NetworkUtils.getFilteredPort
 import fr.marstech.mtlinkspray.utils.NetworkUtils.getHost
 import fr.marstech.mtlinkspray.utils.NetworkUtils.getScheme
 import jakarta.servlet.http.HttpServletRequest
+import org.springframework.http.HttpHeaders
+import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.servlet.ModelAndView
@@ -43,6 +46,19 @@ class PasteViewController(private val pasteService: PasteService) : ThymeleafVie
                     .toString()
             )
     }
+
+    @GetMapping("/{pasteId}/raw", produces = [MediaType.TEXT_PLAIN_VALUE])
+    @ResponseBody
+    fun viewPasteRaw(
+        @PathVariable pasteId: String,
+        @RequestParam(required = false) password: String?
+    ): ResponseEntity<String> =
+        pasteService.getPaste(pasteId, password).let { paste ->
+            ResponseEntity.ok()
+                .contentType(MediaType.TEXT_PLAIN)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"paste-$pasteId.txt\"")
+                .body(paste.content)
+        }
 
     @GetMapping
     fun showCreateForm(): ModelAndView = getModelAndView().addObject("create", true)

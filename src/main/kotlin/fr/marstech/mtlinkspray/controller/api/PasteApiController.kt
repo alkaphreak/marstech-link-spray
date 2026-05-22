@@ -7,6 +7,8 @@ import fr.marstech.mtlinkspray.service.PasteService
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
+import org.springframework.http.HttpHeaders
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
@@ -31,4 +33,16 @@ class PasteApiController(private val pasteService: PasteService) {
     ): ResponseEntity<PasteResponse> =
         fromEntity(pasteService.getPaste(pasteId, password))
             .let { return ResponseEntity.ok(it) }
+
+    @GetMapping("/{pasteId}/raw", produces = [MediaType.TEXT_PLAIN_VALUE])
+    fun getRawPaste(
+        @PathVariable @NotBlank(message = "Paste ID cannot be blank") pasteId: String,
+        @RequestParam(required = false) password: String?
+    ): ResponseEntity<String> =
+        pasteService.getPaste(pasteId, password).let { paste ->
+            ResponseEntity.ok()
+                .contentType(MediaType.TEXT_PLAIN)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"paste-$pasteId.txt\"")
+                .body(paste.content)
+        }
 }

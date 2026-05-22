@@ -423,4 +423,83 @@ class ApiPasteControllerTest {
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.id").value(pasteId))
     }
+
+    @Test
+    fun shouldGetRawPasteByIdAsPlainText() {
+        // Given
+        val pasteId = "raw123"
+        val content = "Raw plain text content"
+        val pasteEntity = PasteEntity(
+            id = pasteId,
+            title = "Raw Test",
+            content = content,
+            language = KOTLIN,
+            passwordHash = null,
+            isPrivate = false,
+            isPasswordProtected = false,
+            author = HistoryItem("user1")
+        )
+        `when`(pasteService.getPaste(pasteId, null)).thenReturn(pasteEntity)
+
+        // When / Then
+        get("/api/paste/$pasteId/raw")
+            .let(mockMvc::perform)
+            .andExpect(status().isOk)
+            .andExpect(content().contentTypeCompatibleWith(org.springframework.http.MediaType.TEXT_PLAIN))
+            .andExpect(content().string(content))
+            .andExpect(header().string("Content-Disposition", "inline; filename=\"paste-$pasteId.txt\""))
+    }
+
+    @Test
+    fun shouldReturn404ForRawNonExistentPaste() {
+        // Given
+        val pasteId = "nonexistent"
+        `when`(pasteService.getPaste(pasteId, null))
+            .thenThrow(NoSuchElementException("Paste not found"))
+
+        // When / Then
+        get("/api/paste/$pasteId/raw")
+            .let(mockMvc::perform)
+            .andExpect(status().isNotFound)
+    }
+
+    @Test
+    fun shouldReturn401ForRawPasswordProtectedPasteWithoutPassword() {
+        // Given
+        val pasteId = "protected456"
+        org.mockito.kotlin.doAnswer { throw IllegalAccessException("Password required") }
+            .`when`(pasteService).getPaste(pasteId, null)
+
+        // When / Then
+        get("/api/paste/$pasteId/raw")
+            .let(mockMvc::perform)
+            .andExpect(status().isUnauthorized)
+    }
+
+    @Test
+    fun shouldGetRawPasteWithCorrectPassword() {
+        // Given
+        val pasteId = "protected456"
+        val password = "s3cr3t"
+        val content = "Secret raw content"
+        val pasteEntity = PasteEntity(
+            id = pasteId,
+            title = "Protected Raw",
+            content = content,
+            language = KOTLIN,
+            passwordHash = "hash",
+            isPrivate = false,
+            isPasswordProtected = true,
+            author = HistoryItem("user1")
+        )
+        `when`(pasteService.getPaste(pasteId, password)).thenReturn(pasteEntity)
+
+        // When / Then
+        get("/api/paste/$pasteId/raw")
+            .param("password", password)
+            .let(mockMvc::perform)
+            .andExpect(status().isOk)
+            .andExpect(content().contentTypeCompatibleWith(org.springframework.http.MediaType.TEXT_PLAIN))
+            .andExpect(content().string(content))
+    }
 }
