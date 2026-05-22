@@ -81,3 +81,19 @@ Accept: application/json
 ### Get paste by ID - Invalid ID format
 GET {{baseUrl}}/api/paste/
 Accept: application/json
+
+### Get raw paste by ID - Public paste (plain text response)
+GET {{baseUrl}}/api/paste/abc123/raw
+Accept: text/plain
+
+### Get raw paste by ID - With password
+GET {{baseUrl}}/api/paste/def456/raw?password=secret123
+Accept: text/plain
+
+### Get raw paste by ID - Wrong password (expects 401 Unauthorized, plain-text error body)
+GET {{baseUrl}}/api/paste/def456/raw?password=wrongpassword
+Accept: text/plain
+
+### Get raw paste by ID - Not found (expects 404 Not Found, plain-text error body)
+GET {{baseUrl}}/api/paste/nonexistent/raw
+Accept: text/plain
