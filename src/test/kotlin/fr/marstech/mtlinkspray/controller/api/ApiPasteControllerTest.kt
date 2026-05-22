@@ -445,7 +445,7 @@ class ApiPasteControllerTest {
         get("/api/paste/$pasteId/raw")
             .let(mockMvc::perform)
             .andExpect(status().isOk)
-            .andExpect(content().contentTypeCompatibleWith(org.springframework.http.MediaType.TEXT_PLAIN))
+            .andExpect(content().contentType("text/plain;charset=UTF-8"))
             .andExpect(content().string(content))
             .andExpect(header().string("Content-Disposition", "inline; filename=\"paste-$pasteId.txt\""))
     }
@@ -461,6 +461,8 @@ class ApiPasteControllerTest {
         get("/api/paste/$pasteId/raw")
             .let(mockMvc::perform)
             .andExpect(status().isNotFound)
+            .andExpect(content().contentType("text/plain;charset=UTF-8"))
+            .andExpect(content().string("Not found: paste $pasteId does not exist"))
     }
 
     @Test
@@ -474,6 +476,8 @@ class ApiPasteControllerTest {
         get("/api/paste/$pasteId/raw")
             .let(mockMvc::perform)
             .andExpect(status().isUnauthorized)
+            .andExpect(content().contentType("text/plain;charset=UTF-8"))
+            .andExpect(content().string("Unauthorized: password required or incorrect"))
     }
 
     @Test
@@ -499,7 +503,7 @@ class ApiPasteControllerTest {
             .param("password", password)
             .let(mockMvc::perform)
             .andExpect(status().isOk)
-            .andExpect(content().contentTypeCompatibleWith(org.springframework.http.MediaType.TEXT_PLAIN))
+            .andExpect(content().contentType("text/plain;charset=UTF-8"))
             .andExpect(content().string(content))
     }
 }

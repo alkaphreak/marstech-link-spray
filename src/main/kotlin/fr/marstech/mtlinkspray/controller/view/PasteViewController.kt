@@ -9,12 +9,19 @@ import fr.marstech.mtlinkspray.utils.NetworkUtils.getHost
 import fr.marstech.mtlinkspray.utils.NetworkUtils.getScheme
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpHeaders.CONTENT_DISPOSITION
+import org.springframework.http.HttpStatus
+import org.springframework.http.HttpStatus.NOT_FOUND
+import org.springframework.http.HttpStatus.OK
+import org.springframework.http.HttpStatus.UNAUTHORIZED
 import org.springframework.http.MediaType
+import org.springframework.http.MediaType.TEXT_PLAIN_VALUE
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.servlet.ModelAndView
 import org.springframework.web.util.UriComponentsBuilder
+import java.nio.charset.StandardCharsets
 
 @Controller
 @RequestMapping("/paste")
@@ -47,18 +54,26 @@ class PasteViewController(private val pasteService: PasteService) : ThymeleafVie
             )
     }
 
-    @GetMapping("/{pasteId}/raw", produces = [MediaType.TEXT_PLAIN_VALUE])
+    @GetMapping("/{pasteId}/raw", produces = [TEXT_PLAIN_VALUE])
     @ResponseBody
     fun viewPasteRaw(
         @PathVariable pasteId: String,
         @RequestParam(required = false) password: String?
-    ): ResponseEntity<String> =
-        pasteService.getPaste(pasteId, password).let { paste ->
-            ResponseEntity.ok()
-                .contentType(MediaType.TEXT_PLAIN)
-                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"paste-$pasteId.txt\"")
-                .body(paste.content)
-        }
+    ): ResponseEntity<String> = try {
+        pasteService.getPaste(pasteId, password)
+            .let { paste ->
+                plainText(OK)
+                    .header(CONTENT_DISPOSITION, "inline; filename=\"paste-$pasteId.txt\"")
+                    .body(paste.content)
+            }
+    } catch (_: NoSuchElementException) {
+        plainText(NOT_FOUND).body("Not found: paste $pasteId does not exist")
+    } catch (_: IllegalAccessException) {
+        plainText(UNAUTHORIZED).body("Unauthorized: password required or incorrect")
+    }
+
+    private fun plainText(status: HttpStatus): ResponseEntity.BodyBuilder =
+        ResponseEntity.status(status).contentType(MediaType("text", "plain", StandardCharsets.UTF_8))
 
     @GetMapping
     fun showCreateForm(): ModelAndView = getModelAndView().addObject("create", true)

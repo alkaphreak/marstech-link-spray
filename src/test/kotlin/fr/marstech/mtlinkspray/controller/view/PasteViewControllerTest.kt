@@ -12,7 +12,6 @@ import org.mockito.kotlin.doAnswer
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.context.annotation.Import
-import org.springframework.http.MediaType
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
@@ -51,7 +50,7 @@ class PasteViewControllerTest {
         get("/paste/$pasteId/raw")
             .let(mockMvc::perform)
             .andExpect(status().isOk)
-            .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_PLAIN))
+            .andExpect(content().contentType("text/plain;charset=UTF-8"))
             .andExpect(content().string(content))
             .andExpect(header().string("Content-Disposition", "inline; filename=\"paste-$pasteId.txt\""))
     }
@@ -67,6 +66,8 @@ class PasteViewControllerTest {
         get("/paste/$pasteId/raw")
             .let(mockMvc::perform)
             .andExpect(status().isNotFound)
+            .andExpect(content().contentType("text/plain;charset=UTF-8"))
+            .andExpect(content().string("Not found: paste $pasteId does not exist"))
     }
 
     @Test
@@ -80,6 +81,8 @@ class PasteViewControllerTest {
         get("/paste/$pasteId/raw")
             .let(mockMvc::perform)
             .andExpect(status().isUnauthorized)
+            .andExpect(content().contentType("text/plain;charset=UTF-8"))
+            .andExpect(content().string("Unauthorized: password required or incorrect"))
     }
 
     @Test
@@ -105,7 +108,7 @@ class PasteViewControllerTest {
             .param("password", password)
             .let(mockMvc::perform)
             .andExpect(status().isOk)
-            .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_PLAIN))
+            .andExpect(content().contentType("text/plain;charset=UTF-8"))
             .andExpect(content().string(content))
     }
 }
