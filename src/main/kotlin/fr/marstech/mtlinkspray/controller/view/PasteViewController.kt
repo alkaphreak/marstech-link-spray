@@ -8,12 +8,9 @@ import fr.marstech.mtlinkspray.utils.NetworkUtils.getFilteredPort
 import fr.marstech.mtlinkspray.utils.NetworkUtils.getHost
 import fr.marstech.mtlinkspray.utils.NetworkUtils.getScheme
 import jakarta.servlet.http.HttpServletRequest
-import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpHeaders.CONTENT_DISPOSITION
 import org.springframework.http.HttpStatus
-import org.springframework.http.HttpStatus.NOT_FOUND
-import org.springframework.http.HttpStatus.OK
-import org.springframework.http.HttpStatus.UNAUTHORIZED
+import org.springframework.http.HttpStatus.*
 import org.springframework.http.MediaType
 import org.springframework.http.MediaType.TEXT_PLAIN_VALUE
 import org.springframework.http.ResponseEntity
@@ -73,7 +70,9 @@ class PasteViewController(private val pasteService: PasteService) : ThymeleafVie
     }
 
     private fun plainText(status: HttpStatus): ResponseEntity.BodyBuilder =
-        ResponseEntity.status(status).contentType(MediaType("text", "plain", StandardCharsets.UTF_8))
+        ResponseEntity.status(status)
+            .contentType(MediaType("text", "plain", StandardCharsets.UTF_8))
+            .header("X-Content-Type-Options", "nosniff")
 
     @GetMapping
     fun showCreateForm(): ModelAndView = getModelAndView().addObject("create", true)

@@ -53,6 +53,7 @@ class PasteViewControllerTest {
             .andExpect(content().contentType("text/plain;charset=UTF-8"))
             .andExpect(content().string(content))
             .andExpect(header().string("Content-Disposition", "inline; filename=\"paste-$pasteId.txt\""))
+            .andExpect(header().string("X-Content-Type-Options", "nosniff"))
     }
 
     @Test

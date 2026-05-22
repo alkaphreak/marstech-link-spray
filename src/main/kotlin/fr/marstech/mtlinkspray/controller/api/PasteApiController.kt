@@ -40,9 +40,10 @@ class PasteApiController(private val pasteService: PasteService) {
 
     @GetMapping("/{pasteId}/raw", produces = [TEXT_PLAIN_VALUE])
     fun getRawPaste(
-        @PathVariable @NotBlank(message = "Paste ID cannot be blank") pasteId: String,
+        @PathVariable pasteId: String,
         @RequestParam(required = false) password: String?
     ): ResponseEntity<String> = try {
+        if (pasteId.isBlank()) return plainText(BAD_REQUEST).body("Bad request: paste ID cannot be blank")
         pasteService.getPaste(pasteId, password).let { paste ->
             plainText(OK)
                 .header(CONTENT_DISPOSITION, "inline; filename=\"paste-$pasteId.txt\"")
@@ -56,7 +57,6 @@ class PasteApiController(private val pasteService: PasteService) {
 
     private fun plainText(status: HttpStatus): ResponseEntity.BodyBuilder =
         ResponseEntity.status(status)
-            .contentType(
-                MediaType("text", "plain", UTF_8)
-            )
+            .contentType(MediaType("text", "plain", UTF_8))
+            .header("X-Content-Type-Options", "nosniff")
 }

@@ -448,6 +448,7 @@ class ApiPasteControllerTest {
             .andExpect(content().contentType("text/plain;charset=UTF-8"))
             .andExpect(content().string(content))
             .andExpect(header().string("Content-Disposition", "inline; filename=\"paste-$pasteId.txt\""))
+            .andExpect(header().string("X-Content-Type-Options", "nosniff"))
     }
 
     @Test
@@ -505,5 +506,16 @@ class ApiPasteControllerTest {
             .andExpect(status().isOk)
             .andExpect(content().contentType("text/plain;charset=UTF-8"))
             .andExpect(content().string(content))
+    }
+
+    @Test
+    fun shouldReturn400ForRawBlankPasteId() {
+        // Given - blank/whitespace-only pasteId bypasses routing but triggers manual guard
+        // When / Then
+        get("/api/paste/   /raw")
+            .let(mockMvc::perform)
+            .andExpect(status().isBadRequest)
+            .andExpect(content().contentType("text/plain;charset=UTF-8"))
+            .andExpect(content().string("Bad request: paste ID cannot be blank"))
     }
 }
