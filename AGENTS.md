@@ -75,12 +75,12 @@ Never auto-scan or modify:
 
 All AI-generated specs, analyses, and session notes go in **`.local/llm/`** — never in the project root.
 
-| Type                     | Pattern                                    | Example                          |
-|--------------------------|--------------------------------------------|----------------------------------|
-| Specification            | `{ISSUE-ID}-specification.md`              | `MLS-129-specification.md`       |
-| Implementation summary   | `{ISSUE-ID}-{PHASE}-COMPLETE.md`           | `MLS-129-PHASE2-COMPLETE.md`     |
-| Progress tracking        | `{ISSUE-ID}-progress.md`                   | `MLS-139-progress.md`            |
-| Session notes            | `{ISSUE-ID}-session{N}-{topic}.md`         | `MLS-129-session1-auth.md`       |
+| Type                   | Pattern                            | Example                      |
+|------------------------|------------------------------------|------------------------------|
+| Specification          | `{ISSUE-ID}-specification.md`      | `MLS-129-specification.md`   |
+| Implementation summary | `{ISSUE-ID}-{PHASE}-COMPLETE.md`   | `MLS-129-PHASE2-COMPLETE.md` |
+| Progress tracking      | `{ISSUE-ID}-progress.md`           | `MLS-139-progress.md`        |
+| Session notes          | `{ISSUE-ID}-session{N}-{topic}.md` | `MLS-129-session1-auth.md`   |
 
 See `.local/llm/README.md` for complete conventions.
 
@@ -88,7 +88,7 @@ See `.local/llm/README.md` for complete conventions.
 
 ## Key Rules for Agents
 
-- **Prefer Kotlin over Java** for all new code
+- **Prefer Kotlin to Java** for all new code
 - **Constructor injection** — never `@Autowired` on fields
 - **Test method names**: camelCase only — `shouldReturnUrlWhenCodeExists()`. No backticks.
 - **Test structure**: Given-When-Then
@@ -100,15 +100,17 @@ See `.local/llm/README.md` for complete conventions.
 
 ## Terminal Commands
 
+From the project root and using rtk :
+
 ```bash
 # Build + test
-rtk mvn clean verify -f /Users/marstechadmin/IdeaProjects/marstech-link-spray/pom.xml
+rtk mvn clean verify -f pom.xml
 
 # Run dev (requires MongoDB on 27017)
-rtk mvn spring-boot:run -f /Users/marstechadmin/IdeaProjects/marstech-link-spray/pom.xml
+rtk mvn spring-boot:run -f pom.xml
 
 # Run tests only
-rtk mvn test -f /Users/marstechadmin/IdeaProjects/marstech-link-spray/pom.xml
+rtk mvn test -f pom.xml
 ```
 
 ---
