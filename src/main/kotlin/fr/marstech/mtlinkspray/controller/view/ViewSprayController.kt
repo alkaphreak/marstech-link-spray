@@ -1,6 +1,7 @@
 package fr.marstech.mtlinkspray.controller.view
 
 import fr.marstech.mtlinkspray.enums.ViewNameEnum.SPRAY
+import fr.marstech.mtlinkspray.service.SprayService
 import fr.marstech.mtlinkspray.service.SprayService.Companion.getLinkList
 import fr.marstech.mtlinkspray.service.SprayService.Companion.getLinkListText
 import fr.marstech.mtlinkspray.service.SprayService.Companion.getLinkSpray
@@ -15,7 +16,9 @@ import org.springframework.web.servlet.ModelAndView
 
 @Controller
 @RequestMapping("/spray")
-class ViewSprayController : ThymeleafViewControllerInterface {
+class ViewSprayController(
+    private val sprayService: SprayService
+) : ThymeleafViewControllerInterface {
 
     @GetMapping
     fun getSprayPage(httpServletRequest: HttpServletRequest): ModelAndView =
@@ -28,6 +31,19 @@ class ViewSprayController : ThymeleafViewControllerInterface {
         getModelAndView().addObject("linkList", linkList)
             .addObject("linkListText", getLinkListText(linkList))
             .addObject("linkSpray", getLinkSpray(httpServletRequest, linkList))
+    }
+
+    @PostMapping("/shorten")
+    fun getShortenedSpray(
+        @RequestParam inputLinkList: String, httpServletRequest: HttpServletRequest
+    ): ModelAndView {
+        val linkList = getLinkList(inputLinkList)
+        val shortenedSprayUrl = sprayService.shortenAndSpray(linkList, httpServletRequest)
+        return getModelAndView()
+            .addObject("linkList", linkList)
+            .addObject("linkListText", getLinkListText(linkList))
+            .addObject("linkSpray", shortenedSprayUrl)
+            .addObject("linkSprayShortened", true)
     }
 
     @GetMapping("/open")
