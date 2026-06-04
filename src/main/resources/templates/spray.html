@@ -71,6 +71,20 @@
                 <p>
                     Test with the link: <a th:href="@{${linkSpray}}">Spray</a>
                 </p>
+
+                <!--/*@thymesVar id="linkSprayShortened" type="java.lang.Boolean"*/-->
+                <div th:unless="${linkSprayShortened}">
+                    <form accept-charset="UTF-8" action="/spray/shorten" method="post"
+                          th:action="@{/spray/shorten}">
+                        <input type="hidden" name="inputLinkList" th:value="${linkListText}"/>
+                        <button class="btn btn-outline-secondary btn-sm" type="submit">
+                            <i class="bi bi-scissors"></i> Shorten Spray
+                        </button>
+                    </form>
+                </div>
+                <div th:if="${linkSprayShortened}">
+                    <span class="badge text-bg-success"><i class="bi bi-check-circle"></i> The spray link has been shortened</span>
+                </div>
             </div>
         </div>
     </div>
