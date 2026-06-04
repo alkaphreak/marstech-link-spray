@@ -17,7 +17,7 @@ class SprayServiceImpl(
     override fun shortenAndSpray(urls: List<String>, httpServletRequest: HttpServletRequest): String {
         val shortenedUrls = urls.map { url ->
             shortenerService.shorten(url, httpServletRequest)
-                ?: throw UrlShorteningException("Failed to shorten URL: $url", null)
+                ?: throw UrlShorteningException("Failed to shorten URL", null)
         }
         val sprayUrl = getLinkSpray(httpServletRequest, shortenedUrls)
         return shortenerService.shorten(sprayUrl, httpServletRequest)

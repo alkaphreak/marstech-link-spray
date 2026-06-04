@@ -136,11 +136,11 @@ When adding or modifying a feature, update this file:
 
 If `graphify-out/` exists at the repo root:
 
-```bash
-MyGraphify /Users/marstechadmin/IdeaProjects/marstech-link-spray
+~~~bash
+MyGraphify .
 /graphify query "find all callers of ShortenerService"
 /graphify explain "URL resolution flow"
-```
+~~~
 
 ---
 
