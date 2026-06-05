@@ -8,11 +8,11 @@
 
 ## Stack
 
-- **Language**: Kotlin 2.x, Java 21 (Eclipse Temurin)
+- **Language**: Kotlin 2.3, Java 21 (Eclipse Temurin)
 - **Framework**: Spring Boot 3.5+, Spring WebMVC
 - **Build**: Maven (`pom.xml`)
 - **DB**: MongoDB (primary) — dev `localhost:27017`, test `localhost:27018`, prod `$MONGODB_URI_LINK_SPRAY`
-- **Testing**: JUnit 5 + Mockito + MockMvc — profile `test`
+- **Testing**: JUnit 5 + Mockito-Kotlin + MockMvc — profile `test`, local MongoDB on port 27018
 - **Releases**: JReleaser (`jreleaser.yml`) on `main` only
 - **Quality**: SonarCloud (`sonar-project.properties`)
 
@@ -94,7 +94,12 @@ See `.local/llm/README.md` for complete conventions.
 - **Test structure**: Given-When-Then
 - **DTOs for all API responses** — never return raw entities from controllers
 - **Schema-first**: data classes with validation annotations are the contract, not comments
-- **Conventional commits** for all commit messages
+- **Conventional commits** for all commit messages — append ticket ID and full YouTrack URL on a trailing line when available:
+  ```
+  feat(shortener): add expiry support
+
+  MLS-142 https://marstech.myjetbrains.com/youtrack/issue/MLS-142
+  ```
 
 ---
 
@@ -146,4 +151,21 @@ MyGraphify .
 
 ---
 
-_Last updated: 2026-06-04 — MARSTECH-643 AGENTS.md standard rollout_
+## Maintaining This File
+
+This file is **living documentation**. Any agent (or human) making changes to the project MUST keep it up to date in the same commit or PR.
+
+| Change type                              | What to update                                                     |
+|------------------------------------------|--------------------------------------------------------------------|
+| New controller or service                | Add to `## Codebase Map` and `## Critical flows` if flow changes   |
+| New external integration                 | Add to `## External Integrations`                                  |
+| New naming convention or coding pattern  | Add to `## Key Rules for Agents`                                   |
+| New build/run command                    | Add to `## Terminal Commands`                                      |
+| Stack version bump (Kotlin, Spring, etc) | Update `## Stack` with new version                                 |
+| New AI-exclusion path                    | Add to `## AI Exclusions`                                          |
+
+**Rule**: Never leave this file describing a state that no longer reflects the repository.
+
+---
+
+_Last updated: 2026-06-05 — MLS-139 AI-agent readiness_
