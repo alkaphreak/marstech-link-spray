@@ -366,7 +366,7 @@ permissions:
   contents: write
 ```
 
-2) Ensure actions/checkout persists credentials
+1) Ensure actions/checkout persists credentials
 
 Make the checkout step explicitly persist credentials so the `GITHUB_TOKEN` is available to `git` for pushing:
 
@@ -381,11 +381,11 @@ Make the checkout step explicitly persist credentials so the `GITHUB_TOKEN` is a
 
 (actions/checkout default is usually `persist-credentials: true`, but some runners or workflows explicitly set read-only defaults — setting it explicitly avoids ambiguity.)
 
-3) Check repository Actions permissions
+1) Check repository Actions permissions
 
 Go to: Repository Settings → Actions → General → Workflow permissions. Ensure it's set to "Read and write permissions" (not "Read repository contents only").
 
-4) Fallback: Use a Personal Access Token (PAT)
+1) Fallback: Use a Personal Access Token (PAT)
 
 If your organization or repo policy blocks `GITHUB_TOKEN` writes (common in some orgs), create a GitHub Personal Access Token with `repo` scope and store it as a secret (for example `REPO_PAT`). Then change the push step to use it explicitly:
 
@@ -397,11 +397,11 @@ git push origin "$BRANCH_NAME"
 
 Or use `actions/setup-git-credentials`-style actions that accept a token input.
 
-5) Make sure the workflow run is not from an untrusted fork
+1) Make sure the workflow run is not from an untrusted fork
 
 Workflows triggered by pull requests from forks run with reduced permissions and cannot push back to the main repository. Trigger releases from the protected `main` branch (via `workflow_dispatch`) or from trusted runs.
 
-6) Verify Git user is configured
+1) Verify Git user is configured
 
 The workflow already configures `git config user.email` and `user.name` — keep those lines. The missing piece in your logs was authentication, not username config.
 

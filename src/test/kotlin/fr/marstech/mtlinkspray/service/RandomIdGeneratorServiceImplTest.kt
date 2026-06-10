@@ -5,7 +5,13 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty
-import org.mockito.Mockito.*
+import org.mockito.Mockito.atLeastOnce
+import org.mockito.Mockito.never
+import org.mockito.Mockito.reset
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.bean.override.mockito.MockitoBean
@@ -81,7 +87,7 @@ class RandomIdGeneratorServiceImplTest {
     @Test
     fun getGeneratedFreeIdShouldDelegateToWithCacheWhenCacheEnabled() {
         // Given
-        `when`(linkItemRepository.findAllIds()).thenReturn(emptyList())
+        whenever(linkItemRepository.findAllIds()).thenReturn(emptyList())
 
         // When
         val id = randomIdGeneratorService.getGeneratedFreeId()
@@ -94,7 +100,7 @@ class RandomIdGeneratorServiceImplTest {
     @Test
     fun getGeneratedFreeIdWithoutCacheShouldReturnIdOnFirstAttempt() {
         // Given
-        `when`(linkItemRepository.existsById(anyString())).thenReturn(false)
+        whenever(linkItemRepository.existsById(anyOrNull())).thenReturn(false)
 
         // When
         val id = randomIdGeneratorService.getGeneratedFreeIdWithoutCache()
@@ -107,7 +113,7 @@ class RandomIdGeneratorServiceImplTest {
     @Test
     fun getGeneratedFreeIdWithoutCacheShouldRetryWhenIdAlreadyExists() {
         // Given — first 3 generated ids are taken, the 4th is free
-        `when`(linkItemRepository.existsById(anyString()))
+        whenever(linkItemRepository.existsById(anyOrNull()))
             .thenReturn(true)
             .thenReturn(true)
             .thenReturn(true)
@@ -118,13 +124,13 @@ class RandomIdGeneratorServiceImplTest {
 
         // Then
         assertNotNull(id)
-        verify(linkItemRepository, times(4)).existsById(anyString())
+        verify(linkItemRepository, times(4)).existsById(anyOrNull())
     }
 
     @Test
     fun getGeneratedFreeIdWithoutCacheShouldThrowWhenMaxAttemptsExceeded() {
         // Given — all attempts return true (id always taken)
-        `when`(linkItemRepository.existsById(anyString())).thenReturn(true)
+        whenever(linkItemRepository.existsById(anyOrNull())).thenReturn(true)
 
         // When / Then
         assertThrows(IllegalStateException::class.java) {
@@ -135,7 +141,7 @@ class RandomIdGeneratorServiceImplTest {
     @Test
     fun getGeneratedFreeIdWithCacheShouldReturnIdAndRemoveItFromCache() {
         // Given
-        `when`(linkItemRepository.findAllIds()).thenReturn(emptyList())
+        whenever(linkItemRepository.findAllIds()).thenReturn(emptyList())
 
         // When
         val id = randomIdGeneratorService.getGeneratedFreeIdWithCache()
@@ -149,7 +155,7 @@ class RandomIdGeneratorServiceImplTest {
     @Test
     fun getGeneratedFreeIdWithCacheShouldRefillCacheWhenBelowThreshold() {
         // Given — cache is empty, the repository has no existing ids
-        `when`(linkItemRepository.findAllIds()).thenReturn(emptyList())
+        whenever(linkItemRepository.findAllIds()).thenReturn(emptyList())
 
         // When
         randomIdGeneratorService.getGeneratedFreeIdWithCache()
@@ -177,7 +183,7 @@ class RandomIdGeneratorServiceImplTest {
     fun getGeneratedFreeIdWithCacheShouldExcludeExistingRepositoryIds() {
         // Given — cache is empty (below threshold), repository reports some ids as already taken
         val existingId = randomIdGeneratorService.generateRandomId()
-        `when`(linkItemRepository.findAllIds()).thenReturn(listOf(existingId))
+        whenever(linkItemRepository.findAllIds()).thenReturn(listOf(existingId))
 
         // When — cache refill is triggered, existing ids must be filtered out
         val id = randomIdGeneratorService.getGeneratedFreeIdWithCache()

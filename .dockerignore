@@ -31,7 +31,6 @@
 **/vendor
 LICENSE
 README.md
-**/*.iml
 **/*.ipr
 **/*.iws
 **/*.log
