@@ -29,7 +29,7 @@ class ShortenerServiceImpl(
         description = null,
         metadata = Map.of<String, String>(),
         author = HistoryItem(),
-        historyItems = mutableListOf<HistoryItem>(),
+        historyItems = mutableListOf(),
         target = LinkItemTarget(url)
     ).let { linkItemRepository.save(it) }
         .let {
@@ -43,7 +43,7 @@ class ShortenerServiceImpl(
         uid: String,
     ): String =
         linkItemRepository.findById(uid)
-            .orElseThrow<ChangeSetPersister.NotFoundException?>(
+            .orElseThrow(
                 Supplier { ChangeSetPersister.NotFoundException() })
             .target
             .targetUrl

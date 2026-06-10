@@ -1,32 +1,32 @@
 package fr.marstech.mtlinkspray.conf
 
-import fr.marstech.mtlinkspray.repository.MtLinkSprayCollectionRepository
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.`when`
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import org.springframework.core.env.Environment
 
 class ApplicationReadyEventHandlerForDevTest {
 
     private lateinit var environment: Environment
-    private lateinit var repository: MtLinkSprayCollectionRepository
     private lateinit var handler: ApplicationReadyEventHandlerForDev
 
     @BeforeEach
     fun setup() {
-        environment = mock(Environment::class.java)
-        repository = mock(MtLinkSprayCollectionRepository::class.java)
-        handler = ApplicationReadyEventHandlerForDev(environment)
+        environment = mock()
+        handler = ApplicationReadyEventHandlerForDev(environment, "1.0.0-test")
     }
 
     @Test
     fun displayServerUrlInConsoleLogsServerUrl() {
-        runBlocking {
-            `when`(environment.getProperty("server.port")).thenReturn("8080")
-            handler.displayServerUrlInConsole()
-            // Check logs manually or with a log-capturing library
-        }
+        // Given
+        whenever(environment.getProperty("server.port")).thenReturn("8080")
+
+        // When
+        val job = handler.displayServerUrlInConsole()
+
+        // Then - job is launched without exception
+        runBlocking { job.join() }
     }
 }

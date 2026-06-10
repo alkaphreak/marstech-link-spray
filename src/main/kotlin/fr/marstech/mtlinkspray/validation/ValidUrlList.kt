@@ -116,21 +116,20 @@ class ValidUrlListValidator : ConstraintValidator<ValidUrlList, List<String>> {
         }
 
         // Check if URI has a scheme (protocol)
-        val scheme = uri.scheme?.lowercase()
-        if (scheme == null) {
-            return "URL must have a protocol (e.g., http:// or https://)"
-        }
+        val scheme = uri.scheme?.lowercase() ?: return "URL must have a protocol (e.g., http:// or https://)"
 
         // Check if scheme is allowed
-        if (scheme !in allowedProtocols) {
-            return "URL protocol must be one of: ${allowedProtocols.joinToString(", ")}"
-        }
+        return when {
+            scheme !in allowedProtocols -> {
+                "URL protocol must be one of: ${allowedProtocols.joinToString(", ")}"
+            }
 
-        // Check if URI has a valid host for absolute URIs
-        if (uri.isAbsolute && uri.host.isNullOrBlank()) {
-            return "URL must have a valid host"
-        }
+            // Check if URI has a valid host for absolute URIs
+            uri.isAbsolute && uri.host.isNullOrBlank() -> {
+                "URL must have a valid host"
+            }
 
-        return null // No error
+            else -> null
+        } // No error
     }
 }
