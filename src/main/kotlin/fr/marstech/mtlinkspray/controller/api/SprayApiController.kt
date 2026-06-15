@@ -14,7 +14,9 @@ import org.springframework.web.bind.annotation.RestController
 @Validated
 @RestController
 @RequestMapping("/api/spray")
-class SprayApiController {
+class SprayApiController(
+    private val sprayService: SprayService
+) {
 
     @GetMapping
     fun getSprayLink(
@@ -23,6 +25,12 @@ class SprayApiController {
         @NotEmptyNotBlank
         @ValidUrlList(maxSize = 100, message = "Invalid URL list")
         inputLinkList: List<String>,
+        @RequestParam(defaultValue = "false")
+        shorten: Boolean = false,
     ): String =
-        SprayService.getLinkSpray(httpServletRequest, inputLinkList)
+        if (shorten) {
+            sprayService.shortenAndSpray(inputLinkList, httpServletRequest)
+        } else {
+            SprayService.getLinkSpray(httpServletRequest, inputLinkList)
+        }
 }

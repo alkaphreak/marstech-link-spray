@@ -18,6 +18,8 @@ simple steps to generate a unique link that will open all the specified URLs.
 [![Technical Debt](https://sonarcloud.io/api/project_badges/measure?project=alkaphreak_marstech-link-spray&metric=sqale_index)](https://sonarcloud.io/summary/new_code?id=alkaphreak_marstech-link-spray)
 [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=alkaphreak_marstech-link-spray&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=alkaphreak_marstech-link-spray)
 [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=alkaphreak_marstech-link-spray&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=alkaphreak_marstech-link-spray)
+[![Docker Image Version](https://img.shields.io/docker/v/alkaphreak/marstech-link-spray/latest?label=Docker%20Hub)](https://hub.docker.com/r/alkaphreak/marstech-link-spray)
+[![Docker Pulls](https://img.shields.io/docker/pulls/alkaphreak/marstech-link-spray)](https://hub.docker.com/r/alkaphreak/marstech-link-spray)
 
 ## Features
 
@@ -36,9 +38,9 @@ simple steps to generate a unique link that will open all the specified URLs.
 
 | Technology                  | Version        |
 |-----------------------------|----------------|
-| Kotlin                      | 2.3.0          |
+| Kotlin                      | 2.3.21         |
 | Java                        | 21 (Temurin)   |
-| Spring Boot                 | 3.5.10         |
+| Spring Boot                 | 3.5.14         |
 | Spring WebMVC               | (via Boot)     |
 | Spring Data MongoDB         | (via Boot)     |
 | Spring Security Crypto      | (via Boot)     |
@@ -105,6 +107,46 @@ src/main/kotlin/fr/marstech/mtlinkspray/
 | GET    | `/api/random`                | Generate a random number            |
 | GET    | `/api/uuid`                  | Generate a random UUID              |
 | GET    | `/{shortUrlUid}`             | Redirect to the target URL          |
+
+## SDK Version Management
+
+This project uses [SDKMan](https://sdkman.io/) to manage SDK versions consistently across environments.
+A `.sdkmanrc` file at the project root pins the exact versions used:
+
+```properties
+java=21.0.11-tem
+maven=3.9.15
+kotlin=2.3.21
+springboot=3.5.14
+```
+
+### Enable automatic SDK switching
+
+1. Install SDKMan if not already installed:
+    ```bash
+    curl -s "https://get.sdkman.io" | bash
+    source "$HOME/.sdkman/bin/sdkman-init.sh"
+    ```
+
+2. Enable auto-env switching in `~/.sdkman/etc/config`:
+    ```properties
+    sdkman_auto_env=true
+    ```
+
+3. SDKMan will automatically switch to the correct SDK versions when entering the project directory:
+    ```bash
+    cd marstech-link-spray
+    # SDKMan applies .sdkmanrc automatically
+    java -version  # Should show Java 21 (Temurin)
+    ```
+
+4. To apply manually without auto-env:
+    ```bash
+    sdk env install  # Install all versions declared in .sdkmanrc
+    sdk env          # Apply versions for current session
+    ```
+
+See [docs/setup-guide.md](docs/setup-guide.md) for full environment setup instructions.
 
 ## Installation
 
@@ -210,7 +252,7 @@ echo "testcontainers.reuse.enable=true" >> $HOME/.testcontainers.properties
 
 ## Releases
 
-This project uses **JReleaser** for automated, professional releases. Current version: **0.0.5**
+This project uses **JReleaser** for automated, professional releases. Current version: **0.2.0**
 
 ### Quick Release
 1. Go to GitHub Actions → "Release" workflow
@@ -218,6 +260,31 @@ This project uses **JReleaser** for automated, professional releases. Current ve
 3. Automated release with changelog and artifacts
 
 See [RELEASE.md](RELEASE.md) for detailed release documentation.
+
+## Docker
+
+The application is available as a multi-arch Docker image (`linux/amd64`, `linux/arm64`) on Docker Hub.
+
+- Docker Hub repository: https://hub.docker.com/r/alkaphreak/marstech-link-spray
+- All tags and versions: https://hub.docker.com/r/alkaphreak/marstech-link-spray/tags
+
+### Pull and run
+
+```bash
+# Pull latest
+docker pull alkaphreak/marstech-link-spray:latest
+
+# Pull a specific version
+docker pull alkaphreak/marstech-link-spray:v0.2.0
+
+# Run (replace with your MongoDB URI)
+docker run -d \
+  --name marstech-link-spray \
+  --restart unless-stopped \
+  -p 8096:8096 \
+  -e MONGODB_URI_LINK_SPRAY="mongodb://your-mongo-host:27017/linkspray" \
+  alkaphreak/marstech-link-spray:latest
+```
 
 ## Contributing
 

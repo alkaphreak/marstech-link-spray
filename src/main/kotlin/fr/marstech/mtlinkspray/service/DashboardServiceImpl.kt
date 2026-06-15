@@ -2,13 +2,11 @@ package fr.marstech.mtlinkspray.service
 
 import fr.marstech.mtlinkspray.dto.DashboardDto
 import fr.marstech.mtlinkspray.entity.DashboardEntity
-import fr.marstech.mtlinkspray.entity.DashboardItem
 import fr.marstech.mtlinkspray.entity.HistoryItem
 import fr.marstech.mtlinkspray.repository.DashboardRepository
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 import java.util.*
-import java.util.Map
 
 @Service
 class DashboardServiceImpl(
@@ -21,9 +19,9 @@ class DashboardServiceImpl(
         null,
         true,
         dashboardDto.description,
-        Map.of<String, String>(),
+        mutableMapOf(),
         HistoryItem(),
-        mutableListOf<HistoryItem>(),
+        mutableListOf(),
         dashboardDto.name,
         dashboardDto.items
     ).let {
@@ -36,7 +34,7 @@ class DashboardServiceImpl(
         DashboardDto(
             id = UUID.randomUUID().toString(),
             name = dashboardName,
-            items = mutableListOf<DashboardItem>(),
+            items = mutableListOf(),
             description = null
         )
     )
