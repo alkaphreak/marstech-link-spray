@@ -2,12 +2,12 @@
 
 ## Project Overview
 MarsTech Link Spray is a URL shortener and link management service built with:
-- **Language**: Kotlin (Spring Boot)
-- **Framework**: Spring Boot 3.5.6, Spring WebMVC
+- **Language**: Kotlin 2.3, Java 21 (Eclipse Temurin)
+- **Framework**: Spring Boot 3.5+, Spring WebMVC
 - **Database**: MongoDB
 - **Build Tool**: Maven
 - **Java Version**: 21 (Temurin)
-- **Testing**: JUnit 5, MockMvc, Mockito
+- **Testing**: JUnit 5, MockMvc, Mockito-Kotlin (`org.mockito.kotlin`)
 
 ## Coding Standards & Preferences
 
@@ -43,8 +43,8 @@ MarsTech Link Spray is a URL shortener and link management service built with:
 - Write **unit tests** for services and utilities
 - Write **integration tests** with `@SpringBootTest` for controllers
 - Use **MockMvc** for REST API testing
-- Mock dependencies with **Mockito** (`@MockBean`, `@Mock`)
-- Test profile: `test` (uses port 27018 for MongoDB)
+- Mock dependencies with **Mockito-Kotlin** (`org.mockito.kotlin`) — use `@MockitoBean`, `@Mock`, `whenever()`
+- Test profile: `test` (uses local MongoDB on port 27018 — start with `docker-compose.test.yml`)
 - Aim for **high code coverage**
 - Use **Given-When-Then** structure for test methods
 - **ALWAYS use camelCase** method names (e.g., `shouldReturnUserWhenUserExists`)
@@ -72,7 +72,12 @@ MarsTech Link Spray is a URL shortener and link management service built with:
 - Sanitize URLs to prevent XSS/injection attacks
 
 ### Documentation
-- Write **meaningful commit messages** (conventional commits format)
+- Write **meaningful commit messages** (conventional commits format) — when a YouTrack ticket is available, append the ticket ID and full URL on a trailing line:
+  ```
+  feat(shortener): add expiry support
+
+  MLS-142 https://marstech.myjetbrains.com/youtrack/issue/MLS-142
+  ```
 - Add **KDoc comments** for public APIs
 - Include **README** updates for new features
 - Document environment variables and configuration
@@ -86,17 +91,20 @@ MarsTech Link Spray is a URL shortener and link management service built with:
 ## Project Structure
 ```
 src/main/kotlin/fr/marstech/mtlinkspray/
-├── conf/           # Configuration classes
+├── conf/           # Spring configuration classes
 ├── controller/     # REST controllers
-│   ├── api/       # API endpoints
-│   └── view/      # View controllers
-├── dto/           # Data Transfer Objects
-├── exception/     # Custom exceptions
-├── model/         # Domain models/entities
-├── repository/    # MongoDB repositories
-├── service/       # Business logic
-│   └── impl/     # Service implementations
-└── util/          # Utility classes
+│   ├── api/        # API endpoints (@RestController)
+│   ├── view/       # Thymeleaf view controllers
+│   └── commons/    # Shared controller utilities
+├── dto/            # Request/response DTOs (never return entities from controllers)
+├── entity/         # MongoDB @Document classes
+├── enums/          # Enumerations
+├── exception/      # Custom exceptions + @ControllerAdvice handlers
+├── objects/        # Constants / singleton objects
+├── repository/     # Spring Data MongoDB repositories
+├── service/        # Service interfaces + Impl pairs
+├── utils/          # Pure utility functions
+└── validation/     # Custom JSR-380 validators
 ```
 
 ## Common Patterns in This Project

@@ -24,6 +24,8 @@ Content-Type: application/json
 {
   "invalid": "json",
   "missing": "closing brace"
+}
+
 
 ### Test 400 - Missing required parameter
 GET {{baseUrl}}/api/url-shortener/shorten
