@@ -7,26 +7,14 @@ import org.springframework.stereotype.Service
 
 @Service
 class RandomIdGeneratorServiceImpl(
-    val linkItemRepository: LinkItemRepository
+    private val linkItemRepository: LinkItemRepository,
+    @param:Value($$"${mt.link-spray.random-id.length}") val length: Int,
+    @param:Value($$"${mt.link-spray.random-id.cache.enabled}") val isCacheEnabled: Boolean,
+    @param:Value($$"${mt.link-spray.random-id.cache.depth}") val cacheDepth: Int,
+    @param:Value($$"${mt.link-spray.random-id.cache.treshold}") val cacheTreshold: Int,
+    @param:Value($$"${mt.link-spray.random-id.prefix}") private val prefix: String,
+    @param:Value($$"${mt.link-spray.random-id.charset}") private val charset: String,
 ) : RandomIdGeneratorService {
-
-    @Value($$"${mt.link-spray.random-id.length}")
-    var length: Int = 0
-
-    @Value($$"${mt.link-spray.random-id.cache.enabled}")
-    val isCacheEnabled: Boolean = true
-
-    @Value($$"${mt.link-spray.random-id.cache.depth}")
-    val cacheDepth: Int = 100
-
-    @Value($$"${mt.link-spray.random-id.cache.treshold}")
-    val cacheTreshold: Int = 10
-
-    @Value($$"${mt.link-spray.random-id.prefix}")
-    val prefix: String = ""
-
-    @Value($$"${mt.link-spray.random-id.charset}")
-    val charset: String = (0..127).map(Int::toChar).joinToString("")
 
     val cacheIds: LinkedHashSet<String> = LinkedHashSet()
 

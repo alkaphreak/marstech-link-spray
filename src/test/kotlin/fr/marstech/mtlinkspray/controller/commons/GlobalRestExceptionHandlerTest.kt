@@ -1,9 +1,7 @@
 package fr.marstech.mtlinkspray.controller.commons
 
 import jakarta.validation.ConstraintViolationException
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
@@ -19,9 +17,11 @@ import org.springframework.web.context.request.WebRequest
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
 
 // Top-level dummy used by several tests
-@Suppress("unused", "UNUSED_PARAMETER")
+@Suppress("UNUSED_PARAMETER")
 class Dummy {
-    fun method(param: String) {}
+    fun method(param: String) {
+        // No implementation needed for testing purposes
+    }
 }
 
 class GlobalRestExceptionHandlerTest {

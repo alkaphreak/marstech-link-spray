@@ -8,6 +8,17 @@ import jakarta.servlet.http.HttpServletRequest
 import org.springframework.web.util.UriComponentsBuilder
 
 interface SprayService {
+
+    /**
+     * Shortens each URL in the list, builds a spray link from the shortened URLs,
+     * then shortens the resulting spray link into a single short URL.
+     *
+     * @param urls               the list of raw target URLs
+     * @param httpServletRequest the current HTTP request (used to build absolute URLs)
+     * @return a single shortened URL that redirects to a spray page of shortened links
+     */
+    fun shortenAndSpray(urls: List<String>, httpServletRequest: HttpServletRequest): String
+
     companion object {
 
         /**
