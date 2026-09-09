@@ -52,7 +52,7 @@ internal class ShortenerServiceTest {
             mutableListOf(),
             LinkItemTarget("https://www.example.com")
         )
-        whenever(linkItemRepository.save(any())).thenReturn(linkItem)
+        whenever(linkItemRepository.save(any<LinkItem>())).thenReturn(linkItem)
         whenever(linkItemRepository.findById(id)).thenReturn(Optional.of(linkItem))
         linkItemRepository.save(linkItem)
         val found = linkItemRepository.findById(id)
@@ -75,7 +75,7 @@ internal class ShortenerServiceTest {
             mutableListOf(),
             LinkItemTarget("https://www.example.com")
         )
-        whenever(linkItemRepository.save(any())).thenReturn(linkItem)
+        whenever(linkItemRepository.save(any<LinkItem>())).thenReturn(linkItem)
         whenever(linkItemRepository.findById(id)).thenReturn(Optional.of(linkItem))
         whenever(randomIdGeneratorService.getGeneratedFreeId()).thenReturn(id)
         shortenerService.shorten("https://www.example.com", httpServletRequest).let {
@@ -89,7 +89,7 @@ internal class ShortenerServiceTest {
     @Test
     fun shortenInvalidUrl() {
         whenever(randomIdGeneratorService.getGeneratedFreeId()).thenReturn("invalid-id")
-        whenever(linkItemRepository.save(any())).thenReturn(null)
+        whenever(linkItemRepository.save(any<LinkItem>())).thenReturn(null)
         val exception: Exception? = Assertions.assertThrows(
             NullPointerException::class.java
         ) { shortenerService.shorten("invalid-url", httpServletRequest) }
@@ -111,7 +111,7 @@ internal class ShortenerServiceTest {
             mutableListOf(),
             LinkItemTarget(url)
         )
-        whenever(linkItemRepository.save(any())).thenReturn(linkItem)
+        whenever(linkItemRepository.save(any<LinkItem>())).thenReturn(linkItem)
         whenever(linkItemRepository.findById(id)).thenReturn(Optional.of(linkItem))
         whenever(randomIdGeneratorService.getGeneratedFreeId()).thenReturn(id)
         val shortened = shortenerService.shorten(url, httpServletRequest)
@@ -143,7 +143,7 @@ internal class ShortenerServiceTest {
             mutableListOf(),
             LinkItemTarget(url)
         )
-        whenever(linkItemRepository.save(any())).thenReturn(linkItem)
+        whenever(linkItemRepository.save(any<LinkItem>())).thenReturn(linkItem)
         whenever(linkItemRepository.findById(id)).thenReturn(Optional.of(linkItem))
         whenever(randomIdGeneratorService.getGeneratedFreeId()).thenReturn(id)
         val shortened = shortenerService.shorten(url, httpServletRequest)
