@@ -56,7 +56,7 @@ class PasteServiceImpl(
         pasteRepository.deleteById(id)
     }
 
-    fun hashPassword(password: String): String = passwordEncoder.encode(password)
+    fun hashPassword(password: String): String = passwordEncoder.encode(password)!!
 
     private fun checkPassword(password: String, passwordHash: String): Boolean =
         passwordEncoder.matches(password, passwordHash)

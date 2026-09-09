@@ -50,7 +50,7 @@
     </scm>
 
     <properties>
-        <java.version>21</java.version>
+        <java.version>25</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <dependency.locations.enabled>false</dependency.locations.enabled>
         <dependency.details.enabled>false</dependency.details.enabled>
@@ -87,6 +87,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- @WebMvcTest moved out of spring-boot-test-autoconfigure into its own starter in Boot 4 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -142,11 +148,15 @@
             <artifactId>kotlin-maven-plugin</artifactId>
             <version>${kotlin.version}</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.module/jackson-module-kotlin -->
+        <!-- Jackson 3 (tools.jackson) is Boot 4's default JSON engine; the module relocated from
+             com.fasterxml.jackson.module -> tools.jackson.module. The old artifact is a no-op
+             against the app's actual (Jackson 3) ObjectMapper, silently dropping Kotlin
+             nullability/default-value support during request deserialization. -->
+        <!-- https://mvnrepository.com/artifact/tools.jackson.module/jackson-module-kotlin -->
         <dependency>
-            <groupId>com.fasterxml.jackson.module</groupId>
+            <groupId>tools.jackson.module</groupId>
             <artifactId>jackson-module-kotlin</artifactId>
-            <version>2.22.0</version>
+            <version>3.0.3</version>
         </dependency>
 
         <dependency>

@@ -1,6 +1,7 @@
 package fr.marstech.mtlinkspray.controller.api
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import fr.marstech.mtlinkspray.MtLinkSprayApplication
 import fr.marstech.mtlinkspray.controller.commons.GlobalRestExceptionHandler
 import fr.marstech.mtlinkspray.dto.PasteRequest
@@ -13,7 +14,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
 import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType.APPLICATION_JSON
 import org.springframework.test.context.ContextConfiguration
@@ -34,8 +35,7 @@ class ApiPasteControllerTest {
     @MockitoBean
     lateinit var pasteService: PasteService
 
-    @Autowired
-    lateinit var objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper = jacksonObjectMapper()
 
     @Test
     fun shouldCreatePasteAndReturnResponse() {
