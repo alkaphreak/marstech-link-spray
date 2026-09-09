@@ -7,6 +7,7 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
 import org.springframework.beans.TypeMismatchException
 import org.springframework.core.MethodParameter
+import org.springframework.http.HttpInputMessage
 import org.springframework.http.HttpStatus
 import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.validation.BeanPropertyBindingResult
@@ -150,10 +151,13 @@ class GlobalRestExceptionHandlerTest {
         assertEquals("Binding Failed", response.body?.error)
     }
 
-    @Suppress("DEPRECATION")
     @Test
     fun shouldReturn400ForJsonParseException() {
-        val ex = HttpMessageNotReadableException("JSON parse error", RuntimeException("cause"))
+        val ex = HttpMessageNotReadableException(
+            "JSON parse error",
+            RuntimeException("cause"),
+            mock(HttpInputMessage::class.java)
+        )
         val response = handler.handleJsonParseException(ex, mockRequest)
         assertEquals(HttpStatus.BAD_REQUEST, response.statusCode)
         assertNotNull(response.body)
