@@ -184,7 +184,7 @@
         <dependency>
             <groupId>de.flapdoodle.embed</groupId>
             <artifactId>de.flapdoodle.embed.mongo</artifactId>
-            <version>4.24.0</version>
+            <version>4.33.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -349,7 +349,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.14</version>
+                <version>0.8.15</version>
                 <executions>
                     <execution>
                         <id>prepare-agent</id>
@@ -374,7 +374,7 @@
             <plugin>
                 <groupId>org.jreleaser</groupId>
                 <artifactId>jreleaser-maven-plugin</artifactId>
-                <version>1.24.0</version>
+                <version>1.25.0</version>
                 <inherited>false</inherited>
             </plugin>
         </plugins>
