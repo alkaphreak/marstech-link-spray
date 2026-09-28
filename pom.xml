@@ -156,7 +156,7 @@
         <dependency>
             <groupId>tools.jackson.module</groupId>
             <artifactId>jackson-module-kotlin</artifactId>
-            <version>3.0.3</version>
+            <version>3.2.3</version>
         </dependency>
 
         <dependency>
@@ -181,7 +181,7 @@
         <dependency>
             <groupId>org.mockito.kotlin</groupId>
             <artifactId>mockito-kotlin</artifactId>
-            <version>6.3.0</version>
+            <version>6.4.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
