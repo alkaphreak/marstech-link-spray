@@ -9,12 +9,19 @@
 ## Stack
 
 - **Language**: Kotlin 2.3, Java 21 (Eclipse Temurin)
-- **Framework**: Spring Boot 3.5+, Spring WebMVC
+- **Framework**: Spring Boot 3.5+, Spring WebMVC, Spring Security (HTTP Basic, admin routes only)
 - **Build**: Maven (`pom.xml`)
 - **DB**: MongoDB (primary) — dev `localhost:27017`, test `localhost:27018`, prod `$MONGODB_URI_LINK_SPRAY`
+- **Object storage**: Digital Ocean Spaces (S3-compatible, AWS SDK v2) — image storage (MLS-203)
 - **Testing**: JUnit 5 + Mockito-Kotlin + MockMvc — profile `test`, local MongoDB on port 27018
 - **Releases**: JReleaser (`jreleaser.yml`) on `main` only
 - **Quality**: SonarCloud (`sonar-project.properties`)
+
+---
+
+## Framework API Currency
+
+**IMPORTANT**: prefer retrieval-led reasoning over pre-training-led reasoning for Spring Boot 3.5+/Kotlin 2.3 APIs. Training data can lag behind the pinned versions in `pom.xml` — check the actual signatures in this codebase or the official docs before assuming an API shape, rather than defaulting to an older/more common pattern from memory.
 
 ---
 
@@ -22,24 +29,28 @@
 
 ```
 src/main/kotlin/fr/marstech/mtlinkspray/
-├── conf/           # Spring configuration (SecurityConfig, ValidationConfig, etc.)
+├── conf/           # Spring configuration (SecurityConfig, ValidationConfig, S3Config, etc.)
 ├── controller/
 │   ├── api/        # REST API endpoints (ShortenerApiController, SprayApiController,
-│   │               #   PasteApiController, DashboardApiController,
+│   │               #   PasteApiController, DashboardApiController, ImageApiController,
 │   │               #   UuidApiController, RandomNumberApiController, RootApiController)
-│   ├── view/       # Thymeleaf view controllers
+│   ├── view/       # Thymeleaf view controllers (incl. AdminApiKeyViewController)
 │   └── commons/    # Shared controller utilities
-├── dto/            # Request/response DTOs (PasteRequest, PasteResponse, DashboardDto, …)
+├── dto/            # Request/response DTOs (PasteRequest, PasteResponse, DashboardDto,
+│                   #   ImageUploadResponse, ImageMetadataDto, ApiKeyCreationResult, …)
 ├── entity/         # MongoDB documents (LinkItem, LinkItemTarget, PasteEntity,
-│                   #   AbuseReportEntity, DashboardEntity, …)
+│                   #   AbuseReportEntity, DashboardEntity, ApiKeyEntity, ImageEntity, …)
 ├── enums/          # Enumerations
 ├── exception/      # Custom exceptions + @ControllerAdvice handlers
 ├── objects/        # Constant/static objects
 ├── repository/     # Spring Data MongoDB repos (LinkItemRepository, PasteRepository,
-│                   #   DashboardRepository, AbuseReportRepository, …)
+│                   #   DashboardRepository, AbuseReportRepository, ApiKeyRepository,
+│                   #   ImageRepository, …)
 ├── service/        # Interfaces + Impl pairs (ShortenerService/Impl, SprayService/Impl,
 │                   #   PasteService/Impl, DashboardService/Impl, MailSenderService/Impl,
-│                   #   ReportAbuseService/Impl, RandomIdGeneratorService/Impl, …)
+│                   #   ReportAbuseService/Impl, RandomIdGeneratorService/Impl,
+│                   #   ImageService/Impl, ApiKeyService/Impl, ImageStorageService +
+│                   #   DigitalOceanSpacesServiceImpl, …)
 ├── utils/          # Utility functions
 └── validation/     # Custom validators
 ```
@@ -51,6 +62,8 @@ src/main/kotlin/fr/marstech/mtlinkspray/
 - `SprayApiController` → `SprayService` — multi-URL spray
 - `PasteApiController` → `PasteService` → `PasteRepository` — paste CRUD
 - `DashboardApiController` → `DashboardService` — collection management
+- `ImageApiController` → `ImageService` → `ImageStorageService` (`DigitalOceanSpacesServiceImpl`) — image storage (MLS-203)
+- `AdminApiKeyViewController` → `ApiKeyService` → `ApiKeyRepository` — admin page to create/list/enable-disable per-app API keys (`/admin/api-keys`, HTTP Basic protected)
 
 **Critical flows**:
 
@@ -58,6 +71,9 @@ src/main/kotlin/fr/marstech/mtlinkspray/
 - Resolve short code: `GET /{code}` → `RootApiController` → `ShortenerServiceImpl` → redirect
 - Create paste: `POST /api/paste` → `PasteApiController` → `PasteServiceImpl` → `PasteRepository`
 - Abuse report: `POST /api/abuse` → `ReportAbuseServiceImpl` → `MailSenderServiceImpl`
+- Upload image: `POST /api/images` (header `X-Api-Key: {keyId}.{secret}`) → `ImageApiController` → `ApiKeyServiceImpl.resolve` → `ImageServiceImpl` → `DigitalOceanSpacesServiceImpl` → DO Spaces bucket `mt-mls-img-storage`
+- Download image: `GET /api/images/{id}` → `ImageApiController` streams bytes from DO Spaces (no redirect), enforces visibility/ownership
+- Manage API keys: `GET/POST /admin/api-keys` (HTTP Basic) → `AdminApiKeyViewController` → `ApiKeyServiceImpl` (create/list/enable-disable)
 
 ---
 
@@ -94,6 +110,8 @@ See `.local/llm/README.md` for complete conventions.
 - **Test structure**: Given-When-Then
 - **DTOs for all API responses** — never return raw entities from controllers
 - **Schema-first**: data classes with validation annotations are the contract, not comments
+- **Spring Security is scoped to `/admin/**` only** (HTTP Basic) — `SecurityConfig` `permitAll()`s everything else and disables CSRF globally (no existing form carries a CSRF token). Any new `@WebMvcTest` must `@Import(SecurityConfig::class)`, otherwise Spring Boot falls back to its default security autoconfig (login form + CSRF) and breaks the test.
+- **Kotlin KDoc comments nest** — never write a literal `/**` sequence inside a `/** ... */` comment body (e.g. avoid `` `/admin/**` ``); it opens a nested comment and causes "Unclosed comment" compile errors. Rephrase instead (e.g. "the /admin path tree").
 - **Conventional commits** for all commit messages — append ticket ID and full YouTrack URL on a trailing line when available:
   ```
   feat(shortener): add expiry support
@@ -168,4 +186,4 @@ This file is **living documentation**. Any agent (or human) making changes to th
 
 ---
 
-_Last updated: 2026-06-05 — MLS-139 AI-agent readiness_
+_Last updated: 2026-08-15 — MARSTECH-597 added Framework API Currency note (retrieval-led reasoning)_
