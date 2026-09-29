@@ -1,6 +1,6 @@
 package fr.marstech.mtlinkspray.controller.api
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import fr.marstech.mtlinkspray.controller.commons.GlobalRestExceptionHandler
 import fr.marstech.mtlinkspray.dto.DashboardDto
 import fr.marstech.mtlinkspray.service.DashboardService

@@ -7,7 +7,7 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-parent -->
-        <version>3.5.14</version>
+        <version>4.1.1</version>
         <relativePath/>
     </parent>
 
@@ -50,13 +50,13 @@
     </scm>
 
     <properties>
-        <java.version>21</java.version>
+        <java.version>25</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <dependency.locations.enabled>false</dependency.locations.enabled>
         <dependency.details.enabled>false</dependency.details.enabled>
         <timestamp>${maven.build.timestamp}</timestamp>
         <maven.build.timestamp.format>yyyyMMdd-HHmmss</maven.build.timestamp.format>
-        <kotlin.version>2.4.0</kotlin.version>
+        <kotlin.version>2.4.20</kotlin.version>
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
         <!--suppress XmlUnresolvedReference -->
         <sonar.organization>${env.SONAR_ORGANIZATION}</sonar.organization>
@@ -89,6 +89,12 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- @WebMvcTest moved out of spring-boot-test-autoconfigure into its own starter in Boot 4 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-test</artifactId>
@@ -108,7 +114,7 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-collections4</artifactId>
-            <version>4.5.0</version>
+            <version>4.6.0</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/jakarta.servlet/jakarta.servlet-api -->
         <dependency>
@@ -141,11 +147,15 @@
             <artifactId>kotlin-maven-plugin</artifactId>
             <version>${kotlin.version}</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.module/jackson-module-kotlin -->
+        <!-- Jackson 3 (tools.jackson) is Boot 4's default JSON engine; the module relocated from
+             com.fasterxml.jackson.module -> tools.jackson.module. The old artifact is a no-op
+             against the app's actual (Jackson 3) ObjectMapper, silently dropping Kotlin
+             nullability/default-value support during request deserialization. -->
+        <!-- https://mvnrepository.com/artifact/tools.jackson.module/jackson-module-kotlin -->
         <dependency>
-            <groupId>com.fasterxml.jackson.module</groupId>
+            <groupId>tools.jackson.module</groupId>
             <artifactId>jackson-module-kotlin</artifactId>
-            <version>2.22.0</version>
+            <version>3.2.3</version>
         </dependency>
 
         <dependency>
@@ -176,7 +186,7 @@
         <dependency>
             <groupId>org.mockito.kotlin</groupId>
             <artifactId>mockito-kotlin</artifactId>
-            <version>5.2.1</version>
+            <version>6.4.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -189,7 +199,7 @@
         <dependency>
             <groupId>de.flapdoodle.embed</groupId>
             <artifactId>de.flapdoodle.embed.mongo</artifactId>
-            <version>4.24.0</version>
+            <version>5.0.0</version>
             <scope>test</scope>
         </dependency>
 
@@ -362,7 +372,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.14</version>
+                <version>0.8.15</version>
                 <executions>
                     <execution>
                         <id>prepare-agent</id>
@@ -387,7 +397,7 @@
             <plugin>
                 <groupId>org.jreleaser</groupId>
                 <artifactId>jreleaser-maven-plugin</artifactId>
-                <version>1.24.0</version>
+                <version>1.26.0</version>
                 <inherited>false</inherited>
             </plugin>
         </plugins>
