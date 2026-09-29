@@ -28,6 +28,8 @@ class ImageServiceImplTest {
         imageRepository, apiKeyService, imageStorageService, maxFileSizeBytes
     )
 
+    private val jpegBytes = byteArrayOf(0xFF.toByte(), 0xD8.toByte(), 0xFF.toByte(), 0xE0.toByte(), 0x00)
+
     private val apiKey = ApiKeyEntity(
         id = "apikey-1",
         name = "Maeva App",
@@ -53,7 +55,7 @@ class ImageServiceImplTest {
 
     @Test
     fun uploadImageShouldStoreFileAndSaveMetadata() {
-        val file = MockMultipartFile("file", "photo.jpg", "image/jpeg", "fake-bytes".toByteArray())
+        val file = MockMultipartFile("file", "photo.jpg", "image/jpeg", jpegBytes)
         `when`(apiKeyService.resolve("key123.secret")).thenReturn(apiKey)
         whenever(imageStorageService.upload(any(), any(), any(), any()))
             .thenReturn("maeva-app-1/2026/07/generated.jpg")
@@ -79,6 +81,42 @@ class ImageServiceImplTest {
             imageService.uploadImage("bad-key", file, false, httpServletRequest)
         }
         verifyNoInteractions(imageStorageService)
+    }
+
+    @Test
+    fun uploadImageShouldRejectHtmlDisguisedAsJpeg() {
+        val file = MockMultipartFile("file", "photo.jpg", "image/jpeg", "<script>alert(1)</script>".toByteArray())
+        `when`(apiKeyService.resolve("key123.secret")).thenReturn(apiKey)
+
+        assertThrows<IllegalArgumentException> {
+            imageService.uploadImage("key123.secret", file, false, httpServletRequest)
+        }
+        verifyNoInteractions(imageStorageService)
+    }
+
+    @Test
+    fun uploadImageShouldRejectSvg() {
+        val svg = "<svg xmlns=\"http://www.w3.org/2000/svg\" onload=\"alert(1)\"/>".toByteArray()
+        val file = MockMultipartFile("file", "logo.svg", "image/svg+xml", svg)
+        `when`(apiKeyService.resolve("key123.secret")).thenReturn(apiKey)
+
+        assertThrows<IllegalArgumentException> {
+            imageService.uploadImage("key123.secret", file, false, httpServletRequest)
+        }
+        verifyNoInteractions(imageStorageService)
+    }
+
+    @Test
+    fun uploadImageShouldStoreDetectedTypeInsteadOfClientType() {
+        val pngBytes = byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00)
+        val file = MockMultipartFile("file", "photo.jpg", "text/html", pngBytes)
+        `when`(apiKeyService.resolve("key123.secret")).thenReturn(apiKey)
+        whenever(imageStorageService.upload(any(), any(), any(), any())).thenReturn("maeva-app-1/x.png")
+        `when`(imageRepository.save(any(ImageEntity::class.java))).thenAnswer { it.arguments[0] }
+
+        val result = imageService.uploadImage("key123.secret", file, false, httpServletRequest)
+
+        assertEquals("image/png", result.contentType)
     }
 
     @Test

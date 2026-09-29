@@ -105,7 +105,22 @@ class ImageApiControllerTest {
             .andExpect(content().contentType("image/jpeg"))
             .andExpect(header().string("Content-Disposition", "inline; filename=\"photo.jpg\""))
             .andExpect(header().string("Cache-Control", "max-age=86400"))
+            .andExpect(header().string("X-Content-Type-Options", "nosniff"))
             .andExpect(content().bytes(content.toByteArray()))
+    }
+
+    @Test
+    fun shouldForceDownloadForStoredNonImageType() {
+        val image = givenImage().copy(contentType = "text/html", originalFilename = "x\".html")
+        `when`(imageService.downloadImage("img-1", null))
+            .thenReturn(image to ByteArrayInputStream("<script>".toByteArray()))
+
+        get("/api/images/img-1")
+            .let(mockMvc::perform)
+            .andExpect(status().isOk)
+            .andExpect(content().contentType("application/octet-stream"))
+            .andExpect(header().string("Content-Disposition", org.hamcrest.Matchers.startsWith("attachment;")))
+            .andExpect(header().string("X-Content-Type-Options", "nosniff"))
     }
 
     @Test

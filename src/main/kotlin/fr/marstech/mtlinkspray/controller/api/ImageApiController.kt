@@ -3,9 +3,11 @@ package fr.marstech.mtlinkspray.controller.api
 import fr.marstech.mtlinkspray.dto.ImageMetadataDto
 import fr.marstech.mtlinkspray.dto.ImageUploadResponse
 import fr.marstech.mtlinkspray.service.ImageService
+import fr.marstech.mtlinkspray.utils.ImageTypes
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.HttpHeaders.CACHE_CONTROL
 import org.springframework.http.HttpHeaders.CONTENT_DISPOSITION
+import org.springframework.http.ContentDisposition
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.core.io.InputStreamResource
@@ -45,10 +47,17 @@ class ImageApiController(private val imageService: ImageService) {
         @RequestHeader("X-Api-Key", required = false) apiKey: String?,
     ): ResponseEntity<InputStreamResource> {
         val (image, stream) = imageService.downloadImage(id, apiKey)
+        // Only verified raster types render inline; anything else (e.g. rows stored before the
+        // upload allowlist existed) is forced to a download so it can never run under this origin.
+        val isSafeImage = image.contentType in ImageTypes.ALLOWED
+        val disposition = ContentDisposition.builder(if (isSafeImage) "inline" else "attachment")
+            .filename(image.originalFilename)
+            .build()
         return ResponseEntity.ok()
-            .contentType(MediaType.parseMediaType(image.contentType))
+            .contentType(if (isSafeImage) MediaType.parseMediaType(image.contentType) else MediaType.APPLICATION_OCTET_STREAM)
             .contentLength(image.sizeBytes)
-            .header(CONTENT_DISPOSITION, "inline; filename=\"${image.originalFilename}\"")
+            .header(CONTENT_DISPOSITION, disposition.toString())
+            .header("X-Content-Type-Options", "nosniff")
             .header(CACHE_CONTROL, "max-age=86400")
             .body(InputStreamResource(stream))
     }

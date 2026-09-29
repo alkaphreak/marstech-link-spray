@@ -5,6 +5,7 @@ import fr.marstech.mtlinkspray.conf.SecurityConfig
 import fr.marstech.mtlinkspray.dto.ApiKeyCreationResult
 import fr.marstech.mtlinkspray.entity.ApiKeyEntity
 import fr.marstech.mtlinkspray.service.ApiKeyService
+import org.hamcrest.Matchers.containsString
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.doAnswer
@@ -12,6 +13,7 @@ import org.mockito.kotlin.eq
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.context.annotation.Import
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.bean.override.mockito.MockitoBean
@@ -53,6 +55,18 @@ class AdminApiKeyViewControllerTest {
             .andExpect(status().isOk)
             .andExpect(view().name("admin/api-keys"))
             .andExpect(model().attributeExists("apiKeys"))
+            .andExpect(content().string(containsString("name=\"_csrf\"")))
+    }
+
+    @Test
+    fun postApiKeysShouldBeRejectedWithoutCsrfToken() {
+        mockMvc.perform(
+            post("/admin/api-keys")
+                .with(httpBasic("admin", "test-admin-password"))
+                .param("name", "Maeva App")
+                .param("namespace", "maeva-app-1")
+        )
+            .andExpect(status().isForbidden)
     }
 
     @Test
@@ -63,6 +77,7 @@ class AdminApiKeyViewControllerTest {
 
         mockMvc.perform(
             post("/admin/api-keys")
+                .with(csrf())
                 .with(httpBasic("admin", "test-admin-password"))
                 .param("name", "Maeva App")
                 .param("namespace", "maeva-app-1")
@@ -77,6 +92,7 @@ class AdminApiKeyViewControllerTest {
     fun postApiKeysShouldRequireAuthentication() {
         mockMvc.perform(
             post("/admin/api-keys")
+                .with(csrf())
                 .param("name", "Maeva App")
                 .param("namespace", "maeva-app-1")
         )
@@ -90,6 +106,7 @@ class AdminApiKeyViewControllerTest {
 
         mockMvc.perform(
             post("/admin/api-keys/id1/toggle")
+                .with(csrf())
                 .with(httpBasic("admin", "test-admin-password"))
                 .param("isEnabled", "false")
         )
@@ -101,6 +118,7 @@ class AdminApiKeyViewControllerTest {
     fun toggleApiKeyShouldRequireAuthentication() {
         mockMvc.perform(
             post("/admin/api-keys/id1/toggle")
+                .with(csrf())
                 .param("isEnabled", "false")
         )
             .andExpect(status().isUnauthorized)

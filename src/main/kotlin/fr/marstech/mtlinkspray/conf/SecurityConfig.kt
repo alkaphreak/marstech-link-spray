@@ -11,13 +11,16 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.provisioning.InMemoryUserDetailsManager
 import org.springframework.security.web.SecurityFilterChain
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher
+import org.springframework.security.web.util.matcher.NegatedRequestMatcher
 
 /**
  * HTTP Basic auth restricted to the "/admin" path tree (currently: the API keys admin page - MLS-203).
  * Every other route stays publicly accessible, matching the app's current behaviour before this
- * config was introduced. CSRF protection is disabled: the app has no session-based state to
- * protect against, and none of the existing forms (spray, paste, dashboard, ...) carry a CSRF
- * token, so enabling it would break them.
+ * config was introduced. CSRF protection applies to the admin path tree only: a browser that has
+ * cached the Basic credentials could otherwise be driven cross-site to create or toggle API keys.
+ * The admin forms use th:action, so Spring Security injects the token automatically. The public
+ * forms (spray, paste, dashboard, ...) are unauthenticated and carry no token, so they stay exempt.
  */
 @Configuration
 @EnableWebSecurity
@@ -29,7 +32,7 @@ class SecurityConfig(
     @Bean
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
         http
-            .csrf { it.disable() }
+            .csrf { it.ignoringRequestMatchers(NegatedRequestMatcher(PathPatternRequestMatcher.withDefaults().matcher("/admin/**"))) }
             .authorizeHttpRequests {
                 it.requestMatchers("/admin/**").authenticated()
                 it.anyRequest().permitAll()

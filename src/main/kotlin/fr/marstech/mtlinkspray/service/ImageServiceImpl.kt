@@ -3,6 +3,7 @@ package fr.marstech.mtlinkspray.service
 import fr.marstech.mtlinkspray.entity.HistoryItem
 import fr.marstech.mtlinkspray.entity.ImageEntity
 import fr.marstech.mtlinkspray.repository.ImageRepository
+import fr.marstech.mtlinkspray.utils.ImageTypes
 import fr.marstech.mtlinkspray.utils.NetworkUtils
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.beans.factory.annotation.Value
@@ -34,8 +35,11 @@ class ImageServiceImpl(
         }
 
         val filename = file.originalFilename?.takeIf { it.isNotBlank() } ?: "upload"
-        val contentType = file.contentType ?: "application/octet-stream"
-        val storageKey = imageStorageService.upload(apiKey.namespace, filename, contentType, file.bytes)
+        val bytes = file.bytes
+        val contentType = ImageTypes.detect(bytes) ?: throw IllegalArgumentException(
+            "Unsupported file type: only ${ImageTypes.ALLOWED.joinToString()} are accepted"
+        )
+        val storageKey = imageStorageService.upload(apiKey.namespace, filename, contentType, bytes)
 
         return imageRepository.save(
             ImageEntity(
