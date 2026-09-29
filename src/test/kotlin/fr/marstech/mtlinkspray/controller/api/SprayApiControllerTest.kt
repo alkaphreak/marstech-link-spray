@@ -1,11 +1,13 @@
 package fr.marstech.mtlinkspray.controller.api
 
+import fr.marstech.mtlinkspray.conf.SecurityConfig
 import fr.marstech.mtlinkspray.service.SprayService
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
+import org.springframework.context.annotation.Import
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
@@ -13,6 +15,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 @WebMvcTest(SprayApiController::class)
+@Import(SecurityConfig::class)
 class SprayApiControllerTest {
 
     @Autowired

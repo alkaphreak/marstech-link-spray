@@ -3,6 +3,7 @@ package fr.marstech.mtlinkspray.controller.api
 import tools.jackson.databind.ObjectMapper
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import fr.marstech.mtlinkspray.MtLinkSprayApplication
+import fr.marstech.mtlinkspray.conf.SecurityConfig
 import fr.marstech.mtlinkspray.controller.commons.GlobalRestExceptionHandler
 import fr.marstech.mtlinkspray.dto.PasteRequest
 import fr.marstech.mtlinkspray.entity.HistoryItem
@@ -26,7 +27,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 
 @WebMvcTest(controllers = [PasteApiController::class, RootApiController::class])
 @ContextConfiguration(classes = [MtLinkSprayApplication::class])
-@Import(GlobalRestExceptionHandler::class)
+@Import(GlobalRestExceptionHandler::class, SecurityConfig::class)
 class ApiPasteControllerTest {
 
     @Autowired
