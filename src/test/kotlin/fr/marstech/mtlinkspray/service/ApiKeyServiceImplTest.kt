@@ -30,7 +30,7 @@ class ApiKeyServiceImplTest {
         id = "id1",
         name = "Maeva App",
         keyId = keyId,
-        secretHash = passwordEncoder.encode(secret),
+        secretHash = passwordEncoder.encode(secret)!!,
         namespace = namespace,
         isEnabled = isEnabled,
     )

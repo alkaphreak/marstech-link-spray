@@ -54,7 +54,7 @@ class ApiKeyServiceImpl(
             ApiKeyEntity(
                 name = name,
                 keyId = keyId,
-                secretHash = passwordEncoder.encode(secret),
+                secretHash = passwordEncoder.encode(secret)!!,
                 namespace = namespace,
             )
         )
