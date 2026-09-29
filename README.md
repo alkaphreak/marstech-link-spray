@@ -193,6 +193,13 @@ The application can be configured through the `application.properties` file or e
 | Property / Variable                      | Description                            | Default              |
 |------------------------------------------|----------------------------------------|----------------------|
 | `MONGODB_URI_LINK_SPRAY`                 | MongoDB connection URI (prod profile)  | -                    |
+| `LINK_SPRAY_ADMIN_USERNAME`              | Admin Basic-auth user (required)       | -                    |
+| `LINK_SPRAY_ADMIN_PASSWORD`              | Admin Basic-auth password (required)   | -                    |
+| `LINK_SPRAY_DO_SPACES_ENDPOINT`          | DO Spaces endpoint (required)          | -                    |
+| `LINK_SPRAY_DO_SPACES_ACCESS_KEY`        | DO Spaces access key (required)        | -                    |
+| `LINK_SPRAY_DO_SPACES_SECRET_KEY`        | DO Spaces secret key (required)        | -                    |
+| `LINK_SPRAY_DO_SPACES_REGION`            | DO Spaces region                       | `tor1`               |
+| `LINK_SPRAY_DO_SPACES_BUCKET`            | DO Spaces bucket for images            | `mt-mls-img-storage` |
 | `server.port`                            | HTTP server port                       | `8096`               |
 | `mt.link-spray.protocol`                 | Public protocol (http/https)           | `http`               |
 | `mt.link-spray.host`                     | Public hostname                        | `localhost`          |

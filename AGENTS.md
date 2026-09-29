@@ -8,8 +8,8 @@
 
 ## Stack
 
-- **Language**: Kotlin 2.3, Java 21 (Eclipse Temurin)
-- **Framework**: Spring Boot 3.5+, Spring WebMVC, Spring Security (HTTP Basic, admin routes only)
+- **Language**: Kotlin 2.4, Java 25 (Eclipse Temurin)
+- **Framework**: Spring Boot 4.1, Spring WebMVC, Spring Security 7 (HTTP Basic, admin routes only)
 - **Build**: Maven (`pom.xml`)
 - **DB**: MongoDB (primary) — dev `localhost:27017`, test `localhost:27018`, prod `$MONGODB_URI_LINK_SPRAY`
 - **Object storage**: Digital Ocean Spaces (S3-compatible, AWS SDK v2) — image storage (MLS-203)
@@ -21,7 +21,7 @@
 
 ## Framework API Currency
 
-**IMPORTANT**: prefer retrieval-led reasoning over pre-training-led reasoning for Spring Boot 3.5+/Kotlin 2.3 APIs. Training data can lag behind the pinned versions in `pom.xml` — check the actual signatures in this codebase or the official docs before assuming an API shape, rather than defaulting to an older/more common pattern from memory.
+**IMPORTANT**: prefer retrieval-led reasoning over pre-training-led reasoning for Spring Boot 4.1/Kotlin 2.4 APIs. Training data can lag behind the pinned versions in `pom.xml` — check the actual signatures in this codebase or the official docs before assuming an API shape, rather than defaulting to an older/more common pattern from memory. Two Boot 4 traps already hit here: `@WebMvcTest` now lives in `org.springframework.boot.webmvc.test.autoconfigure` (not `org.springframework.boot.test.autoconfigure.web.servlet`), and Spring Security 7's null-safety annotations make `PasswordEncoder.encode()` return `String?` in Kotlin (the codebase uses `!!`).
 
 ---
 
@@ -110,7 +110,7 @@ See `.local/llm/README.md` for complete conventions.
 - **Test structure**: Given-When-Then
 - **DTOs for all API responses** — never return raw entities from controllers
 - **Schema-first**: data classes with validation annotations are the contract, not comments
-- **Spring Security is scoped to `/admin/**` only** (HTTP Basic) — `SecurityConfig` `permitAll()`s everything else and disables CSRF globally (no existing form carries a CSRF token). Any new `@WebMvcTest` must `@Import(SecurityConfig::class)`, otherwise Spring Boot falls back to its default security autoconfig (login form + CSRF) and breaks the test.
+- **Spring Security is scoped to `/admin/**` only** (HTTP Basic) — `SecurityConfig` `permitAll()`s everything else. CSRF is enforced on `/admin/**` only: admin forms must use `th:action` so Spring Security injects the token; the public forms (spray, paste, dashboard) carry no token and stay exempt. Any new `@WebMvcTest` must `@Import(SecurityConfig::class)`, otherwise Spring Boot falls back to its default security autoconfig (login form + CSRF) and breaks the test.
 - **Kotlin KDoc comments nest** — never write a literal `/**` sequence inside a `/** ... */` comment body (e.g. avoid `` `/admin/**` ``); it opens a nested comment and causes "Unclosed comment" compile errors. Rephrase instead (e.g. "the /admin path tree").
 - **Conventional commits** for all commit messages — append ticket ID and full YouTrack URL on a trailing line when available:
   ```
@@ -186,4 +186,4 @@ This file is **living documentation**. Any agent (or human) making changes to th
 
 ---
 
-_Last updated: 2026-08-15 — MARSTECH-597 added Framework API Currency note (retrieval-led reasoning)_
+_Last updated: 2026-09-29 — MLS-203: stack moved to Spring Boot 4.1 / Kotlin 2.4 / Java 25, CSRF scoped to the admin path tree_
