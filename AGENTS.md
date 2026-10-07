@@ -105,6 +105,10 @@ See `.local/llm/README.md` for complete conventions.
 ## Key Rules for Agents
 
 - **Prefer Kotlin to Java** for all new code
+- **Merging to `main`** requires a code-owner review, signed commits and linear history: an
+  unsigned agent commit leaves the PR BLOCKED even when approved. Check `git log --show-signature`;
+  with the user's agreement, `gh pr merge <n> --squash --delete-branch --admin`
+- **No Lombok** — the project is 100% Kotlin: a ticket proposing a Lombok annotation is closed as obsolete
 - **Constructor injection** — never `@Autowired` on fields
 - **Test method names**: camelCase only — `shouldReturnUrlWhenCodeExists()`. No backticks.
 - **Test structure**: Given-When-Then
