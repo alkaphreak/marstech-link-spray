@@ -36,12 +36,6 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Cache Maven dependencies
-        uses: actions/cache@v6
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-
       - name: Bump Version
         id: bump-version
         run: |

@@ -7,6 +7,11 @@ on:
   pull_request:
     types: [ opened, synchronize, reopened ]
 
+# A new push to a PR cancels its previous run; main runs always finish.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   build:
     name: Build, Test & Analyze
@@ -35,15 +40,6 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Cache Maven repository (~/.m2/repository)
-        uses: actions/cache@v6
-        with:
-          path: |
-            ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
-
       - name: Verify Java version
         run: java -version
 
@@ -53,9 +49,6 @@ jobs:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
-
-      - name: Prefetch Maven dependencies (go-offline)
-        run: mvn -B -q dependency:go-offline || echo "go-offline failed, continuing"
 
       - name: Build, test, coverage & SonarCloud (single run)
         env:
