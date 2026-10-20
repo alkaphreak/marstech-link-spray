@@ -14,7 +14,6 @@ import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import org.springframework.data.crossstore.ChangeSetPersister
 import java.time.LocalDateTime
 import java.util.*
 
@@ -123,9 +122,10 @@ internal class ShortenerServiceTest {
     @Test
     fun getTargetInvalidUid_throwsException() {
         whenever(linkItemRepository.findById(any())).thenReturn(Optional.empty())
-        Assertions.assertThrows(
-            ChangeSetPersister.NotFoundException::class.java
+        val exception = Assertions.assertThrows(
+            NoSuchElementException::class.java
         ) { shortenerService.getTarget("nonexistent-uid") }
+        Assertions.assertEquals("Short link 'nonexistent-uid' does not exist", exception.message)
     }
 
     @Test

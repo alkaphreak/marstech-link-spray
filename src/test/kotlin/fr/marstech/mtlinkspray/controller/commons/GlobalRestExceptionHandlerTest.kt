@@ -16,6 +16,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.MissingServletRequestParameterException
 import org.springframework.web.context.request.WebRequest
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
+import org.springframework.web.servlet.resource.NoResourceFoundException
+import org.springframework.http.HttpMethod
 
 // Top-level dummy used by several tests
 @Suppress("UNUSED_PARAMETER")
@@ -70,6 +72,16 @@ class GlobalRestExceptionHandlerTest {
         assertNotNull(response.body)
         assertEquals(404, response.body?.status)
         assertEquals("not found", response.body?.message)
+    }
+
+    @Test
+    fun shouldReturn404ForNoResourceFound() {
+        val ex = NoResourceFoundException(HttpMethod.GET, "/robots.txt", "robots.txt")
+        val response = handler.handleNoResourceFound(ex, mockRequest)
+        assertEquals(HttpStatus.NOT_FOUND, response.statusCode)
+        assertNotNull(response.body)
+        assertEquals(404, response.body?.status)
+        assertEquals("The requested resource does not exist", response.body?.message)
     }
 
     @Test

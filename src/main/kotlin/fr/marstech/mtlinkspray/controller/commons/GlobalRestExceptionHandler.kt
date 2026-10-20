@@ -17,6 +17,7 @@ import org.springframework.core.convert.ConversionFailedException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
 import org.springframework.web.context.request.WebRequest
+import org.springframework.web.servlet.resource.NoResourceFoundException
 
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @RestControllerAdvice
@@ -115,6 +116,20 @@ class GlobalRestExceptionHandler {
             status = NOT_FOUND.value(),
             error = "Not Found",
             message = e.message ?: "Resource not found",
+            path = request.getDescription(false).removePrefix("uri=")
+        )
+        return ResponseEntity(errorResponse, NOT_FOUND)
+    }
+
+    @ExceptionHandler(NoResourceFoundException::class)
+    fun handleNoResourceFound(
+        e: NoResourceFoundException,
+        request: WebRequest
+    ): ResponseEntity<ErrorResponse> {
+        val errorResponse = ErrorResponse.from(
+            status = NOT_FOUND.value(),
+            error = "Not Found",
+            message = "The requested resource does not exist",
             path = request.getDescription(false).removePrefix("uri=")
         )
         return ResponseEntity(errorResponse, NOT_FOUND)
