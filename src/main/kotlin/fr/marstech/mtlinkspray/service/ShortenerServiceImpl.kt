@@ -6,11 +6,9 @@ import fr.marstech.mtlinkspray.entity.LinkItemTarget
 import fr.marstech.mtlinkspray.repository.LinkItemRepository
 import fr.marstech.mtlinkspray.service.ShortenerService.Companion.getShortenedLink
 import jakarta.servlet.http.HttpServletRequest
-import org.springframework.data.crossstore.ChangeSetPersister
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 import java.util.Map
-import java.util.function.Supplier
 
 @Service
 class ShortenerServiceImpl(
@@ -43,8 +41,7 @@ class ShortenerServiceImpl(
         uid: String,
     ): String =
         linkItemRepository.findById(uid)
-            .orElseThrow(
-                Supplier { ChangeSetPersister.NotFoundException() })
+            .orElseThrow { NoSuchElementException("Short link '$uid' does not exist") }
             .target
             .targetUrl
 }
