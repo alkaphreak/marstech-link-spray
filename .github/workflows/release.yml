@@ -199,3 +199,20 @@ jobs:
 
           echo "Successfully merged $BRANCH_NAME into main"
 
+      # DO App Platform has no autodeploy for Docker Hub images: redeploy :latest explicitly.
+      - name: Redeploy on DigitalOcean App Platform
+        env:
+          DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+          DO_APP_ID: 2d09a478-5b7b-4151-aac6-8fb721bcb442
+        run: |
+          echo "----------------------------------------------------------------"
+          if [ -z "$DIGITALOCEAN_ACCESS_TOKEN" ]; then
+            echo "::warning::DIGITALOCEAN_ACCESS_TOKEN not set, skipping redeploy (run it manually)"
+            exit 0
+          fi
+          OUT=$(docker run --rm -e DIGITALOCEAN_ACCESS_TOKEN digitalocean/doctl:1.186.0 \
+            apps create-deployment "$DO_APP_ID" --wait --format ID,Phase --no-header)
+          echo "$OUT"
+          # --wait returns on any final phase: fail unless the deployment went live
+          echo "$OUT" | grep -q ACTIVE || { echo "::error::DO deployment did not reach ACTIVE"; exit 1; }
+
