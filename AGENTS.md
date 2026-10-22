@@ -147,6 +147,11 @@ rtk mvn test -f pom.xml
 - **YouTrack**: project key `MLS` — `https://marstech.myjetbrains.com/youtrack`
 - **SonarCloud**: `alkaphreak_marstech-link-spray`
 - **Docker Hub**: `alkaphreak/marstech-link-spray`
+- **Deploy**: `release.yml` (manual dispatch) pushes Docker Hub `:latest`, then its last step runs
+  `doctl apps create-deployment 2d09a478-5b7b-4151-aac6-8fb721bcb442 --force-rebuild --wait`
+  (secret `DIGITALOCEAN_ACCESS_TOKEN`, app read/update only). DO has no autodeploy for Docker Hub images,
+  and without `--force-rebuild` it reuses the cached `:latest`. Never print `doctl apps spec get`
+  unfiltered: env values appear in clear
 - **URL Shortener (self)**: `GET https://sol4.space/api/url-shortener/shorten?url={url}`
 
 ---
