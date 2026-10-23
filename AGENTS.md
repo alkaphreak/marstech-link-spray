@@ -15,7 +15,7 @@
 - **Object storage**: Digital Ocean Spaces (S3-compatible, AWS SDK v2) — image storage (MLS-203)
 - **Testing**: JUnit 5 + Mockito-Kotlin + MockMvc — profile `test`, local MongoDB on port 27018
 - **Releases**: JReleaser (`jreleaser.yml`) on `main` only
-- **Quality**: SonarCloud (`sonar-project.properties`)
+- **Quality**: SonarCloud (`sonar.*` properties in `pom.xml`)
 
 ---
 

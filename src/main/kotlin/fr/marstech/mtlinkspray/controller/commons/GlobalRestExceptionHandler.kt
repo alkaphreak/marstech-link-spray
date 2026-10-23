@@ -13,6 +13,8 @@ import org.springframework.web.bind.MissingServletRequestParameterException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.beans.TypeMismatchException
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.util.unit.DataSize
 import org.springframework.core.convert.ConversionFailedException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
@@ -24,7 +26,9 @@ import org.springframework.web.multipart.support.MissingServletRequestPartExcept
 
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @RestControllerAdvice
-class GlobalRestExceptionHandler {
+class GlobalRestExceptionHandler(
+    @Value("\${spring.servlet.multipart.max-file-size:25MB}") private val maxFileSize: DataSize = DataSize.ofMegabytes(25),
+) {
 
     @ExceptionHandler(MethodArgumentTypeMismatchException::class)
     fun handleMethodArgumentTypeMismatch(
@@ -236,7 +240,6 @@ class GlobalRestExceptionHandler {
         return ResponseEntity(errorResponse, BAD_REQUEST)
     }
 
-    // ponytail: limit hardcoded, keep in sync with spring.servlet.multipart.max-file-size
     @ExceptionHandler(MaxUploadSizeExceededException::class)
     fun handleMaxUploadSizeExceeded(
         e: MaxUploadSizeExceededException,
@@ -245,7 +248,7 @@ class GlobalRestExceptionHandler {
         val errorResponse = ErrorResponse.from(
             status = CONTENT_TOO_LARGE.value(),
             error = "Content Too Large",
-            message = "File exceeds the maximum upload size of 25 MB",
+            message = "File exceeds the maximum upload size of ${maxFileSize.toMegabytes()} MB",
             path = request.getDescription(false).removePrefix("uri=")
         )
         return ResponseEntity(errorResponse, CONTENT_TOO_LARGE)
