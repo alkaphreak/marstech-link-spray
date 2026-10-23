@@ -16,5 +16,5 @@ EXPOSE 8096
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s \
   CMD curl -f http://localhost:8096/actuator/health || exit 1
 
-# Default heap is 25% of the container RAM (about 128 MB on the 512 MB DO instance)
-ENTRYPOINT ["java", "-XX:MaxRAMPercentage=70", "-Dspring.profiles.active=prod", "-jar", "app.jar"]
+# 45% of 512 MB is about 230 MB of heap: measured off-heap use is up to about 230 MB, so higher risks an OOM kill
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=45", "-Dspring.profiles.active=prod", "-jar", "app.jar"]
