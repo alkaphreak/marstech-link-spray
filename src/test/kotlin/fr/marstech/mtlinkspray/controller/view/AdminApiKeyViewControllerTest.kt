@@ -59,6 +59,20 @@ class AdminApiKeyViewControllerTest {
     }
 
     @Test
+    fun getApiKeysShouldOfferCopyButtonForNewKey() {
+        `when`(apiKeyService.listApiKeys()).thenReturn(listOf(givenApiKey()))
+
+        mockMvc.perform(
+            get("/admin/api-keys")
+                .with(httpBasic("admin", "test-admin-password"))
+                .flashAttr("newRawKey", "key123.s3cr3t")
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().string(containsString("data-key=\"key123.s3cr3t\"")))
+            .andExpect(content().string(containsString("/assets/js/mt-script.js")))
+    }
+
+    @Test
     fun postApiKeysShouldBeRejectedWithoutCsrfToken() {
         mockMvc.perform(
             post("/admin/api-keys")

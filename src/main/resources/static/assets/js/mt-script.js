@@ -6,12 +6,11 @@ const copyFormInputValueToClipboard = async (elementId, liveAlertPlaceholderId) 
     );
 };
 
-// Copy the given value to the clipboard
-const copyValueToClipboard = async (value, liveAlertPlaceholderId) => {
+// Copy the given value to the clipboard (pass a message that omits the value for secrets)
+const copyValueToClipboard = async (value, liveAlertPlaceholderId, message = `Value copied to clipboard: ${value}`) => {
     const alertPlaceholder = document.getElementById(liveAlertPlaceholderId);
     try {
         await navigator.clipboard.writeText(value);
-        let message = `Value copied to clipboard: ${value}`;
         appendAlert(message, 'success', alertPlaceholder);
     } catch (error) {
         let message = "Failed to copy to clipboard:";
