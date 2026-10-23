@@ -79,6 +79,36 @@ class ImageApiControllerTest {
     }
 
     @Test
+    fun shouldReturnContentTooLargeWhenUploadExceedsLimit() {
+        val file = MockMultipartFile("file", "photo.jpg", "image/jpeg", "fake-bytes".toByteArray())
+        org.mockito.kotlin.doAnswer { throw org.springframework.web.multipart.MaxUploadSizeExceededException(-1) }
+            .`when`(imageService).uploadImage(any(), any(), any(), any())
+
+        multipart("/api/images")
+            .file(file)
+            .header("X-Api-Key", "key123.secret")
+            .let(mockMvc::perform)
+            .andExpect(status().isPayloadTooLarge)
+            .andExpect(jsonPath("$.message").value("File exceeds the maximum upload size of 25 MB"))
+    }
+
+    @Test
+    fun shouldReturnBadRequestWhenUploadIsNotMultipart() {
+        org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/api/images")
+            .header("X-Api-Key", "key123.secret")
+            .let(mockMvc::perform)
+            .andExpect(status().isBadRequest)
+    }
+
+    @Test
+    fun shouldReturnBadRequestWhenFilePartIsMissing() {
+        multipart("/api/images")
+            .header("X-Api-Key", "key123.secret")
+            .let(mockMvc::perform)
+            .andExpect(status().isBadRequest)
+    }
+
+    @Test
     fun shouldListImagesForApiKey() {
         val images = listOf(givenImage(id = "img-1"), givenImage(id = "img-2"))
         `when`(imageService.listImages("key123.secret")).thenReturn(images)

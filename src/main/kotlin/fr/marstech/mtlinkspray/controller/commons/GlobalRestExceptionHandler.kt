@@ -18,6 +18,9 @@ import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
 import org.springframework.web.context.request.WebRequest
 import org.springframework.web.servlet.resource.NoResourceFoundException
+import org.springframework.web.multipart.MaxUploadSizeExceededException
+import org.springframework.web.multipart.MultipartException
+import org.springframework.web.multipart.support.MissingServletRequestPartException
 
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @RestControllerAdvice
@@ -228,6 +231,35 @@ class GlobalRestExceptionHandler {
             error = "Binding Failed",
             message = "Invalid request data",
             fieldErrors = fieldErrors,
+            path = request.getDescription(false).removePrefix("uri=")
+        )
+        return ResponseEntity(errorResponse, BAD_REQUEST)
+    }
+
+    // ponytail: limit hardcoded, keep in sync with spring.servlet.multipart.max-file-size
+    @ExceptionHandler(MaxUploadSizeExceededException::class)
+    fun handleMaxUploadSizeExceeded(
+        e: MaxUploadSizeExceededException,
+        request: WebRequest
+    ): ResponseEntity<ErrorResponse> {
+        val errorResponse = ErrorResponse.from(
+            status = CONTENT_TOO_LARGE.value(),
+            error = "Content Too Large",
+            message = "File exceeds the maximum upload size of 25 MB",
+            path = request.getDescription(false).removePrefix("uri=")
+        )
+        return ResponseEntity(errorResponse, CONTENT_TOO_LARGE)
+    }
+
+    @ExceptionHandler(MultipartException::class, MissingServletRequestPartException::class)
+    fun handleMultipart(
+        e: Exception,
+        request: WebRequest
+    ): ResponseEntity<ErrorResponse> {
+        val errorResponse = ErrorResponse.from(
+            status = BAD_REQUEST.value(),
+            error = "Bad Request",
+            message = e.message ?: "Invalid multipart request",
             path = request.getDescription(false).removePrefix("uri=")
         )
         return ResponseEntity(errorResponse, BAD_REQUEST)
