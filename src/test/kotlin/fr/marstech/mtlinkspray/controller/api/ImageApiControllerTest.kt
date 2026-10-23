@@ -104,9 +104,22 @@ class ImageApiControllerTest {
             .andExpect(status().isOk)
             .andExpect(content().contentType("image/jpeg"))
             .andExpect(header().string("Content-Disposition", "inline; filename=\"photo.jpg\""))
-            .andExpect(header().string("Cache-Control", "max-age=86400"))
+            .andExpect(header().string("Cache-Control", "public, max-age=86400"))
             .andExpect(header().string("X-Content-Type-Options", "nosniff"))
             .andExpect(content().bytes(content.toByteArray()))
+    }
+
+    @Test
+    fun shouldForbidSharedCachingOfPrivateImage() {
+        val image = givenImage(isPrivate = true)
+        `when`(imageService.downloadImage("img-1", "key123.secret"))
+            .thenReturn(image to ByteArrayInputStream("binary-content".toByteArray()))
+
+        get("/api/images/img-1")
+            .header("X-Api-Key", "key123.secret")
+            .let(mockMvc::perform)
+            .andExpect(status().isOk)
+            .andExpect(header().string("Cache-Control", "private, no-store"))
     }
 
     @Test

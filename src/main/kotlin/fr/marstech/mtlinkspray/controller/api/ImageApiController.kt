@@ -58,7 +58,8 @@ class ImageApiController(private val imageService: ImageService) {
             .contentLength(image.sizeBytes)
             .header(CONTENT_DISPOSITION, disposition.toString())
             .header("X-Content-Type-Options", "nosniff")
-            .header(CACHE_CONTROL, "max-age=86400")
+            // A shared cache (Cloudflare) would otherwise serve a private image to anyone once fetched.
+            .header(CACHE_CONTROL, if (image.isPrivate) "private, no-store" else "public, max-age=86400")
             .body(InputStreamResource(stream))
     }
 
