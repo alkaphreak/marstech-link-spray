@@ -64,6 +64,8 @@
         <sonar.exclusions>
             src/main/resources/static/assets/css/style.css
         </sonar.exclusions>
+        <!-- The Maven scanner ignores sonar-project.properties: no JS test tooling here -->
+        <sonar.coverage.exclusions>src/main/resources/static/**/*.js</sonar.coverage.exclusions>
     </properties>
 
     <dependencies>

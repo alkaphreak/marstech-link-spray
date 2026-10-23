@@ -32,7 +32,14 @@
                 <div class="alert alert-warning" role="alert">
                     <strong>API key created for <span th:text="${newKeyName}">app name</span>.</strong>
                     Copy it now - it will not be shown again:
-                    <pre class="mb-0" th:text="${newRawKey}">keyId.secret</pre>
+                    <pre class="mb-2" th:text="${newRawKey}">keyId.secret</pre>
+                    <button class="btn btn-primary"
+                            onclick="copyValueToClipboard(this.dataset.key,'liveAlertPlaceholder','API key copied to clipboard')"
+                            th:data-key="${newRawKey}"
+                            type="button">
+                        <i class="bi bi-clipboard"></i> Copy API key
+                    </button>
+                    <div id="liveAlertPlaceholder"></div>
                 </div>
             </div>
         </div>
@@ -111,5 +118,7 @@
     </div>
 </section>
 
+<div class="d-none" th:replace="~{index.html :: footer-div-script}">
+</div>
 </body>
 </html>
