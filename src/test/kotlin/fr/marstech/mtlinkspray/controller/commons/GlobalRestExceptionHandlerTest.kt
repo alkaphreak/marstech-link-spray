@@ -35,6 +35,23 @@ class GlobalRestExceptionHandlerTest {
     }
 
     @Test
+    fun shouldReportConfiguredUploadLimitIn413() {
+        val handler = GlobalRestExceptionHandler(org.springframework.util.unit.DataSize.ofMegabytes(10))
+        val ex = org.springframework.web.multipart.MaxUploadSizeExceededException(-1)
+        val response = handler.handleMaxUploadSizeExceeded(ex, mockRequest)
+        assertEquals(HttpStatus.CONTENT_TOO_LARGE, response.statusCode)
+        assertEquals("File exceeds the maximum upload size of 10 MB", response.body?.message)
+    }
+
+    @Test
+    fun shouldReportExactBytesForNonWholeMegabyteLimit() {
+        val handler = GlobalRestExceptionHandler(org.springframework.util.unit.DataSize.ofKilobytes(512))
+        val ex = org.springframework.web.multipart.MaxUploadSizeExceededException(-1)
+        val response = handler.handleMaxUploadSizeExceeded(ex, mockRequest)
+        assertEquals("File exceeds the maximum upload size of 524288 bytes", response.body?.message)
+    }
+
+    @Test
     fun shouldReturn500ForRuntimeException() {
         val ex = RuntimeException("runtime error")
         val response = handler.handleRuntimeException(ex, mockRequest)
