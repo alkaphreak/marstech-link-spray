@@ -240,6 +240,11 @@ class GlobalRestExceptionHandler(
         return ResponseEntity(errorResponse, BAD_REQUEST)
     }
 
+    // Whole megabytes read as "25 MB"; any other limit is given in exact bytes rather than truncated.
+    private val uploadLimit = maxFileSize.toBytes().let { bytes ->
+        if (bytes % (1024 * 1024) == 0L) "${bytes / (1024 * 1024)} MB" else "$bytes bytes"
+    }
+
     @ExceptionHandler(MaxUploadSizeExceededException::class)
     fun handleMaxUploadSizeExceeded(
         e: MaxUploadSizeExceededException,
@@ -248,7 +253,7 @@ class GlobalRestExceptionHandler(
         val errorResponse = ErrorResponse.from(
             status = CONTENT_TOO_LARGE.value(),
             error = "Content Too Large",
-            message = "File exceeds the maximum upload size of ${maxFileSize.toMegabytes()} MB",
+            message = "File exceeds the maximum upload size of $uploadLimit",
             path = request.getDescription(false).removePrefix("uri=")
         )
         return ResponseEntity(errorResponse, CONTENT_TOO_LARGE)
