@@ -11,6 +11,7 @@ enum class ViewNameEnum(
     UUID(viewName = "uuid", viewPage = "Uuid", orderInMenu = 2),
     RANDOM(viewName = "random", viewPage = "Random", orderInMenu = 3),
     PASTE(viewName = "paste", viewPage = "Pastebin", orderInMenu = 4),
+    QR(viewName = "qr", viewPage = "QR Code", orderInMenu = 5),
     ABUSE(viewName = "abuse", viewPage = "Abuse"),
 
     DASHBOARD(viewName = "dashboard", viewPage = "Dashboard"),

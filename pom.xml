@@ -107,6 +107,19 @@
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
 
+        <!-- QR code encoding (MLS-110); javase only decodes images back in tests -->
+        <dependency>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>core</artifactId>
+            <version>3.5.4</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>javase</artifactId>
+            <version>3.5.4</version>
+            <scope>test</scope>
+        </dependency>
+
         <!-- Add Apache commons dependencies-->
         <dependency>
             <groupId>org.apache.commons</groupId>
