@@ -170,7 +170,7 @@
         <dependency>
             <groupId>tools.jackson.module</groupId>
             <artifactId>jackson-module-kotlin</artifactId>
-            <version>3.2.3</version>
+            <version>3.2.4</version>
         </dependency>
 
         <dependency>
