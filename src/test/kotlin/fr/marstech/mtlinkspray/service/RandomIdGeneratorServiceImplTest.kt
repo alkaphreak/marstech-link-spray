@@ -210,11 +210,50 @@ class RandomIdGeneratorServiceImplTest {
         assertEquals(cacheSizeBefore - 1, randomIdGeneratorService.cacheIds.size)
     }
 
-    private val tinyRepository = mock<LinkItemRepository>()
+    @Autowired
+    private lateinit var reservedPaths: ReservedPaths
 
-    private fun givenTinyIdSpaceService(charset: String, takenIds: List<String>): RandomIdGeneratorServiceImpl {
+    private val tinyRepository = mock<LinkItemRepository>()
+    private val tinyReservedPaths = mock<ReservedPaths>()
+
+    private fun givenTinyIdSpaceService(
+        charset: String,
+        takenIds: List<String>,
+        isCacheEnabled: Boolean = true,
+    ): RandomIdGeneratorServiceImpl {
         whenever(tinyRepository.findAllIds()).thenReturn(takenIds)
-        return RandomIdGeneratorServiceImpl(tinyRepository, 1, true, 10, 3, "", charset)
+        return RandomIdGeneratorServiceImpl(tinyRepository, tinyReservedPaths, 1, isCacheEnabled, 10, 3, "", charset)
+    }
+
+    @Test
+    fun reservedPathsShouldContainControllerRoutesAndConfiguredPaths() {
+        // Then — first segments of the controller mappings, plus the configured non-controller paths
+        listOf("api", "spray", "paste", "qr", "random", "uuid", "dashboard", "abuse", "shortener", "admin", "index")
+            .forEach { assertTrue(it in reservedPaths, "$it should be reserved") }
+        listOf("assets", "actuator", "error", "favicon.ico")
+            .forEach { assertTrue(it in reservedPaths, "$it should be reserved") }
+        assertFalse(reservedPaths.segments.any { it.startsWith("{") })
+        assertFalse("abcde" in reservedPaths)
+    }
+
+    @Test
+    fun getGeneratedFreeIdWithCacheShouldSkipReservedPaths() {
+        // Given — "a" is a route, only "b" can be served
+        whenever(tinyReservedPaths.contains("a")).thenReturn(true)
+        val service = givenTinyIdSpaceService("ab", emptyList())
+
+        // When / Then
+        assertEquals("b", service.getGeneratedFreeIdWithCache())
+    }
+
+    @Test
+    fun getGeneratedFreeIdWithoutCacheShouldSkipReservedPaths() {
+        // Given — the only possible id is a route
+        whenever(tinyReservedPaths.contains("a")).thenReturn(true)
+        val service = givenTinyIdSpaceService("a", emptyList(), isCacheEnabled = false)
+
+        // When / Then — retries exhaust instead of returning the route
+        assertThrows(IllegalStateException::class.java) { service.getGeneratedFreeIdWithoutCache() }
     }
 
     @Test

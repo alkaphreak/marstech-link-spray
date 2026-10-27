@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service
 @Service
 class RandomIdGeneratorServiceImpl(
     private val linkItemRepository: LinkItemRepository,
+    private val reservedPaths: ReservedPaths,
     @param:Value($$"${mt.link-spray.random-id.length}") val length: Int,
     @param:Value($$"${mt.link-spray.random-id.cache.enabled}") val isCacheEnabled: Boolean,
     @param:Value($$"${mt.link-spray.random-id.cache.depth}") val cacheDepth: Int,
@@ -30,7 +31,7 @@ class RandomIdGeneratorServiceImpl(
         do {
             check(attempts++ < maxAttempts) { "Unable to generate a free ID after 5 attempts" }
             id = generateRandomId()
-        } while (linkItemRepository.existsById(id))
+        } while (id in reservedPaths || linkItemRepository.existsById(id))
         return id
     }
 
@@ -43,7 +44,7 @@ class RandomIdGeneratorServiceImpl(
             var rounds = 0
             while (cacheIds.size < cacheTreshold && rounds++ < MAX_REFILL_ROUNDS) {
                 generateRandomIds(cacheDepth)
-                    .filterNot { it in linkItemIds }
+                    .filterNot { it in linkItemIds || it in reservedPaths }
                     .forEach { cacheIds.add(it) }
             }
             check(cacheIds.isNotEmpty()) { "Unable to generate a free ID after $MAX_REFILL_ROUNDS cache refills" }
