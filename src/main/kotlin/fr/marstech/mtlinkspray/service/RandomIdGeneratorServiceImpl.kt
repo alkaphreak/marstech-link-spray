@@ -34,14 +34,19 @@ class RandomIdGeneratorServiceImpl(
         return id
     }
 
+    // Synchronized: two concurrent requests could otherwise take the same cached ID (MLS-178).
+    @Synchronized
     override fun getGeneratedFreeIdWithCache(): String {
         if (cacheIds.size < cacheTreshold) {
             val linkItemIds = linkItemRepository.findAllIds().toSet()
-            while (cacheIds.size < cacheTreshold) {
+            // Bounded: a nearly exhausted ID space must fail instead of looping forever.
+            var rounds = 0
+            while (cacheIds.size < cacheTreshold && rounds++ < MAX_REFILL_ROUNDS) {
                 generateRandomIds(cacheDepth)
                     .filterNot { it in linkItemIds }
                     .forEach { cacheIds.add(it) }
             }
+            check(cacheIds.isNotEmpty()) { "Unable to generate a free ID after $MAX_REFILL_ROUNDS cache refills" }
         }
         return cacheIds.first().also { cacheIds.remove(it) }
     }
@@ -54,4 +59,8 @@ class RandomIdGeneratorServiceImpl(
         totalLength = length,
         charset = charset.toCharArray()
     )
+
+    companion object {
+        private const val MAX_REFILL_ROUNDS = 5
+    }
 }
