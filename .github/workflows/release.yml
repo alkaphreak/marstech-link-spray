@@ -132,7 +132,7 @@ jobs:
           DEPLOY_EXIT=${PIPESTATUS[0]}
           set -e
           if [ $DEPLOY_EXIT -ne 0 ]; then
-            if grep -q "status code: 409" /tmp/deploy-output.txt; then
+            if grep -qE "status code: 409|HTTP Status: 409" /tmp/deploy-output.txt; then
               echo "Version ${{ steps.bump-version.outputs.version }} already exists in GitHub Packages (409 Conflict) — skipping."
             else
               echo "Deploy failed with an unexpected error (exit $DEPLOY_EXIT)"
