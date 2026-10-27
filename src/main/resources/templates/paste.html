@@ -76,6 +76,14 @@
                        title="View raw content">
                         Raw
                     </a>
+                    <a th:href="@{/api/qr(text=${pasteBinUrl})}"
+                       class="btn btn-outline-secondary"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       title="QR code of the paste URL">
+                        <i class="bi bi-qr-code"></i>
+                        QR code
+                    </a>
                     <div id="liveAlertPlaceholder"></div>
 
                     <label for="outputPasteBinTextArea">Your paste</label>
