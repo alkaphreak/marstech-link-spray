@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 date: 2026-10-27
 ticket: https://marstech.myjetbrains.com/youtrack/issue/MLS-137
 ---
