@@ -50,8 +50,7 @@ src/main/kotlin/fr/marstech/mtlinkspray/
 │                   #   PasteService/Impl, DashboardService/Impl, MailSenderService/Impl,
 │                   #   ReportAbuseService/Impl, RandomIdGeneratorService/Impl,
 │                   #   ImageService/Impl, ApiKeyService/Impl, ImageStorageService +
-│                   #   DigitalOceanSpacesServiceImpl, CachePurgeService +
-│                   #   CloudflareCachePurgeServiceImpl, …)
+│                   #   DigitalOceanSpacesServiceImpl, …)
 ├── utils/          # Utility functions
 └── validation/     # Custom validators
 ```
@@ -74,7 +73,6 @@ src/main/kotlin/fr/marstech/mtlinkspray/
 - Abuse report: `POST /api/abuse` → `ReportAbuseServiceImpl` → `MailSenderServiceImpl`
 - Upload image: `POST /api/images` (header `X-Api-Key: {keyId}.{secret}`) → `ImageApiController` → `ApiKeyServiceImpl.resolve` → `ImageServiceImpl` → `DigitalOceanSpacesServiceImpl` → DO Spaces bucket `mt-mls-img-storage`
 - Download image: `GET /api/images/{id}` → `ImageApiController` streams bytes from DO Spaces (no redirect), enforces visibility/ownership
-- Delete image: `DELETE /api/images/{id}` → `ImageServiceImpl` deletes from DO Spaces and MongoDB, then for a public image `CloudflareCachePurgeServiceImpl` purges `https://sol4.space/api/images/{id}` from the Cloudflare cache (MLS-237; best effort, disabled when `LINK_SPRAY_CLOUDFLARE_ZONE_ID`/`LINK_SPRAY_CLOUDFLARE_API_TOKEN` are unset)
 - Manage API keys: `GET/POST /admin/api-keys` (HTTP Basic) → `AdminApiKeyViewController` → `ApiKeyServiceImpl` (create/list/enable-disable)
 
 ---
@@ -156,7 +154,9 @@ rtk mvn test -f pom.xml
   (secret `DIGITALOCEAN_ACCESS_TOKEN`, app read/update only). DO has no autodeploy for Docker Hub images,
   and without `--force-rebuild` it reuses the cached `:latest`. Never print `doctl apps spec get`
   unfiltered: env values appear in clear
-- **Cloudflare**: CDN in front of sol4.space, caches public images for a day (`max-age=86400`). Cache purge by URL via `POST /zones/{zone_id}/purge_cache`, token scoped to `Zone.Cache Purge` (env `LINK_SPRAY_CLOUDFLARE_ZONE_ID`, `LINK_SPRAY_CLOUDFLARE_API_TOKEN`, MLS-237)
+- **CDN**: sol4.space sits behind DigitalOcean App Platform's own Cloudflare CDN (DNS at DigitalOcean, no
+  zone in our Cloudflare account): no purge by URL, only a redeploy clears it. Cache lifetime is set with
+  `Cache-Control` (public images: `s-maxage=300` for the CDN, MLS-237)
 - **URL Shortener (self)**: `GET https://sol4.space/api/url-shortener/shorten?url={url}`
 
 ---
@@ -200,4 +200,4 @@ This file is **living documentation**. Any agent (or human) making changes to th
 
 ---
 
-_Last updated: 2026-10-27 — MLS-237: Cloudflare cache purge on public image delete_
+_Last updated: 2026-10-27 — MLS-237: App Platform CDN cannot be purged by URL, public images use `s-maxage=300`_

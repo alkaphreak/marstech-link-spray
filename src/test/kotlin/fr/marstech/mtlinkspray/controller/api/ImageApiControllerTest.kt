@@ -134,7 +134,7 @@ class ImageApiControllerTest {
             .andExpect(status().isOk)
             .andExpect(content().contentType("image/jpeg"))
             .andExpect(header().string("Content-Disposition", "inline; filename=\"photo.jpg\""))
-            .andExpect(header().string("Cache-Control", "public, max-age=86400"))
+            .andExpect(header().string("Cache-Control", "public, max-age=86400, s-maxage=300"))
             .andExpect(header().string("X-Content-Type-Options", "nosniff"))
             .andExpect(content().bytes(content.toByteArray()))
     }
