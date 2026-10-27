@@ -9,8 +9,12 @@ import org.springframework.http.HttpStatus.*
 import org.springframework.http.ResponseEntity
 import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.validation.BindException
+import org.springframework.validation.method.MethodValidationException
+import org.springframework.validation.method.MethodValidationResult
 import org.springframework.web.bind.MissingServletRequestParameterException
 import org.springframework.web.bind.annotation.ExceptionHandler
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.method.annotation.HandlerMethodValidationException
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.beans.TypeMismatchException
 import org.springframework.beans.factory.annotation.Value
@@ -23,6 +27,8 @@ import org.springframework.web.servlet.resource.NoResourceFoundException
 import org.springframework.web.multipart.MaxUploadSizeExceededException
 import org.springframework.web.multipart.MultipartException
 import org.springframework.web.multipart.support.MissingServletRequestPartException
+
+private const val VALIDATION_FAILED = "Validation Failed"
 
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @RestControllerAdvice
@@ -185,8 +191,38 @@ class GlobalRestExceptionHandler(
 
         val errorResponse = ErrorResponse.withFieldErrors(
             status = BAD_REQUEST.value(),
-            error = "Validation Failed",
+            error = VALIDATION_FAILED,
             message = "Constraint violation",
+            fieldErrors = fieldErrors,
+            path = request.getDescription(false).removePrefix("uri=")
+        )
+        return ResponseEntity(errorResponse, BAD_REQUEST)
+    }
+
+    // Constraints on @RequestParam/@PathVariable: MethodValidationException from the @Validated proxy
+    // (ValidationConfig adapts constraint violations), HandlerMethodValidationException from Spring MVC
+    @ExceptionHandler(MethodValidationException::class, HandlerMethodValidationException::class)
+    fun handleMethodValidation(
+        e: MethodValidationResult,
+        request: WebRequest
+    ): ResponseEntity<ErrorResponse> {
+        val fieldErrors = e.parameterValidationResults.flatMap { result ->
+            // Report the name the client sent (e.g. "url"), not the Kotlin parameter name
+            val field = result.methodParameter.getParameterAnnotation(RequestParam::class.java)
+                ?.name?.ifEmpty { null } ?: result.methodParameter.parameterName ?: "argument"
+            result.resolvableErrors.map { error ->
+                FieldError(
+                    field = field,
+                    rejectedValue = result.argument,
+                    message = error.defaultMessage ?: "Validation failed"
+                )
+            }
+        }
+
+        val errorResponse = ErrorResponse.withFieldErrors(
+            status = BAD_REQUEST.value(),
+            error = VALIDATION_FAILED,
+            message = "Invalid request parameters",
             fieldErrors = fieldErrors,
             path = request.getDescription(false).removePrefix("uri=")
         )
@@ -208,7 +244,7 @@ class GlobalRestExceptionHandler(
 
         val errorResponse = ErrorResponse.withFieldErrors(
             status = BAD_REQUEST.value(),
-            error = "Validation Failed",
+            error = VALIDATION_FAILED,
             message = "Invalid request data",
             fieldErrors = fieldErrors,
             path = request.getDescription(false).removePrefix("uri=")

@@ -67,7 +67,7 @@ src/main/kotlin/fr/marstech/mtlinkspray/
 
 **Critical flows**:
 
-- Shorten URL: `POST /api/shorten` → `ShortenerApiController` → `ShortenerServiceImpl` → `LinkItemRepository` (MongoDB)
+- Shorten URL: `GET /api/url-shortener/shorten?url=` → `ShortenerApiController` → `ShortenerServiceImpl` → `LinkItemRepository` (MongoDB)
 - Resolve short code: `GET /{code}` → `RootApiController` → `ShortenerServiceImpl` → redirect
 - Create paste: `POST /api/paste` → `PasteApiController` → `PasteServiceImpl` → `PasteRepository`
 - Abuse report: `POST /api/abuse` → `ReportAbuseServiceImpl` → `MailSenderServiceImpl`
