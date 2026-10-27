@@ -42,6 +42,12 @@
                                   placeholder="https://sol4.space"></textarea>
                     </div>
 
+                    <div class="form-check mb-3 qr-fields d-none" data-types="url">
+                        <input class="form-check-input" id="qrShortenFirst" type="checkbox">
+                        <label class="form-check-label" for="qrShortenFirst">Shorten first</label>
+                        <div class="form-text" id="qrShortUrl"></div>
+                    </div>
+
                     <div class="qr-fields d-none" data-types="wifi">
                         <div class="mb-3">
                             <label class="form-label" for="wifiSsid">Network name (SSID)</label>
@@ -127,7 +133,12 @@
             const qrAlert = document.getElementById('qrAlert');
             const downloadPng = document.getElementById('qrDownloadPng');
             const downloadSvg = document.getElementById('qrDownloadSvg');
+            const shortenFirst = document.getElementById('qrShortenFirst');
+            const shortUrlText = document.getElementById('qrShortUrl');
             const val = id => document.getElementById(id).value.trim();
+            // Shortened on change, not on input: each call stores a short link
+            const shortUrls = new Map();
+            const useShortUrl = () => qrType.value === 'url' && shortenFirst.checked;
 
             // WiFi (ZXing MECARD-like) and vCard both reserve these characters
             const escWifi = s => s.replace(/([\\;,:"])/g, '\\$1');
@@ -152,6 +163,9 @@
                         lines.push('END:VCARD');
                         return lines.join('\r\n');
                     }
+                    case 'url':
+                        if (shortenFirst.checked) return shortUrls.get(val('qrText')) || '';
+                        return document.getElementById('qrText').value;
                     default:
                         return document.getElementById('qrText').value;
                 }
@@ -174,6 +188,7 @@
                     el.classList.toggle('d-none', !el.dataset.types.split(' ').includes(qrType.value)));
                 qrAlert.className = 'mt-3';
                 qrAlert.textContent = '';
+                shortUrlText.textContent = useShortUrl() ? (shortUrls.get(val('qrText')) || '') : '';
                 const empty = !payload().trim();
                 qrPreview.classList.toggle('d-none', empty);
                 [downloadPng, downloadSvg].forEach(a => a.classList.toggle('disabled', empty));
@@ -183,12 +198,26 @@
                 downloadSvg.href = qrUrl('svg', true);
             }
 
-            qrPreview.addEventListener('error', async () => {
-                qrPreview.classList.add('d-none');
-                const err = await fetch(qrPreview.src).then(r => r.json()).catch(() => ({}));
+            function showError(err, fallback) {
                 const details = (err.fieldErrors || []).map(f => f.message).join(', ');
                 qrAlert.className = 'mt-3 alert alert-warning';
-                qrAlert.textContent = details || err.message || 'QR code generation failed';
+                qrAlert.textContent = details || err.message || fallback;
+            }
+
+            async function shortenThenRefresh() {
+                const url = val('qrText');
+                if (!useShortUrl() || !url || shortUrls.has(url)) return refresh();
+                const res = await fetch(`/api/url-shortener/shorten?${new URLSearchParams({url})}`).catch(() => null);
+                if (res && res.ok) shortUrls.set(url, (await res.text()).trim());
+                refresh();
+                // The endpoint answers an invalid URL with a raw 500 message: only show field errors
+                if (!res || !res.ok) showError({fieldErrors: res && (await res.json().catch(() => ({}))).fieldErrors},
+                    'URL shortening failed: check that the URL is valid');
+            }
+
+            qrPreview.addEventListener('error', async () => {
+                qrPreview.classList.add('d-none');
+                showError(await fetch(qrPreview.src).then(r => r.json()).catch(() => ({})), 'QR code generation failed');
             });
 
             let timer;
@@ -196,7 +225,9 @@
                 clearTimeout(timer);
                 timer = setTimeout(refresh, 300);
             });
-            qrType.addEventListener('change', refresh);
+            document.getElementById('qrForm').addEventListener('change', e => {
+                if (['qrType', 'qrText', 'qrShortenFirst'].includes(e.target.id)) shortenThenRefresh();
+            });
             refresh();
         </script>
     </div>
