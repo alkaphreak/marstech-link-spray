@@ -13,6 +13,9 @@ import org.springframework.validation.method.MethodValidationException
 import org.springframework.validation.method.MethodValidationResult
 import org.springframework.web.bind.MissingServletRequestParameterException
 import org.springframework.web.bind.annotation.ExceptionHandler
+import org.springframework.web.accept.InvalidApiVersionException
+import org.springframework.web.accept.MissingApiVersionException
+import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.method.annotation.HandlerMethodValidationException
 import org.springframework.web.bind.annotation.RestControllerAdvice
@@ -171,6 +174,21 @@ class GlobalRestExceptionHandler(
             status = BAD_REQUEST.value(),
             error = "Bad Request",
             message = e.message ?: "Missing required parameter",
+            path = request.getDescription(false).removePrefix("uri=")
+        )
+        return ResponseEntity(errorResponse, BAD_REQUEST)
+    }
+
+    // Unsupported or malformed API version (MLS-137); NotAcceptableApiVersionException is a subclass
+    @ExceptionHandler(InvalidApiVersionException::class, MissingApiVersionException::class)
+    fun handleApiVersion(
+        e: ResponseStatusException,
+        request: WebRequest
+    ): ResponseEntity<ErrorResponse> {
+        val errorResponse = ErrorResponse.from(
+            status = BAD_REQUEST.value(),
+            error = "Bad Request",
+            message = e.reason ?: "Invalid API version",
             path = request.getDescription(false).removePrefix("uri=")
         )
         return ResponseEntity(errorResponse, BAD_REQUEST)
