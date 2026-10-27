@@ -59,7 +59,9 @@ class ImageApiController(private val imageService: ImageService) {
             .header(CONTENT_DISPOSITION, disposition.toString())
             .header("X-Content-Type-Options", "nosniff")
             // A shared cache (Cloudflare) would otherwise serve a private image to anyone once fetched.
-            .header(CACHE_CONTROL, if (image.isPrivate) "private, no-store" else "public, max-age=86400")
+            // s-maxage: App Platform's CDN cannot be purged by URL, so a deleted public image must
+            // leave it within 5 minutes (MLS-237); browsers keep their copy for a day.
+            .header(CACHE_CONTROL, if (image.isPrivate) "private, no-store" else "public, max-age=86400, s-maxage=300")
             .body(InputStreamResource(stream))
     }
 
