@@ -144,6 +144,17 @@ class QrCodeApiControllerTest {
     }
 
     @Test
+    fun shouldApplySingleQrCodeRulesToEachBulkLine() {
+        mockMvc.perform(post("/api/qr/bulk").param("text", "ok\n" + "x".repeat(2001)).param("fg", "red"))
+            .andExpect(status().isBadRequest)
+            .andExpect(
+                jsonPath("$.message").value(
+                    "Line 1: Foreground color must be a RRGGBB hex value"
+                )
+            )
+    }
+
+    @Test
     fun shouldBuildBulkFilenameWithoutSlugWhenLineHasNoAlphanumeric() {
         assertEquals("007.png", QrCodeApiController.bulkFilename(6, "!!!", "png"))
     }

@@ -4,6 +4,7 @@ import fr.marstech.mtlinkspray.dto.QrCodeBulkRequest
 import fr.marstech.mtlinkspray.dto.QrCodeRequest
 import fr.marstech.mtlinkspray.service.QrCodeService
 import jakarta.validation.Valid
+import jakarta.validation.Validator
 import org.springframework.http.ContentDisposition
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
@@ -19,7 +20,8 @@ import java.util.zip.ZipOutputStream
 @RestController
 @RequestMapping("/api/qr")
 class QrCodeApiController(
-    private val qrCodeService: QrCodeService
+    private val qrCodeService: QrCodeService,
+    private val validator: Validator,
 ) {
 
     @GetMapping
@@ -51,7 +53,10 @@ class QrCodeApiController(
         ZipOutputStream(zip).use { out ->
             lines.forEachIndexed { index, line ->
                 val bytes = try {
-                    qrCodeService.render(request.forLine(line))
+                    val lineRequest = request.forLine(line)
+                    val violations = validator.validate(lineRequest)
+                    require(violations.isEmpty()) { violations.map { it.message }.sorted().joinToString(", ") }
+                    qrCodeService.render(lineRequest)
                 } catch (e: IllegalArgumentException) {
                     throw IllegalArgumentException("Line ${index + 1}: ${e.message}", e)
                 }
