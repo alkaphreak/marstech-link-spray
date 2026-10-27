@@ -210,7 +210,7 @@
                 const res = await fetch(`/api/url-shortener/shorten?${new URLSearchParams({url})}`).catch(() => null);
                 if (res && res.ok) shortUrls.set(url, (await res.text()).trim());
                 refresh();
-                // The endpoint answers an invalid URL with a raw 500 message: only show field errors
+                // Only field errors carry a user-facing message (e.g. invalid URL, MLS-244)
                 if (!res || !res.ok) showError({fieldErrors: res && (await res.json().catch(() => ({}))).fieldErrors},
                     'URL shortening failed: check that the URL is valid');
             }

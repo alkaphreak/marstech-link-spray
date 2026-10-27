@@ -1,32 +1,35 @@
 package fr.marstech.mtlinkspray.controller.api
 
+import fr.marstech.mtlinkspray.MtLinkSprayApplication
+import fr.marstech.mtlinkspray.conf.SecurityConfig
+import fr.marstech.mtlinkspray.conf.ValidationConfig
+import fr.marstech.mtlinkspray.controller.commons.GlobalRestExceptionHandler
 import fr.marstech.mtlinkspray.service.ShortenerService
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
-import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
+import org.springframework.context.annotation.Import
+import org.springframework.test.context.ContextConfiguration
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
-import org.springframework.test.web.servlet.setup.MockMvcBuilders
 
+// Full MVC slice with ValidationConfig, so @Validated runs through the same proxy as in production
+@WebMvcTest(controllers = [ShortenerApiController::class])
+@ContextConfiguration(classes = [MtLinkSprayApplication::class])
+@Import(GlobalRestExceptionHandler::class, SecurityConfig::class, ValidationConfig::class)
 class ShortenerApiControllerTest {
 
-    private lateinit var mockMvc: MockMvc
-    private val shortenerService: ShortenerService = mock()
+    @Autowired
+    lateinit var mockMvc: MockMvc
 
-    @BeforeEach
-    fun setup() {
-        val validator = org.springframework.validation.beanvalidation.LocalValidatorFactoryBean()
-        validator.afterPropertiesSet()
-        
-        mockMvc = MockMvcBuilders.standaloneSetup(ShortenerApiController(shortenerService))
-            .setControllerAdvice(fr.marstech.mtlinkspray.controller.commons.GlobalRestExceptionHandler())
-            .setValidator(validator)
-            .build()
-    }
+    @MockitoBean
+    lateinit var shortenerService: ShortenerService
 
     @Test
     fun shouldGetShortenedUrl() {
@@ -56,6 +59,14 @@ class ShortenerApiControllerTest {
     fun shouldReturn400ForWhitespaceUrl() {
         mockMvc.perform(get("/api/url-shortener/shorten").param("url", "   "))
             .andExpect(status().isBadRequest)
+    }
+
+    @Test
+    fun shouldReturn400WithFieldErrorForInvalidUrl() {
+        mockMvc.perform(get("/api/url-shortener/shorten").param("url", "notaurl"))
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.fieldErrors[0].field").value("url"))
+            .andExpect(jsonPath("$.fieldErrors[0].message").value("URL must have a protocol (e.g., http:// or https://)"))
     }
 
     @Test
