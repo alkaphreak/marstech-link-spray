@@ -2,6 +2,7 @@ package fr.marstech.mtlinkspray.controller.view
 
 import fr.marstech.mtlinkspray.MtLinkSprayApplication
 import fr.marstech.mtlinkspray.conf.SecurityConfig
+import fr.marstech.mtlinkspray.controller.api.RootApiController
 import fr.marstech.mtlinkspray.controller.commons.GlobalRestExceptionHandler
 import fr.marstech.mtlinkspray.entity.HistoryItem
 import fr.marstech.mtlinkspray.entity.PasteEntity
@@ -19,7 +20,7 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 
-@WebMvcTest(controllers = [PasteViewController::class])
+@WebMvcTest(controllers = [PasteViewController::class, RootApiController::class])
 @ContextConfiguration(classes = [MtLinkSprayApplication::class])
 @Import(GlobalRestExceptionHandler::class, SecurityConfig::class)
 class PasteViewControllerTest {
@@ -29,6 +30,31 @@ class PasteViewControllerTest {
 
     @MockitoBean
     lateinit var pasteService: PasteService
+
+    @Test
+    fun viewPasteLinksToQrCodeOfPasteUrl() {
+        // Given
+        val pasteId = "abc123"
+        `when`(pasteService.isPasswordProtected(pasteId)).thenReturn(false)
+        `when`(pasteService.getPaste(pasteId, null)).thenReturn(
+            PasteEntity(
+                id = pasteId,
+                title = "Test",
+                content = "Hello",
+                language = KOTLIN,
+                passwordHash = null,
+                isPrivate = false,
+                isPasswordProtected = false,
+                author = HistoryItem("user1")
+            )
+        )
+
+        // When / Then
+        get("/paste/$pasteId")
+            .let(mockMvc::perform)
+            .andExpect(status().isOk)
+            .andExpect(content().string(org.hamcrest.Matchers.containsString("/api/qr?text=http://localhost/paste/$pasteId")))
+    }
 
     @Test
     fun getRawPasteReturnsPlainTextContent() {
