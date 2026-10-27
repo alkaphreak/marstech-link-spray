@@ -116,6 +116,8 @@ See `.local/llm/README.md` for complete conventions.
 - **Schema-first**: data classes with validation annotations are the contract, not comments
 - **ADRs**: architecture decisions live in `docs/adr/` (MADR; create it from the Marstech-Configs
   `project-init` template with the first ADR). Read them before changing a design they cover
+- **API versioning**: content negotiation (`Accept: application/json;version=N`, 1.0 by default,
+  ADR 0001). A breaking change adds a `version = "2"` method next to the v1 one; URLs never change
 - **Spring Security is scoped to `/admin/**` only** (HTTP Basic) — `SecurityConfig` `permitAll()`s everything else. CSRF is enforced on `/admin/**` only: admin forms must use `th:action` so Spring Security injects the token; the public forms (spray, paste, dashboard) carry no token and stay exempt. Any new `@WebMvcTest` must `@Import(SecurityConfig::class)`, otherwise Spring Boot falls back to its default security autoconfig (login form + CSRF) and breaks the test.
 - **Kotlin KDoc comments nest** — never write a literal `/**` sequence inside a `/** ... */` comment body (e.g. avoid `` `/admin/**` ``); it opens a nested comment and causes "Unclosed comment" compile errors. Rephrase instead (e.g. "the /admin path tree").
 - **Conventional commits** for all commit messages — append ticket ID and full YouTrack URL on a trailing line when available:
