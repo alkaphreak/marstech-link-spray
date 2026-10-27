@@ -12,6 +12,10 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.validation.BeanPropertyBindingResult
 import org.springframework.validation.BindException
+import org.springframework.validation.method.MethodValidationException
+import org.springframework.validation.method.MethodValidationResult
+import org.springframework.validation.method.ParameterValidationResult
+import org.springframework.context.support.DefaultMessageSourceResolvable
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.MissingServletRequestParameterException
 import org.springframework.web.context.request.WebRequest
@@ -193,5 +197,21 @@ class GlobalRestExceptionHandlerTest {
         assertEquals(400, response.body?.status)
         val message = response.body?.message
         assertTrue(message?.contains("JSON") ?: false)
+    }
+
+    @Test
+    fun shouldReturn400WithFieldErrorsForMethodValidationException() {
+        // No @RequestParam: the field falls back to the method parameter name
+        val param = MethodParameter(Dummy::class.java.getMethod("method", String::class.java), 0)
+        val error = DefaultMessageSourceResolvable(null, null, "must not be blank")
+        val paramResult = ParameterValidationResult(param, "", listOf(error), null, null, null) { e, _ -> e }
+        val validationResult = mock(MethodValidationResult::class.java)
+        `when`(validationResult.parameterValidationResults).thenReturn(listOf(paramResult))
+
+        val response = handler.handleMethodValidation(MethodValidationException(validationResult), mockRequest)
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.statusCode)
+        assertEquals("param", response.body?.fieldErrors?.single()?.field)
+        assertEquals("must not be blank", response.body?.fieldErrors?.single()?.message)
     }
 }

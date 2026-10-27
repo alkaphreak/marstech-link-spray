@@ -28,6 +28,8 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException
 import org.springframework.web.multipart.MultipartException
 import org.springframework.web.multipart.support.MissingServletRequestPartException
 
+private const val VALIDATION_FAILED = "Validation Failed"
+
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @RestControllerAdvice
 class GlobalRestExceptionHandler(
@@ -189,7 +191,7 @@ class GlobalRestExceptionHandler(
 
         val errorResponse = ErrorResponse.withFieldErrors(
             status = BAD_REQUEST.value(),
-            error = "Validation Failed",
+            error = VALIDATION_FAILED,
             message = "Constraint violation",
             fieldErrors = fieldErrors,
             path = request.getDescription(false).removePrefix("uri=")
@@ -207,8 +209,7 @@ class GlobalRestExceptionHandler(
         val fieldErrors = e.parameterValidationResults.flatMap { result ->
             // Report the name the client sent (e.g. "url"), not the Kotlin parameter name
             val field = result.methodParameter.getParameterAnnotation(RequestParam::class.java)
-                ?.let { it.name.ifEmpty { it.value } }?.ifEmpty { null }
-                ?: result.methodParameter.parameterName ?: "argument"
+                ?.name?.ifEmpty { null } ?: result.methodParameter.parameterName ?: "argument"
             result.resolvableErrors.map { error ->
                 FieldError(
                     field = field,
@@ -220,7 +221,7 @@ class GlobalRestExceptionHandler(
 
         val errorResponse = ErrorResponse.withFieldErrors(
             status = BAD_REQUEST.value(),
-            error = "Validation Failed",
+            error = VALIDATION_FAILED,
             message = "Invalid request parameters",
             fieldErrors = fieldErrors,
             path = request.getDescription(false).removePrefix("uri=")
@@ -243,7 +244,7 @@ class GlobalRestExceptionHandler(
 
         val errorResponse = ErrorResponse.withFieldErrors(
             status = BAD_REQUEST.value(),
-            error = "Validation Failed",
+            error = VALIDATION_FAILED,
             message = "Invalid request data",
             fieldErrors = fieldErrors,
             path = request.getDescription(false).removePrefix("uri=")
