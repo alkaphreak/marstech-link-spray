@@ -11,11 +11,13 @@ import org.mockito.Mockito.reset
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.text.MessageFormat
+import java.util.concurrent.Executors
 import java.util.stream.IntStream
 
 @SpringBootTest
@@ -206,6 +208,54 @@ class RandomIdGeneratorServiceImplTest {
 
         // Then
         assertEquals(cacheSizeBefore - 1, randomIdGeneratorService.cacheIds.size)
+    }
+
+    private val tinyRepository = mock<LinkItemRepository>()
+
+    private fun givenTinyIdSpaceService(charset: String, takenIds: List<String>): RandomIdGeneratorServiceImpl {
+        whenever(tinyRepository.findAllIds()).thenReturn(takenIds)
+        return RandomIdGeneratorServiceImpl(tinyRepository, 1, true, 10, 3, "", charset)
+    }
+
+    @Test
+    fun getGeneratedFreeIdWithCacheShouldThrowWhenIdSpaceIsExhausted() {
+        // Given — the only possible id is already taken
+        val service = givenTinyIdSpaceService("a", listOf("a"))
+
+        // When / Then — the refill gives up instead of looping forever
+        assertThrows(IllegalStateException::class.java) { service.getGeneratedFreeIdWithCache() }
+    }
+
+    @Test
+    fun getGeneratedFreeIdWithCacheShouldReturnRemainingIdsWhenThresholdIsUnreachable() {
+        // Given — only "b" is free, below the cache threshold of 3
+        val service = givenTinyIdSpaceService("ab", listOf("a"))
+
+        // When
+        val id = service.getGeneratedFreeIdWithCache()
+
+        // Then — the last free id is served; once it is saved, the next call fails
+        assertEquals("b", id)
+        whenever(tinyRepository.findAllIds()).thenReturn(listOf("a", "b"))
+        assertThrows(IllegalStateException::class.java) { service.getGeneratedFreeIdWithCache() }
+    }
+
+    @Test
+    fun getGeneratedFreeIdWithCacheShouldNeverReturnTheSameIdToConcurrentCallers() {
+        // Given
+        whenever(linkItemRepository.findAllIds()).thenReturn(emptyList())
+        val pool = Executors.newFixedThreadPool(8)
+
+        // When
+        val ids = try {
+            (1..2000).map { pool.submit<String> { randomIdGeneratorService.getGeneratedFreeIdWithCache() } }
+                .map { it.get() }
+        } finally {
+            pool.shutdown()
+        }
+
+        // Then
+        assertEquals(ids.size, ids.toSet().size)
     }
 
     @EnabledIfSystemProperty(named = "spring.profiles.active", matches = ".*benchmark.*")
