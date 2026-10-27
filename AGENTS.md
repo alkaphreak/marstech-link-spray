@@ -15,7 +15,8 @@
 - **Object storage**: Digital Ocean Spaces (S3-compatible, AWS SDK v2) — image storage (MLS-203)
 - **Testing**: JUnit 5 + Mockito-Kotlin + MockMvc — profile `test`, local MongoDB on port 27018
 - **Releases**: JReleaser (`jreleaser.yml`) on `main` only
-- **Quality**: SonarCloud (`sonar.*` properties in `pom.xml`)
+- **Quality**: SonarCloud (`sonar.*` properties in `pom.xml`). PR gate: new-code coverage >= 80% and
+  no literal repeated 3+ times (S1192); cover every new branch before pushing
 
 ---
 
@@ -119,6 +120,9 @@ See `.local/llm/README.md` for complete conventions.
 - **API versioning**: content negotiation (`Accept: application/json;version=N`, 1.0 by default,
   ADR 0001). A breaking change adds a `version = "2"` method next to the v1 one; URLs never change
 - **Spring Security is scoped to `/admin/**` only** (HTTP Basic) — `SecurityConfig` `permitAll()`s everything else. CSRF is enforced on `/admin/**` only: admin forms must use `th:action` so Spring Security injects the token; the public forms (spray, paste, dashboard) carry no token and stay exempt. Any new `@WebMvcTest` must `@Import(SecurityConfig::class)`, otherwise Spring Boot falls back to its default security autoconfig (login form + CSRF) and breaks the test.
+- **Request-param validation**: `ValidationConfig` sets `adaptConstraintViolations`, so a `@Validated`
+  controller throws `MethodValidationException` (mapped to 400, MLS-244). To reproduce it in a test, use
+  `@WebMvcTest` with `@Import(ValidationConfig::class)`: a standalone MockMvc never runs that validation
 - **Kotlin KDoc comments nest** — never write a literal `/**` sequence inside a `/** ... */` comment body (e.g. avoid `` `/admin/**` ``); it opens a nested comment and causes "Unclosed comment" compile errors. Rephrase instead (e.g. "the /admin path tree").
 - **Conventional commits** for all commit messages — append ticket ID and full YouTrack URL on a trailing line when available:
   ```
