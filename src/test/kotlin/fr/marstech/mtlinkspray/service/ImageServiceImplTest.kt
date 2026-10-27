@@ -21,11 +21,12 @@ class ImageServiceImplTest {
     private val imageRepository = mock(ImageRepository::class.java)
     private val apiKeyService = mock(ApiKeyService::class.java)
     private val imageStorageService = mock(ImageStorageService::class.java)
+    private val cachePurgeService = mock(CachePurgeService::class.java)
     private val httpServletRequest = mock(HttpServletRequest::class.java)
 
     private val maxFileSizeBytes = 25L * 1024 * 1024 // 25 MB, same default as production config
     private val imageService = ImageServiceImpl(
-        imageRepository, apiKeyService, imageStorageService, maxFileSizeBytes
+        imageRepository, apiKeyService, imageStorageService, cachePurgeService, maxFileSizeBytes
     )
 
     private val jpegBytes = byteArrayOf(0xFF.toByte(), 0xD8.toByte(), 0xFF.toByte(), 0xE0.toByte(), 0x00)
@@ -218,6 +219,19 @@ class ImageServiceImplTest {
 
         verify(imageStorageService).delete(image.s3Key)
         verify(imageRepository).deleteById("img-1")
+        verify(cachePurgeService).purge("/api/images/img-1")
+    }
+
+    @Test
+    fun deleteImageShouldNotPurgeCacheWhenImageIsPrivate() {
+        val image = givenImage(isPrivate = true)
+        `when`(imageRepository.findById("img-1")).thenReturn(Optional.of(image))
+        `when`(apiKeyService.resolve("key123.secret")).thenReturn(apiKey)
+
+        imageService.deleteImage("img-1", "key123.secret")
+
+        verify(imageRepository).deleteById("img-1")
+        verify(cachePurgeService, never()).purge(any())
     }
 
     @Test
@@ -231,6 +245,7 @@ class ImageServiceImplTest {
         }
         verify(imageStorageService, never()).delete(any())
         verify(imageRepository, never()).deleteById(any())
+        verify(cachePurgeService, never()).purge(any())
     }
 
     @Test

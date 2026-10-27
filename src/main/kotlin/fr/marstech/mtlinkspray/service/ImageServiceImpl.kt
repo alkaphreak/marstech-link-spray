@@ -16,6 +16,7 @@ class ImageServiceImpl(
     private val imageRepository: ImageRepository,
     private val apiKeyService: ApiKeyService,
     private val imageStorageService: ImageStorageService,
+    private val cachePurgeService: CachePurgeService,
     @Value("\${mt.link-spray.storage.max-file-size-bytes:26214400}") private val maxFileSizeBytes: Long,
 ) : ImageService {
 
@@ -72,6 +73,8 @@ class ImageServiceImpl(
 
         imageStorageService.delete(image.s3Key)
         imageRepository.deleteById(id)
+        // Public images are cached by Cloudflare for a day; private ones are served no-store.
+        if (!image.isPrivate) cachePurgeService.purge("/api/images/$id")
     }
 
     override fun listImages(rawApiKey: String?): List<ImageEntity> {
