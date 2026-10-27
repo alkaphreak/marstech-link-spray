@@ -15,7 +15,8 @@
             <div class="col">
                 <h3>QR Code Generator</h3>
 
-                <p>Generate a QR code for text, a URL, WiFi credentials or a contact card, then download it as PNG or SVG.</p>
+                <p>Generate a QR code for text, a URL, WiFi credentials or a contact card, then download it as PNG or SVG.
+                    Bulk mode turns each line into its own QR code, downloaded together as a ZIP.</p>
             </div>
         </div>
     </div>
@@ -33,13 +34,15 @@
                             <option value="url">URL</option>
                             <option value="wifi">WiFi</option>
                             <option value="vcard">Contact card (vCard)</option>
+                            <option value="bulk">Bulk: one QR code per line (ZIP)</option>
                         </select>
                     </div>
 
-                    <div class="mb-3 qr-fields" data-types="text url">
+                    <div class="mb-3 qr-fields" data-types="text url bulk">
                         <label class="form-label" for="qrText">Content</label>
                         <textarea class="form-control" id="qrText" maxlength="2000" rows="3"
                                   placeholder="https://sol4.space"></textarea>
+                        <div class="form-text qr-fields d-none" data-types="bulk">One QR code per line, up to 100 lines.</div>
                     </div>
 
                     <div class="form-check mb-3 qr-fields d-none" data-types="url">
@@ -139,6 +142,7 @@
             // Shortened on change, not on input: each call stores a short link
             const shortUrls = new Map();
             const useShortUrl = () => qrType.value === 'url' && shortenFirst.checked;
+            const isBulk = () => qrType.value === 'bulk';
 
             // WiFi (ZXing MECARD-like) and vCard both reserve these characters
             const escWifi = s => s.replace(/([\\;,:"])/g, '\\$1');
@@ -190,9 +194,10 @@
                 qrAlert.textContent = '';
                 shortUrlText.textContent = useShortUrl() ? (shortUrls.get(val('qrText')) || '') : '';
                 const empty = !payload().trim();
-                qrPreview.classList.toggle('d-none', empty);
+                document.getElementById('qrText').maxLength = isBulk() ? 100000 : 2000;
+                qrPreview.classList.toggle('d-none', empty || isBulk());
                 [downloadPng, downloadSvg].forEach(a => a.classList.toggle('disabled', empty));
-                if (empty) return;
+                if (empty || isBulk()) return;
                 qrPreview.src = qrUrl('svg', false);
                 downloadPng.href = qrUrl('png', true);
                 downloadSvg.href = qrUrl('svg', true);
@@ -214,6 +219,30 @@
                 if (!res || !res.ok) showError({fieldErrors: res && (await res.json().catch(() => ({}))).fieldErrors},
                     'URL shortening failed: check that the URL is valid');
             }
+
+            // Bulk text does not fit in a URL: POST it, then save the returned ZIP
+            async function downloadZip(format) {
+                const body = new URLSearchParams({
+                    text: payload(), size: val('qrSize'), fg: val('qrFg').slice(1), bg: val('qrBg').slice(1), format
+                });
+                const res = await fetch('/api/qr/bulk', {method: 'POST', body}).catch(() => null);
+                if (!res || !res.ok) {
+                    return showError(res ? await res.json().catch(() => ({})) : {}, 'QR code generation failed');
+                }
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(await res.blob());
+                link.download = 'qrcodes.zip';
+                link.click();
+                URL.revokeObjectURL(link.href);
+            }
+
+            const onDownload = format => e => {
+                if (!isBulk()) return;
+                e.preventDefault();
+                downloadZip(format);
+            };
+            downloadPng.addEventListener('click', onDownload('png'));
+            downloadSvg.addEventListener('click', onDownload('svg'));
 
             qrPreview.addEventListener('error', async () => {
                 qrPreview.classList.add('d-none');
