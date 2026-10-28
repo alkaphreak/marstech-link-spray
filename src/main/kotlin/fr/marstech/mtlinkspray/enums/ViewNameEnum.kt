@@ -13,6 +13,7 @@ enum class ViewNameEnum(
     PASTE(viewName = "paste", viewPage = "Pastebin", orderInMenu = 4),
     QR(viewName = "qr", viewPage = "QR Code", orderInMenu = 5),
     MAILTO(viewName = "mailto", viewPage = "Mailto", orderInMenu = 6),
+    DNS(viewName = "dns", viewPage = "DNS", orderInMenu = 7),
     ABUSE(viewName = "abuse", viewPage = "Abuse"),
 
     DASHBOARD(viewName = "dashboard", viewPage = "Dashboard"),
