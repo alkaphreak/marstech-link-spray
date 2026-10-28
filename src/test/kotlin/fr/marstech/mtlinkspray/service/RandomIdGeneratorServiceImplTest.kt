@@ -285,9 +285,10 @@ class RandomIdGeneratorServiceImplTest {
         whenever(linkItemRepository.findAllIds()).thenReturn(emptyList())
         val pool = Executors.newFixedThreadPool(8)
 
-        // When
+        // When: stay within one refill (depth - threshold), the repository stub cannot see IDs already handed out (MLS-246)
+        val calls = randomIdGeneratorService.cacheDepth - randomIdGeneratorService.cacheTreshold
         val ids = try {
-            (1..2000).map { pool.submit<String> { randomIdGeneratorService.getGeneratedFreeIdWithCache() } }
+            (1..calls).map { pool.submit<String> { randomIdGeneratorService.getGeneratedFreeIdWithCache() } }
                 .map { it.get() }
         } finally {
             pool.shutdown()
