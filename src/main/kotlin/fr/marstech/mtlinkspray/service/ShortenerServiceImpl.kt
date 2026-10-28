@@ -6,6 +6,7 @@ import fr.marstech.mtlinkspray.entity.LinkItemTarget
 import fr.marstech.mtlinkspray.repository.LinkItemRepository
 import fr.marstech.mtlinkspray.service.ShortenerService.Companion.getShortenedLink
 import jakarta.servlet.http.HttpServletRequest
+import org.springframework.dao.DuplicateKeyException
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 import java.util.Map
@@ -19,8 +20,21 @@ class ShortenerServiceImpl(
     override fun shorten(
         url: String,
         httpServletRequest: HttpServletRequest
-    ): String? = LinkItem(
-        id = randomIdGeneratorService.getGeneratedFreeId(),
+    ): String? = getShortenedLink(
+        uid = insertWithFreeId(url).id,
+        httpServletRequest = httpServletRequest
+    )
+
+    // insert, not save: save() upserts, so an ID handed out twice would silently overwrite a link (MLS-246).
+    private fun insertWithFreeId(url: String, attempt: Int = 1): LinkItem = try {
+        linkItemRepository.insert(newLinkItem(randomIdGeneratorService.getGeneratedFreeId(), url))
+    } catch (e: DuplicateKeyException) {
+        if (attempt >= MAX_INSERT_ATTEMPTS) throw e
+        insertWithFreeId(url, attempt + 1)
+    }
+
+    private fun newLinkItem(id: String, url: String) = LinkItem(
+        id = id,
         creationDate = LocalDateTime.now(),
         expiresAt = null,
         isEnabled = true,
@@ -29,13 +43,7 @@ class ShortenerServiceImpl(
         author = HistoryItem(),
         historyItems = mutableListOf(),
         target = LinkItemTarget(url)
-    ).let { linkItemRepository.save(it) }
-        .let {
-            getShortenedLink(
-                uid = it.id,
-                httpServletRequest = httpServletRequest
-            )
-        }
+    )
 
     override fun getTarget(
         uid: String,
@@ -44,4 +52,8 @@ class ShortenerServiceImpl(
             .orElseThrow { NoSuchElementException("Short link '$uid' does not exist") }
             .target
             .targetUrl
+
+    companion object {
+        private const val MAX_INSERT_ATTEMPTS = 3
+    }
 }
