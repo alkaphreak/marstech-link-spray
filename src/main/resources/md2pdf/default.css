@@ -1,0 +1,21 @@
+@page {
+    size: A4;
+    margin: 2cm 2cm 2.5cm 2cm;
+
+    /* Margin boxes do not inherit the body font */
+    @bottom-center {
+        content: counter(page) " / " counter(pages);
+        font-family: 'DejaVu Sans', sans-serif;
+        font-size: 9pt;
+        color: #666;
+    }
+}
+
+body { font-family: 'DejaVu Sans', sans-serif; font-size: 10.5pt; line-height: 1.4; }
+h1, h2, h3 { color: #1a3a5c; }
+table { border-collapse: collapse; width: 100%; font-size: 9pt; -fs-table-paginate: paginate; }
+th, td { border: 1px solid #bbb; padding: 3px 5px; text-align: left; vertical-align: top; }
+th { background: #eef2f6; }
+pre, code { font-family: 'DejaVu Sans Mono', monospace; font-size: 8.5pt; background: #f4f4f4; }
+pre { padding: 6px; white-space: pre-wrap; word-wrap: break-word; }
+blockquote { border-left: 3px solid #ccc; margin-left: 0; padding-left: 10px; color: #555; }

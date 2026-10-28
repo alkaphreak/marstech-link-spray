@@ -57,6 +57,7 @@
         <timestamp>${maven.build.timestamp}</timestamp>
         <maven.build.timestamp.format>yyyyMMdd-HHmmss</maven.build.timestamp.format>
         <kotlin.version>2.4.21</kotlin.version>
+        <commonmark.version>0.30.1</commonmark.version>
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
         <!--suppress XmlUnresolvedReference -->
         <sonar.organization>${env.SONAR_ORGANIZATION}</sonar.organization>
@@ -224,6 +225,41 @@
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>s3</artifactId>
             <version>2.57.3</version>
+        </dependency>
+        <!-- md2pdf (MLS-223): Markdown -> HTML5 -> W3C DOM -> PDF -->
+        <!-- https://mvnrepository.com/artifact/org.commonmark/commonmark -->
+        <dependency>
+            <groupId>org.commonmark</groupId>
+            <artifactId>commonmark</artifactId>
+            <version>${commonmark.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.commonmark</groupId>
+            <artifactId>commonmark-ext-gfm-tables</artifactId>
+            <version>${commonmark.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.commonmark</groupId>
+            <artifactId>commonmark-ext-footnotes</artifactId>
+            <version>${commonmark.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.commonmark</groupId>
+            <artifactId>commonmark-ext-task-list-items</artifactId>
+            <version>${commonmark.version}</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.jsoup/jsoup -->
+        <dependency>
+            <groupId>org.jsoup</groupId>
+            <artifactId>jsoup</artifactId>
+            <version>1.23.2</version>
+        </dependency>
+        <!-- Maintained fork; com.openhtmltopdf is abandoned since 2021 -->
+        <!-- https://mvnrepository.com/artifact/io.github.openhtmltopdf/openhtmltopdf-pdfbox -->
+        <dependency>
+            <groupId>io.github.openhtmltopdf</groupId>
+            <artifactId>openhtmltopdf-pdfbox</artifactId>
+            <version>1.1.97</version>
         </dependency>
     </dependencies>
 

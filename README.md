@@ -106,6 +106,7 @@ src/main/kotlin/fr/marstech/mtlinkspray/
 | PUT    | `/api/dashboard/{id}`        | Update an existing dashboard        |
 | GET    | `/api/random`                | Generate a random number            |
 | GET    | `/api/uuid`                  | Generate a random UUID              |
+| POST   | `/api/md2pdf`                | Markdown body to PDF (`X-Api-Key`)  |
 | GET    | `/{shortUrlUid}`             | Redirect to the target URL          |
 
 ## SDK Version Management
