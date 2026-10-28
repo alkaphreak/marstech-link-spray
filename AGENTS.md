@@ -16,7 +16,8 @@
 - **Testing**: JUnit 5 + Mockito-Kotlin + MockMvc — profile `test`, local MongoDB on port 27018
 - **Releases**: JReleaser (`jreleaser.yml`) on `main` only
 - **Quality**: SonarCloud (`sonar.*` properties in `pom.xml`). PR gate: new-code coverage >= 80% and
-  no literal repeated 3+ times (S1192); cover every new branch before pushing
+  no literal repeated 3+ times (S1192), new-code duplication <= 3% (reuse a DTO's constraints, do not
+  copy them); cover every new branch before pushing
 
 ---
 
@@ -160,6 +161,10 @@ rtk mvn test -f pom.xml
   (secret `DIGITALOCEAN_ACCESS_TOKEN`, app read/update only). DO has no autodeploy for Docker Hub images,
   and without `--force-rebuild` it reuses the cached `:latest`. Never print `doctl apps spec get`
   unfiltered: env values appear in clear
+- **Release ownership**: before dispatching `release.yml`, run `ListAgents`, message every peer session
+  that this one owns the release, wait for replies (or 2 min) and check
+  `gh run list --workflow release.yml -L 1`. The owner alone triggers, re-runs and cancels: two sessions
+  dispatched it 7 s apart, then each cancelled its own run
 - **CDN**: sol4.space sits behind DigitalOcean App Platform's own Cloudflare CDN (DNS at DigitalOcean, no
   zone in our Cloudflare account): no purge by URL, only a redeploy clears it. Cache lifetime is set with
   `Cache-Control` (public images: `s-maxage=300` for the CDN, MLS-237)
@@ -206,4 +211,4 @@ This file is **living documentation**. Any agent (or human) making changes to th
 
 ---
 
-_Last updated: 2026-10-27 — MLS-237: App Platform CDN cannot be purged by URL, public images use `s-maxage=300`_
+_Last updated: 2026-10-28 — release ownership across parallel sessions, SonarCloud duplication gate_
