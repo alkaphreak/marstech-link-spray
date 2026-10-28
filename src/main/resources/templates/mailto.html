@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{index.html :: html-head}">
+    <title></title>
+</head>
+<body>
+
+<header th:replace="~{index.html :: body-header}">
+    <!-- nav bar-->
+</header>
+
+<section class="intro-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col">
+                <h3>Mailto Link Generator</h3>
+
+                <p>Build a <code>mailto:</code> link with recipients, subject and body, encoded for any mail client.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="get-started" th:with="view=${T(fr.marstech.mtlinkspray.enums.ViewNameEnum).MAILTO}">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col">
+                <form id="mailtoForm">
+                    <div class="mb-3">
+                        <label class="form-label" for="mailtoTo">To</label>
+                        <input class="form-control" id="mailtoTo" placeholder="recipient@example.com" type="text">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="mailtoCc">CC</label>
+                        <input class="form-control" id="mailtoCc" placeholder="cc1@example.com, cc2@example.com"
+                               type="text">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="mailtoBcc">BCC</label>
+                        <input class="form-control" id="mailtoBcc" placeholder="bcc1@example.com, bcc2@example.com"
+                               type="text">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="mailtoSubject">Subject</label>
+                        <input class="form-control" id="mailtoSubject" type="text">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="mailtoBody">Body</label>
+                        <textarea class="form-control" id="mailtoBody" rows="5"></textarea>
+                    </div>
+
+                    <label class="form-label" for="mailtoLink">Mailto link</label>
+                    <input class="form-control-plaintext user-select-all" id="mailtoLink" readonly="readonly"
+                           type="text" value="mailto:">
+                    <button class="btn btn-primary"
+                            onclick="copyFormInputValueToClipboard('mailtoLink','liveAlertPlaceholder')"
+                            type="button">
+                        <i class="bi bi-clipboard"></i> Copy link
+                    </button>
+                    <a class="btn btn-outline-primary" href="mailto:" id="mailtoOpen">
+                        <i class="bi bi-envelope"></i> Open in mail client
+                    </a>
+                    <div id="liveAlertPlaceholder"></div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+        // RFC 6068: '@' stays readable, spaces are %20 (never '+'), line breaks are CRLF
+        const encode = s => encodeURIComponent(s).replace(/%40/g, '@');
+        const addresses = s => s.split(',').map(a => a.trim()).filter(Boolean).map(encode).join(',');
+
+        function mailtoLink(f) {
+            const params = [
+                ['cc', addresses(f.cc)],
+                ['bcc', addresses(f.bcc)],
+                ['subject', encode(f.subject.trim())],
+                ['body', encode(f.body.replace(/\r?\n/g, '\r\n'))],
+            ].filter(([, value]) => value);
+            const query = params.map(([key, value]) => key + '=' + value).join('&');
+            return 'mailto:' + addresses(f.to) + (query ? '?' + query : '');
+        }
+
+        const field = id => document.getElementById(id).value;
+        document.getElementById('mailtoForm').addEventListener('input', () => {
+            const link = mailtoLink({
+                to: field('mailtoTo'), cc: field('mailtoCc'), bcc: field('mailtoBcc'),
+                subject: field('mailtoSubject'), body: field('mailtoBody'),
+            });
+            document.getElementById('mailtoLink').value = link;
+            document.getElementById('mailtoOpen').href = link;
+        });
+    </script>
+</section>
+
+<footer class="footer bg-black text-white" th:replace="~{index.html :: body-footer}">
+    <!-- footer -->
+</footer>
+
+<div class="d-none" th:replace="~{index.html :: footer-div-script}">
+    <!-- footer script -->
+</div>
+</body>
+</html>

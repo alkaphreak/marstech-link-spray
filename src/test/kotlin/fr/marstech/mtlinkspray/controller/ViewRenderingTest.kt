@@ -43,6 +43,7 @@ internal class ViewRenderingTest {
         "/, navbarColor01",
         "/qr, qrForm",
         "/spray, inputLinkList",
+        "/mailto, mailtoForm",
         "/paste, inputPasteBinTextArea",
         "/random, randomForm",
         "/uuid, uuid-value",
