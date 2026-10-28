@@ -2,9 +2,11 @@ package fr.marstech.mtlinkspray.controller.commons
 
 import fr.marstech.mtlinkspray.dto.ErrorResponse
 import fr.marstech.mtlinkspray.dto.FieldError
+import fr.marstech.mtlinkspray.exception.PayloadTooLargeException
 import jakarta.validation.ConstraintViolationException
 import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
+import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatus.*
 import org.springframework.http.ResponseEntity
 import org.springframework.http.converter.HttpMessageNotReadableException
@@ -100,13 +102,17 @@ class GlobalRestExceptionHandler(
         e: Exception,
         request: WebRequest
     ): ResponseEntity<ErrorResponse> {
+        // Spring MVC's own exceptions (415, 405, 406, ...) carry their status: keep it instead
+        // of turning a client error into a 500
+        val status = (e as? org.springframework.web.ErrorResponse)?.statusCode
+            ?.let { HttpStatus.resolve(it.value()) } ?: INTERNAL_SERVER_ERROR
         val errorResponse = ErrorResponse.from(
-            status = INTERNAL_SERVER_ERROR.value(),
-            error = "Internal Server Error",
+            status = status.value(),
+            error = status.reasonPhrase,
             message = e.message ?: "An unexpected error occurred",
             path = request.getDescription(false).removePrefix("uri=")
         )
-        return ResponseEntity(errorResponse, INTERNAL_SERVER_ERROR)
+        return ResponseEntity(errorResponse, status)
     }
 
     @ExceptionHandler(IllegalArgumentException::class)
@@ -149,6 +155,20 @@ class GlobalRestExceptionHandler(
             path = request.getDescription(false).removePrefix("uri=")
         )
         return ResponseEntity(errorResponse, NOT_FOUND)
+    }
+
+    @ExceptionHandler(PayloadTooLargeException::class)
+    fun handlePayloadTooLarge(
+        e: PayloadTooLargeException,
+        request: WebRequest
+    ): ResponseEntity<ErrorResponse> {
+        val errorResponse = ErrorResponse.from(
+            status = CONTENT_TOO_LARGE.value(),
+            error = "Content Too Large",
+            message = e.message ?: "Request body too large",
+            path = request.getDescription(false).removePrefix("uri=")
+        )
+        return ResponseEntity(errorResponse, CONTENT_TOO_LARGE)
     }
 
     @ExceptionHandler(IllegalAccessException::class)
