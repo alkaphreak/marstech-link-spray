@@ -44,6 +44,7 @@ internal class ViewRenderingTest {
         "/qr, qrForm",
         "/spray, inputLinkList",
         "/mailto, mailtoForm",
+        "/dns, dnsForm",
         "/paste, inputPasteBinTextArea",
         "/random, randomForm",
         "/uuid, uuid-value",
