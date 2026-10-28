@@ -12,6 +12,7 @@ enum class ViewNameEnum(
     RANDOM(viewName = "random", viewPage = "Random", orderInMenu = 3),
     PASTE(viewName = "paste", viewPage = "Pastebin", orderInMenu = 4),
     QR(viewName = "qr", viewPage = "QR Code", orderInMenu = 5),
+    MAILTO(viewName = "mailto", viewPage = "Mailto", orderInMenu = 6),
     ABUSE(viewName = "abuse", viewPage = "Abuse"),
 
     DASHBOARD(viewName = "dashboard", viewPage = "Dashboard"),
