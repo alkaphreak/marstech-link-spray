@@ -144,6 +144,18 @@ class QrCodeApiControllerTest {
     }
 
     @Test
+    fun shouldCountBlankLinesInFailingLineNumber() {
+        // Given
+        `when`(qrCodeService.render(any())).thenReturn(byteArrayOf(1))
+            .thenThrow(IllegalArgumentException("Text is too long for a QR code"))
+
+        // When / Then
+        mockMvc.perform(post("/api/qr/bulk").param("text", "ok\n\n  \ntoo long"))
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.message").value("Line 4: Text is too long for a QR code"))
+    }
+
+    @Test
     fun shouldApplySingleQrCodeRulesToEachBulkLine() {
         mockMvc.perform(post("/api/qr/bulk").param("text", "ok\n" + "x".repeat(2001)).param("fg", "red"))
             .andExpect(status().isBadRequest)

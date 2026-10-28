@@ -51,14 +51,15 @@ class QrCodeApiController(
         val extension = request.format.lowercase()
         val zip = ByteArrayOutputStream()
         ZipOutputStream(zip).use { out ->
-            lines.forEachIndexed { index, line ->
+            lines.forEachIndexed { index, (textIndex, line) ->
                 val bytes = try {
                     val lineRequest = request.forLine(line)
                     val violations = validator.validate(lineRequest)
                     require(violations.isEmpty()) { violations.map { it.message }.sorted().joinToString(", ") }
                     qrCodeService.render(lineRequest)
                 } catch (e: IllegalArgumentException) {
-                    throw IllegalArgumentException("Line ${index + 1}: ${e.message}", e)
+                    // Line number in the submitted text, blank lines included
+                    throw IllegalArgumentException("Line ${textIndex + 1}: ${e.message}", e)
                 }
                 out.putNextEntry(ZipEntry(bulkFilename(index, line, extension)))
                 out.write(bytes)

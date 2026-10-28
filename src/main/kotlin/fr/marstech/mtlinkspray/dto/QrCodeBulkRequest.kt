@@ -13,8 +13,11 @@ data class QrCodeBulkRequest(
     val bg: String = "ffffff",
     val format: String = "png",
 ) {
-    /** Non-blank lines of [text], trimmed: one QR code each. */
-    val lines: List<String> get() = text.orEmpty().lines().map { it.trim() }.filter { it.isNotEmpty() }
+    /** Non-blank lines of [text], trimmed: one QR code each, indexed by their position in [text]. */
+    val lines: List<IndexedValue<String>>
+        get() = text.orEmpty().lines().withIndex()
+            .map { IndexedValue(it.index, it.value.trim()) }
+            .filter { it.value.isNotEmpty() }
 
     fun forLine(line: String) = QrCodeRequest(text = line, size = size, fg = fg, bg = bg, format = format)
 }

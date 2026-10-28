@@ -214,10 +214,12 @@
                 if (!useShortUrl() || !url || shortUrls.has(url)) return refresh();
                 const res = await fetch(`/api/url-shortener/shorten?${new URLSearchParams({url})}`).catch(() => null);
                 if (res && res.ok) shortUrls.set(url, (await res.text()).trim());
-                refresh();
                 // Only field errors carry a user-facing message (e.g. invalid URL, MLS-244)
-                if (!res || !res.ok) showError({fieldErrors: res && (await res.json().catch(() => ({}))).fieldErrors},
-                    'URL shortening failed: check that the URL is valid');
+                const fieldErrors = res && !res.ok ? (await res.json().catch(() => ({}))).fieldErrors : null;
+                // The URL or the checkbox changed while waiting: the newer change event owns the display
+                if (val('qrText') !== url || !useShortUrl()) return;
+                refresh();
+                if (!res || !res.ok) showError({fieldErrors}, 'URL shortening failed: check that the URL is valid');
             }
 
             // Bulk text does not fit in a URL: POST it, then save the returned ZIP
@@ -255,7 +257,10 @@
                 timer = setTimeout(refresh, 300);
             });
             document.getElementById('qrForm').addEventListener('change', e => {
-                if (['qrType', 'qrText', 'qrShortenFirst'].includes(e.target.id)) shortenThenRefresh();
+                if (!['qrType', 'qrText', 'qrShortenFirst'].includes(e.target.id)) return;
+                // A pending debounced refresh() would clear the shortening error shown just after
+                clearTimeout(timer);
+                shortenThenRefresh();
             });
             refresh();
         </script>
