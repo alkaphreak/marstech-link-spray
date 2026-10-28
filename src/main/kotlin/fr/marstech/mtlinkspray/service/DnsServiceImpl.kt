@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service
 import java.net.InetAddress
 import java.net.UnknownHostException
 import java.util.concurrent.Executors
+import javax.naming.NameNotFoundException
 import javax.naming.NamingException
 
 @Service
@@ -25,18 +26,23 @@ class DnsServiceImpl(private val dnsClient: DnsClient) : DnsService {
                 .map { executor.submit<DnsLookupResponse> { query(it, name, recordType) } }
                 .map { it.get() }
         }
-        val answers = results.filter { it.error == null }.map { it.records.toSet() }.distinct()
-        return DnsPropagationResponse(name, recordType, results, consistent = answers.size <= 1)
+        val answers = results.filter { it.error == null || it.nxdomain }.map { if (it.nxdomain) null else it.records.toSet() }
+        val complete = answers.size == results.size
+        return DnsPropagationResponse(name, recordType, results, complete, consistent = complete && answers.distinct().size == 1)
     }
 
     private fun query(resolver: PublicDnsResolver, name: String, type: String): DnsLookupResponse {
         val start = System.nanoTime()
-        val (records, error) = try {
-            dnsClient.query(resolver.address, name, type) to null
+        val response = try {
+            DnsLookupResponse(name, type, resolver.label, dnsClient.query(resolver.address, name, type), 0)
         } catch (e: NamingException) {
-            emptyList<String>() to (e.explanation ?: e.javaClass.simpleName)
+            DnsLookupResponse(
+                name, type, resolver.label, emptyList(), 0,
+                error = e.explanation ?: e.javaClass.simpleName,
+                nxdomain = e is NameNotFoundException,
+            )
         }
-        return DnsLookupResponse(name, type, resolver.label, records, (System.nanoTime() - start) / 1_000_000, error)
+        return response.copy(timeMs = (System.nanoTime() - start) / 1_000_000)
     }
 
     companion object {

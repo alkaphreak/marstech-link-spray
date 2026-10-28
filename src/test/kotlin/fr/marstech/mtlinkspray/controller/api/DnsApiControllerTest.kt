@@ -54,8 +54,17 @@ class DnsApiControllerTest {
             .andExpect(jsonPath("$.type").value("TXT"))
     }
 
+    @Test
+    fun shouldAcceptPunycodeDomain() {
+        // Given
+        `when`(dnsService.lookup(PUNYCODE, "A")).thenReturn(response(PUNYCODE, "A"))
+
+        // When / Then
+        mockMvc.perform(get(DNS_PATH).param("name", PUNYCODE)).andExpect(status().isOk)
+    }
+
     @ParameterizedTest
-    @CsvSource("name, ''", "name, not a domain", "name, localhost", "type, SOA")
+    @CsvSource("name, ''", "name, not a domain", "name, localhost", "name, ldap://attacker/x", "type, SOA")
     fun shouldRejectInvalidLookupParameter(param: String, value: String) {
         // Given
         val request = get(DNS_PATH).param("name", EXAMPLE).param(param, value)
@@ -86,7 +95,7 @@ class DnsApiControllerTest {
     fun shouldReturnPropagationResults() {
         // Given
         `when`(dnsService.propagation(EXAMPLE, "A"))
-            .thenReturn(DnsPropagationResponse(EXAMPLE, "A", listOf(response(EXAMPLE, "A")), consistent = true))
+            .thenReturn(DnsPropagationResponse(EXAMPLE, "A", listOf(response(EXAMPLE, "A")), complete = true, consistent = true))
 
         // When / Then
         mockMvc.perform(get("$DNS_PATH/propagation").param("name", EXAMPLE))
@@ -101,5 +110,6 @@ class DnsApiControllerTest {
     companion object {
         private const val DNS_PATH = "/api/dns"
         private const val EXAMPLE = "example.com"
+        private const val PUNYCODE = "xn--e1afmkfd.xn--p1ai"
     }
 }

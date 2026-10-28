@@ -72,7 +72,14 @@
             return td;
         }
 
-        function show(results, consistent) {
+        function propagationNote(json) {
+            if (!json.complete) {
+                return 'Some resolvers did not answer: the check is incomplete.';
+            }
+            return json.consistent ? 'All resolvers agree.' : 'Resolvers disagree: the change may still be propagating.';
+        }
+
+        function show(results, note) {
             const table = document.getElementById('dnsResults');
             const body = table.querySelector('tbody');
             body.replaceChildren(...results.map(r => {
@@ -82,11 +89,9 @@
                 return tr;
             }));
             table.classList.remove('d-none');
-            const note = document.getElementById('dnsConsistency');
-            note.classList.toggle('d-none', consistent === undefined);
-            if (consistent !== undefined) {
-                note.textContent = consistent ? 'All resolvers agree.' : 'Resolvers disagree: the change may still be propagating.';
-            }
+            const paragraph = document.getElementById('dnsConsistency');
+            paragraph.textContent = note ?? '';
+            paragraph.classList.toggle('d-none', !note);
         }
 
         async function run(propagation) {
@@ -100,7 +105,7 @@
             if (!response.ok) {
                 show([{resolver: '-', records: [], error: json.fieldErrors?.[0]?.message ?? json.message ?? response.statusText, timeMs: ''}]);
             } else if (json.results) {
-                show(json.results, json.consistent);
+                show(json.results, propagationNote(json));
             } else {
                 show([json]);
             }
