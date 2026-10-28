@@ -14,4 +14,13 @@ class JndiDnsClientTest {
         // When / Then
         assertThrows(NamingException::class.java) { client.query("127.0.0.1:9", "example.com", "A") }
     }
+
+    @Test
+    fun shouldRejectJndiUrlBeforeAnyLookup() {
+        // Given
+        val client = JndiDnsClient()
+
+        // When / Then
+        assertThrows(IllegalArgumentException::class.java) { client.query("127.0.0.1:9", "ldap://attacker/x", "A") }
+    }
 }

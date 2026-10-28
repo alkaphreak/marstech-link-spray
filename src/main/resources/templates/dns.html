@@ -83,16 +83,18 @@
             }));
             table.classList.remove('d-none');
             const note = document.getElementById('dnsConsistency');
-            note.textContent = consistent === undefined ? ''
-                : consistent ? 'All resolvers agree.' : 'Resolvers disagree: the change may still be propagating.';
             note.classList.toggle('d-none', consistent === undefined);
+            if (consistent !== undefined) {
+                note.textContent = consistent ? 'All resolvers agree.' : 'Resolvers disagree: the change may still be propagating.';
+            }
         }
 
         async function run(propagation) {
             const name = document.getElementById('dnsName').value.trim();
             const type = document.getElementById('dnsType').value;
+            const path = propagation ? '/api/dns/propagation' : '/api/dns';
             const url = isIp(name) ? '/api/dns/reverse?ip=' + encodeURIComponent(name)
-                : '/api/dns' + (propagation ? '/propagation' : '') + '?name=' + encodeURIComponent(name) + '&type=' + type;
+                : path + '?name=' + encodeURIComponent(name) + '&type=' + type;
             const response = await fetch(url);
             const json = await response.json();
             if (!response.ok) {

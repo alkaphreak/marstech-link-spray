@@ -20,6 +20,8 @@ fun interface DnsClient {
 class JndiDnsClient : DnsClient {
 
     override fun query(server: String, name: String, type: String): List<String> {
+        // A JNDI name with a scheme (ldap://, rmi://) would leave the DNS provider: only plain DNS names pass
+        require(DNS_NAME.matches(name)) { "Invalid DNS name: $name" }
         val env = Hashtable<String, String>().apply {
             put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.dns.DnsContextFactory")
             put(Context.PROVIDER_URL, "dns://$server")
@@ -37,5 +39,6 @@ class JndiDnsClient : DnsClient {
 
     companion object {
         private const val TIMEOUT_MS = "2000"
+        private val DNS_NAME = Regex("^[A-Za-z0-9_.-]{1,253}$")
     }
 }
