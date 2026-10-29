@@ -226,6 +226,13 @@
             <artifactId>s3</artifactId>
             <version>2.57.3</version>
         </dependency>
+        <!-- IP tools (MLS-113): reads the DB-IP Lite country and ASN mmdb databases -->
+        <!-- https://mvnrepository.com/artifact/com.maxmind.db/maxmind-db -->
+        <dependency>
+            <groupId>com.maxmind.db</groupId>
+            <artifactId>maxmind-db</artifactId>
+            <version>4.2.0</version>
+        </dependency>
         <!-- md2pdf (MLS-223): Markdown -> HTML5 -> W3C DOM -> PDF -->
         <!-- https://mvnrepository.com/artifact/org.commonmark/commonmark -->
         <dependency>

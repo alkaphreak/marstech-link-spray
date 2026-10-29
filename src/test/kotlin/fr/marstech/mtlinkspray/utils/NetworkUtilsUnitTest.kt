@@ -87,4 +87,23 @@ internal class NetworkUtilsUnitTest {
         Assertions.assertFalse(isValidUrl("not-a-url"))
         Assertions.assertFalse(isValidUrl(""))
     }
+
+    @Test
+    fun getIpAddressPrefersCloudflareHeader() {
+        `when`(mockRequest!!.getHeader("CF-Connecting-IP")).thenReturn("2001:db8::1")
+        `when`(mockRequest!!.getHeader("X-Forwarded-For")).thenReturn("203.0.113.9, 172.68.0.1")
+        Assertions.assertEquals("2001:db8::1", NetworkUtils.getIpAddress(mockRequest!!))
+    }
+
+    @Test
+    fun getIpAddressTakesFirstForwardedForEntry() {
+        `when`(mockRequest!!.getHeader("X-Forwarded-For")).thenReturn("203.0.113.9 , 172.68.0.1")
+        Assertions.assertEquals("203.0.113.9", NetworkUtils.getIpAddress(mockRequest!!))
+    }
+
+    @Test
+    fun getIpAddressFallsBackToRemoteAddr() {
+        `when`(mockRequest!!.remoteAddr).thenReturn("10.0.0.7")
+        Assertions.assertEquals("10.0.0.7", NetworkUtils.getIpAddress(mockRequest!!))
+    }
 }
