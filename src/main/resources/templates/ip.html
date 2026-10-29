@@ -106,7 +106,7 @@
         }
 
         // The API returns IPv6 expanded, ICE compressed: the URL parser normalizes both the same way
-        const canonical = ip => ip.includes(':') ? new URL('http://[' + ip + ']').hostname.slice(1, -1) : ip;
+        const canonical = ip => ip.includes(':') ? new URL('https://[' + ip + ']').hostname.slice(1, -1) : ip;
 
         /** Public addresses (STUN-derived) and local interface addresses, mDNS-obfuscated ones left out. */
         function webrtcAddresses() {
