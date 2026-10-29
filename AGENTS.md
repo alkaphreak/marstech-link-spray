@@ -11,9 +11,12 @@
 - **Language**: Kotlin 2.4, Java 25 (Eclipse Temurin)
 - **Framework**: Spring Boot 4.1, Spring WebMVC, Spring Security 7 (HTTP Basic, admin routes only)
 - **Build**: Maven (`pom.xml`)
-- **DB**: MongoDB (primary) — dev `localhost:27017`, test `localhost:27018`, prod `$MONGODB_URI_LINK_SPRAY`
+- **DB**: MongoDB (primary) — dev `localhost:27017`, none in tests, prod `$MONGODB_URI_LINK_SPRAY`
 - **Object storage**: Digital Ocean Spaces (S3-compatible, AWS SDK v2) — image storage (MLS-203)
-- **Testing**: JUnit 5 + Mockito-Kotlin + MockMvc — profile `test`, local MongoDB on port 27018
+- **Testing**: JUnit 5 + Mockito-Kotlin + MockMvc — profile `test`, no MongoDB running: a full-context
+  test must `@MockitoBean` any service that reaches a repository. A `@WebMvcTest` that renders a view
+  needs `RootApiController` in `controllers` (the layout reads its version); a new view goes into
+  `ViewRenderingTest`'s `@CsvSource`
 - **Releases**: JReleaser (`jreleaser.yml`) on `main` only
 - **Quality**: SonarCloud (`sonar.*` properties in `pom.xml`). PR gate: new-code coverage >= 80% and
   no literal repeated 3+ times (S1192), new-code duplication <= 3% (reuse a DTO's constraints, do not
