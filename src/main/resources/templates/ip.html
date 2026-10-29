@@ -49,7 +49,7 @@
                 <h5>WebRTC leak check</h5>
                 <p>Asks Cloudflare's STUN server which addresses your browser exposes over WebRTC. Behind a VPN,
                     an address other than the one above means WebRTC bypasses the tunnel.</p>
-                <button class="btn btn-outline-primary" id="webrtcCheck" type="button">
+                <button class="btn btn-outline-primary" disabled id="webrtcCheck" type="button">
                     <i class="bi bi-shield-check"></i> Check WebRTC
                 </button>
                 <p class="mt-3 d-none" id="webrtcResult"></p>
@@ -95,7 +95,8 @@
                 return;
             }
             if (!ip) {
-                httpIp = json.ip;
+                httpIp = canonical(json.ip);
+                document.getElementById('webrtcCheck').disabled = false;
             }
             body.replaceChildren(
                 row('IP', json.ip + ' (IPv' + json.version + ')'),
@@ -104,19 +105,24 @@
                 row('Hosting / VPN network', json.datacenter ? 'Likely (datacenter ASN)' : 'Not detected'));
         }
 
+        // The API returns IPv6 expanded, ICE compressed: the URL parser normalizes both the same way
+        const canonical = ip => ip.includes(':') ? new URL('http://[' + ip + ']').hostname.slice(1, -1) : ip;
+
+        /** Public addresses (STUN-derived) and local interface addresses, mDNS-obfuscated ones left out. */
         function webrtcAddresses() {
             return new Promise(resolve => {
-                const found = new Set();
+                const found = {public: new Set(), local: new Set()};
                 const pc = new RTCPeerConnection({iceServers: [{urls: 'stun:stun.cloudflare.com:3478'}]});
                 const done = () => {
                     pc.close();
-                    resolve([...found]);
+                    resolve({public: [...found.public], local: [...found.local]});
                 };
                 pc.onicecandidate = e => {
                     if (!e.candidate) {
                         done();
                     } else if (e.candidate.address && !e.candidate.address.endsWith('.local')) {
-                        found.add(e.candidate.address);
+                        const kind = e.candidate.type === 'host' ? found.local : found.public;
+                        kind.add(canonical(e.candidate.address));
                     }
                 };
                 pc.createDataChannel('probe');
@@ -134,15 +140,20 @@
             }
             result.textContent = 'Checking...';
             const addresses = await webrtcAddresses();
-            const others = addresses.filter(a => a !== httpIp);
-            if (addresses.length === 0) {
-                result.textContent = 'No address exposed over WebRTC.';
-            } else if (others.length === 0) {
-                result.textContent = 'WebRTC exposes only the address above: no leak.';
+            const others = addresses.public.filter(a => a !== httpIp);
+            let verdict;
+            if (others.length > 0) {
+                verdict = 'WebRTC exposes another public address: ' + others.join(', ')
+                    + '. Behind a VPN, WebRTC bypasses the tunnel.';
+            } else if (addresses.public.length > 0) {
+                verdict = 'WebRTC exposes only the public address above: no leak.';
             } else {
-                result.textContent = 'WebRTC exposes other addresses: ' + others.join(', ')
-                    + '. Behind a VPN, this is a leak.';
+                verdict = 'No public address exposed over WebRTC.';
             }
+            if (addresses.local.length > 0) {
+                verdict += ' Local network addresses visible to sites: ' + addresses.local.join(', ') + '.';
+            }
+            result.textContent = verdict;
         }
 
         document.getElementById('ipForm').addEventListener('submit', e => {

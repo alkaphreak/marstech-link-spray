@@ -14,10 +14,10 @@ WORKDIR /app
 RUN mkdir geoip && for db in country asn; do \
       for month in "$(date +%Y-%m)" "$(date -d "$(date +%Y-%m-01) -1 month" +%Y-%m)"; do \
         curl -fsSL --retry 3 "https://download.db-ip.com/free/dbip-$db-lite-$month.mmdb.gz" \
-          | gunzip > "geoip/dbip-$db-lite.mmdb" && break; \
+          | gunzip > geoip/part && mv geoip/part "geoip/dbip-$db-lite.mmdb" && break; \
       done; \
-      test -s "geoip/dbip-$db-lite.mmdb"; \
-    done
+      test -s "geoip/dbip-$db-lite.mmdb" || exit 1; \
+    done && rm -f geoip/part
 # JReleaser places artifacts under the assembly/ directory in the Docker build context
 COPY assembly/{{distributionName}}-{{projectVersion}}.jar app.jar
 EXPOSE 8096
