@@ -104,15 +104,16 @@ class GlobalRestExceptionHandler(
     ): ResponseEntity<ErrorResponse> {
         // Spring MVC's own exceptions (415, 405, 406, ...) carry their status: keep it instead
         // of turning a client error into a 500
-        val status = (e as? org.springframework.web.ErrorResponse)?.statusCode
-            ?.let { HttpStatus.resolve(it.value()) } ?: INTERNAL_SERVER_ERROR
+        val springError = e as? org.springframework.web.ErrorResponse
+        val status = springError?.statusCode?.let { HttpStatus.resolve(it.value()) } ?: INTERNAL_SERVER_ERROR
         val errorResponse = ErrorResponse.from(
             status = status.value(),
             error = status.reasonPhrase,
             message = e.message ?: "An unexpected error occurred",
             path = request.getDescription(false).removePrefix("uri=")
         )
-        return ResponseEntity(errorResponse, status)
+        // Keep the framework's headers, e.g. Allow on a 405
+        return ResponseEntity(errorResponse, springError?.headers, status)
     }
 
     @ExceptionHandler(IllegalArgumentException::class)

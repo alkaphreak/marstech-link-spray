@@ -76,6 +76,14 @@ class GlobalRestExceptionHandlerTest {
     }
 
     @Test
+    fun shouldKeepAllowHeaderOn405() {
+        val ex = org.springframework.web.HttpRequestMethodNotSupportedException("GET", listOf("POST"))
+        val response = handler.handleException(ex, mockRequest)
+        assertEquals(HttpStatus.METHOD_NOT_ALLOWED, response.statusCode)
+        assertEquals(setOf(HttpMethod.POST), response.headers.allow)
+    }
+
+    @Test
     fun shouldReturn400ForIllegalArgument() {
         val ex = IllegalArgumentException("bad argument")
         val response = handler.handleIllegalArgument(ex, mockRequest)

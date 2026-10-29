@@ -212,6 +212,8 @@
             async function shortenThenRefresh() {
                 const url = val('qrText');
                 if (!useShortUrl() || !url || shortUrls.has(url)) return refresh();
+                // Hide the long-URL preview and its download links while the short URL is pending
+                refresh();
                 const res = await fetch(`/api/url-shortener/shorten?${new URLSearchParams({url})}`).catch(() => null);
                 if (res && res.ok) shortUrls.set(url, (await res.text()).trim());
                 // Only field errors carry a user-facing message (e.g. invalid URL, MLS-244)
