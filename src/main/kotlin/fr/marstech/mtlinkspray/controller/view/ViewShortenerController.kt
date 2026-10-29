@@ -3,6 +3,7 @@ package fr.marstech.mtlinkspray.controller.view
 
 import fr.marstech.mtlinkspray.enums.ViewNameEnum.SHORTENER
 import fr.marstech.mtlinkspray.service.ShortenerService
+import fr.marstech.mtlinkspray.validation.ValidUrl
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.constraints.NotBlank
 import org.springframework.stereotype.Controller
@@ -23,7 +24,7 @@ class ViewShortenerController(val shortenerService: ShortenerService) : Thymelea
 
     @PostMapping
     fun createShortenedLink(
-        @RequestParam(name = "input-link") @NotBlank inputLink: String, httpServletRequest: HttpServletRequest
+        @RequestParam(name = "input-link") @NotBlank @ValidUrl inputLink: String, httpServletRequest: HttpServletRequest
     ): ModelAndView = getModelAndView()
         .addObject("inputLink", inputLink)
         .addObject("shortenedLink", shortenerService.shorten(inputLink, httpServletRequest))
