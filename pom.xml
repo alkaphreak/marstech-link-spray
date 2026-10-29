@@ -268,6 +268,13 @@
             <artifactId>openhtmltopdf-pdfbox</artifactId>
             <version>1.1.97</version>
         </dependency>
+        <!-- pdf2md (MLS-196): same PDFBox as openhtmltopdf-pdfbox, declared since it is used directly -->
+        <!-- https://mvnrepository.com/artifact/org.apache.pdfbox/pdfbox -->
+        <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox</artifactId>
+            <version>3.0.7</version>
+        </dependency>
     </dependencies>
 
     <build>
