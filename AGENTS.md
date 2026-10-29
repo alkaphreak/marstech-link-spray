@@ -165,6 +165,9 @@ rtk mvn test -f pom.xml
   (secret `DIGITALOCEAN_ACCESS_TOKEN`, app read/update only). DO has no autodeploy for Docker Hub images,
   and without `--force-rebuild` it reuses the cached `:latest`. Never print `doctl apps spec get`
   unfiltered: env values appear in clear
+- **Release bump**: choose `release.yml`'s `bump` input by semver from what the release holds, never the
+  `patch` default unchecked: any new feature or endpoint `minor` (0.y.z included), fixes only `patch`, a
+  breaking API change `major` (rule in Marstech-Configs `llm/shared/context.md`; v0.3.0 added pdf2md)
 - **Release ownership**: before dispatching `release.yml`, run `ListAgents`, message every peer session
   that this one owns the release, wait for replies (or 2 min) and check
   `gh run list --workflow release.yml -L 1`. The owner alone triggers, re-runs and cancels: two sessions
