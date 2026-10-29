@@ -215,6 +215,23 @@ class GlobalRestExceptionHandler(
         return ResponseEntity(errorResponse, BAD_REQUEST)
     }
 
+    // A service's own status (429 quota, 503 busy engine, MLS-252), which the RuntimeException
+    // handler would otherwise turn into a 500
+    @ExceptionHandler(ResponseStatusException::class)
+    fun handleResponseStatus(
+        e: ResponseStatusException,
+        request: WebRequest
+    ): ResponseEntity<ErrorResponse> {
+        val status = HttpStatus.resolve(e.statusCode.value()) ?: INTERNAL_SERVER_ERROR
+        val errorResponse = ErrorResponse.from(
+            status = status.value(),
+            error = status.reasonPhrase,
+            message = e.reason ?: status.reasonPhrase,
+            path = request.getDescription(false).removePrefix("uri=")
+        )
+        return ResponseEntity(errorResponse, e.headers, status)
+    }
+
     @ExceptionHandler(ConstraintViolationException::class)
     fun handleValidationException(
         e: ConstraintViolationException,
