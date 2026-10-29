@@ -60,8 +60,15 @@ object NetworkUtils {
         false
     }
 
+    /** An IPv4 or IPv6 literal: matching a host name instead would let parsing trigger a DNS lookup. */
+    const val IP_LITERAL =
+        "^((25[0-5]|2[0-4]\\d|1?\\d?\\d)\\.){3}(25[0-5]|2[0-4]\\d|1?\\d?\\d)$|^[0-9A-Fa-f.]*:[0-9A-Fa-f:.]*$"
+
+    /** Cloudflare sets CF-Connecting-IP to the client address; the first X-Forwarded-For entry is the fallback. */
     @JvmStatic
     fun getIpAddress(request: HttpServletRequest): String? =
-        request.getHeader("X-Forwarded-For")?.split(",")?.firstOrNull() ?: request.remoteAddr
+        request.getHeader("CF-Connecting-IP")?.trim()
+            ?: request.getHeader("X-Forwarded-For")?.split(",")?.firstOrNull()?.trim()
+            ?: request.remoteAddr
 
 }
