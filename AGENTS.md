@@ -35,7 +35,8 @@ src/main/kotlin/fr/marstech/mtlinkspray/
 ├── controller/
 │   ├── api/        # REST API endpoints (ShortenerApiController, SprayApiController,
 │   │               #   PasteApiController, DashboardApiController, ImageApiController,
-│   │               #   UuidApiController, RandomNumberApiController, RootApiController)
+│   │               #   UuidApiController, RandomNumberApiController, RootApiController,
+│   │               #   Md2PdfApiController, Pdf2MdApiController)
 │   ├── view/       # Thymeleaf view controllers (incl. AdminApiKeyViewController)
 │   └── commons/    # Shared controller utilities
 ├── dto/            # Request/response DTOs (PasteRequest, PasteResponse, DashboardDto,
@@ -52,7 +53,8 @@ src/main/kotlin/fr/marstech/mtlinkspray/
 │                   #   PasteService/Impl, DashboardService/Impl, MailSenderService/Impl,
 │                   #   ReportAbuseService/Impl, RandomIdGeneratorService/Impl,
 │                   #   ImageService/Impl, ApiKeyService/Impl, ImageStorageService +
-│                   #   DigitalOceanSpacesServiceImpl, …)
+│                   #   DigitalOceanSpacesServiceImpl, MarkdownToPdfService/Impl,
+│                   #   PdfToMarkdownService/Impl, …)
 ├── utils/          # Utility functions
 └── validation/     # Custom validators
 ```
@@ -66,6 +68,8 @@ src/main/kotlin/fr/marstech/mtlinkspray/
 - `DashboardApiController` → `DashboardService` — collection management
 - `ImageApiController` → `ImageService` → `ImageStorageService` (`DigitalOceanSpacesServiceImpl`) — image storage (MLS-203)
 - `AdminApiKeyViewController` → `ApiKeyService` → `ApiKeyRepository` — admin page to create/list/enable-disable per-app API keys (`/admin/api-keys`, HTTP Basic protected)
+- `Md2PdfApiController` → `MarkdownToPdfService` — raw Markdown body to PDF, `X-Api-Key` (MLS-223)
+- `Pdf2MdApiController` → `PdfToMarkdownService` — raw PDF body to Markdown (PDFBox), `X-Api-Key` (MLS-196)
 
 **Critical flows**:
 
