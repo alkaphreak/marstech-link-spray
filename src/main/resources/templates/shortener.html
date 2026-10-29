@@ -33,6 +33,7 @@
                                placeholder="Enter target link to shorten"
                                th:value="${inputLink?:''}"
                                type="url"
+                               maxlength="2048"
                                required="required"
                         />
                         <div class="invalid-feedback" id="shortenerValidationWarning">
