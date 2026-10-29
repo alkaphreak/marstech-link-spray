@@ -26,6 +26,12 @@
         <div class="row align-items-center">
             <div class="col">
                 <table class="table" id="ipInfo">
+                    <thead>
+                    <tr>
+                        <th scope="col">Field</th>
+                        <th scope="col">Value</th>
+                    </tr>
+                    </thead>
                     <tbody></tbody>
                 </table>
 
@@ -52,7 +58,7 @@
             </div>
         </div>
     </div>
-    <script>
+    <script type="module">
         let httpIp = null;
 
         function row(label, value) {
@@ -145,7 +151,7 @@
         });
         document.getElementById('ipMine').addEventListener('click', () => lookup(null));
         document.getElementById('webrtcCheck').addEventListener('click', checkWebrtc);
-        lookup(null);
+        await lookup(null);
     </script>
 </section>
 
