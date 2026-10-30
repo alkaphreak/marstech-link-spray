@@ -170,6 +170,9 @@ rtk mvn test -f pom.xml
   (secret `DIGITALOCEAN_ACCESS_TOKEN`, app read/update only). DO has no autodeploy for Docker Hub images,
   and without `--force-rebuild` it reuses the cached `:latest`. Never print `doctl apps spec get`
   unfiltered: env values appear in clear
+- **Prod instance**: `apps-s-1vcpu-0.5gb` (512 MB, 1 shared vCPU): time any native or subprocess workload
+  with `docker run --cpus=1 --memory=512m` on the prod image before setting its timeout (MLS-252: OpenMP
+  threads sized on the host cores made OCR twice as slow)
 - **Release bump**: choose `release.yml`'s `bump` input by semver from what the release holds, never the
   `patch` default unchecked: any new feature or endpoint `minor` (0.y.z included), fixes only `patch`, a
   breaking API change `major` (rule in Marstech-Configs `llm/shared/context.md`; v0.3.0 added pdf2md)
@@ -223,4 +226,4 @@ This file is **living documentation**. Any agent (or human) making changes to th
 
 ---
 
-_Last updated: 2026-10-28 — release ownership across parallel sessions, SonarCloud duplication gate_
+_Last updated: 2026-10-29 — prod instance CPU limit for timeouts (MLS-252)_
