@@ -81,7 +81,10 @@ class OcrServiceImpl(
         val output = Files.createTempFile("ocr", ".txt")
         try {
             val process = try {
+                // OpenMP sizes its pool on the host cores, not the 1 vCPU quota: one thread is twice as fast
+                // under --cpus=1 (20.5 s vs 11.1 s for an A4 page, 2026-10-29)
                 ProcessBuilder(command, "stdin", "stdout", "-l", languages)
+                    .apply { environment()["OMP_THREAD_LIMIT"] = "1" }
                     .redirectOutput(output.toFile())
                     .redirectError(ProcessBuilder.Redirect.DISCARD)
                     .start()
