@@ -64,6 +64,15 @@ class OcrServiceImplTest {
     }
 
     @Test
+    fun shouldRunEngineWithSingleOpenMpThread() {
+        // When
+        val result = service(command = fakeEngine("cat > /dev/null; printf %s \"\$OMP_THREAD_LIMIT\"")).anonymous()
+
+        // Then
+        assertEquals("1", result.text)
+    }
+
+    @Test
     fun shouldTreatSpaceAsPlusInLanguage() {
         // When: "fra+eng" sent unencoded in a query string is decoded as "fra eng"
         val result = service().anonymous(lang = "fra eng")
