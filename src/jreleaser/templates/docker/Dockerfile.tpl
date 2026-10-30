@@ -8,6 +8,10 @@ LABEL "{{labelKey}}"="{{labelValue}}"
 RUN command -v curl > /dev/null 2>&1 \
     || (apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*)
 
+# Tesseract OCR engine with its French and English data, for /api/ocr (MLS-252)
+RUN apt-get update && apt-get install -y --no-install-recommends tesseract-ocr tesseract-ocr-fra \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 # DB-IP Lite country and ASN databases for the IP tools (CC BY 4.0, MLS-113), refreshed at each release.
 # A month's file is published early in the month: fall back to the previous month's.

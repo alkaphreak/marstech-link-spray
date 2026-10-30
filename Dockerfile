@@ -1,4 +1,7 @@
 FROM eclipse-temurin:25-jre-jammy
+# Tesseract OCR engine with its French and English data, for /api/ocr (MLS-252)
+RUN apt-get update && apt-get install -y --no-install-recommends tesseract-ocr tesseract-ocr-fra \
+    && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY target/*.jar app.jar
 EXPOSE 8096

@@ -15,6 +15,7 @@ enum class ViewNameEnum(
     MAILTO(viewName = "mailto", viewPage = "Mailto", orderInMenu = 6),
     DNS(viewName = "dns", viewPage = "DNS", orderInMenu = 7),
     IP(viewName = "ip", viewPage = "IP", orderInMenu = 8),
+    OCR(viewName = "ocr", viewPage = "OCR", orderInMenu = 9),
     ABUSE(viewName = "abuse", viewPage = "Abuse"),
 
     DASHBOARD(viewName = "dashboard", viewPage = "Dashboard"),
