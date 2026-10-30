@@ -36,7 +36,7 @@ src/main/kotlin/fr/marstech/mtlinkspray/
 │   ├── api/        # REST API endpoints (ShortenerApiController, SprayApiController,
 │   │               #   PasteApiController, DashboardApiController, ImageApiController,
 │   │               #   UuidApiController, RandomNumberApiController, RootApiController,
-│   │               #   Md2PdfApiController, Pdf2MdApiController)
+│   │               #   Md2PdfApiController, Pdf2MdApiController, OcrApiController)
 │   ├── view/       # Thymeleaf view controllers (incl. AdminApiKeyViewController)
 │   └── commons/    # Shared controller utilities
 ├── dto/            # Request/response DTOs (PasteRequest, PasteResponse, DashboardDto,
@@ -70,6 +70,8 @@ src/main/kotlin/fr/marstech/mtlinkspray/
 - `AdminApiKeyViewController` → `ApiKeyService` → `ApiKeyRepository` — admin page to create/list/enable-disable per-app API keys (`/admin/api-keys`, HTTP Basic protected)
 - `Md2PdfApiController` → `MarkdownToPdfService` — raw Markdown body to PDF, `X-Api-Key` (MLS-223)
 - `Pdf2MdApiController` → `PdfToMarkdownService` — raw PDF body to Markdown (PDFBox), `X-Api-Key` (MLS-196)
+- `OcrApiController` → `OcrServiceImpl` — raw PNG/JPEG body to text through a `tesseract` subprocess (apt package in both Dockerfiles), one OCR at a time (503 when busy), anonymous per-IP quota lifted by `X-Api-Key` (429), web page `/ocr` (MLS-252)
+- `OcrApiController` → `OcrServiceImpl` — raw PNG/JPEG body to text via a `tesseract` subprocess (apt package in both Dockerfiles), one OCR at a time (503 when busy), anonymous per-IP quota lifted by `X-Api-Key` (429), page `/ocr` (MLS-252)
 
 **Critical flows**:
 
