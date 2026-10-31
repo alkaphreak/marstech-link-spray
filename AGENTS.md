@@ -84,6 +84,7 @@ src/main/kotlin/fr/marstech/mtlinkspray/
 - Upload image: `POST /api/images` (header `X-Api-Key: {keyId}.{secret}`) → `ImageApiController` → `ApiKeyServiceImpl.resolve` → `ImageServiceImpl` → `DigitalOceanSpacesServiceImpl` → DO Spaces bucket `mt-mls-img-storage`
 - Download image: `GET /api/images/{id}` → `ImageApiController` streams bytes from DO Spaces (no redirect), enforces visibility/ownership
 - Manage API keys: `GET/POST /admin/api-keys` (HTTP Basic) → `AdminApiKeyViewController` → `ApiKeyServiceImpl` (create/list/enable-disable)
+- Fingerprint page: `GET /fingerprint` → `ViewFingerprintController` (User-Agent, Accept-Language from the request) + client-side signals (Canvas, WebGL, audio, Intl, navigator, screen) hashed with `crypto.subtle`; nothing is sent or stored (MLS-254 phase A)
 
 ---
 
@@ -225,4 +226,4 @@ This file is **living documentation**. Any agent (or human) making changes to th
 
 ---
 
-_Last updated: 2026-10-30 — OCR of scanned PDFs, 2 pages max (MLS-253)_
+_Last updated: 2026-10-31 — browser fingerprint transparency page (MLS-254)_
