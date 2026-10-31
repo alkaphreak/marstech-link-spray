@@ -16,6 +16,7 @@ enum class ViewNameEnum(
     DNS(viewName = "dns", viewPage = "DNS", orderInMenu = 7),
     IP(viewName = "ip", viewPage = "IP", orderInMenu = 8),
     OCR(viewName = "ocr", viewPage = "OCR", orderInMenu = 9),
+    FINGERPRINT(viewName = "fingerprint", viewPage = "Fingerprint", orderInMenu = 10),
     ABUSE(viewName = "abuse", viewPage = "Abuse"),
 
     DASHBOARD(viewName = "dashboard", viewPage = "Dashboard"),

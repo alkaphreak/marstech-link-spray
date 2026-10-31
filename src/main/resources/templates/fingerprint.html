@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{index.html :: html-head}">
+    <title></title>
+</head>
+<body>
+
+<header th:replace="~{index.html :: body-header}">
+    <!-- nav bar-->
+</header>
+
+<section class="intro-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col">
+                <h3>Browser Fingerprint</h3>
+
+                <p>What your browser and connection give away to every site you visit. Sites can combine these
+                    signals into an identifier that survives private browsing and cookie deletion. The fingerprint is
+                    computed in your browser only when you click, and nothing is stored.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="get-started" th:with="view=${T(fr.marstech.mtlinkspray.enums.ViewNameEnum).FINGERPRINT}">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col">
+                <h5>Sent with every request</h5>
+                <table class="table" id="serverInfo">
+                    <thead>
+                    <tr>
+                        <th scope="col">Signal</th>
+                        <th scope="col">Value</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <th scope="row">User-Agent</th>
+                        <td th:text="${userAgent} ?: '-'"></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Accept-Language</th>
+                        <td th:text="${acceptLanguage} ?: '-'"></td>
+                    </tr>
+                    </tbody>
+                </table>
+
+                <h5>Readable by any script</h5>
+                <button class="btn btn-primary mb-3" id="fingerprintRun" type="button">
+                    <i class="bi bi-fingerprint"></i> Compute my fingerprint
+                </button>
+                <p class="d-none" id="fingerprintSummary"></p>
+                <table class="table d-none" id="fingerprintTable">
+                    <thead>
+                    <tr>
+                        <th scope="col">Signal</th>
+                        <th scope="col">Value</th>
+                        <th scope="col">Hash</th>
+                    </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+
+                <p class="mt-4 small">Your network side (IP, network, country, WebRTC leak) is on the
+                    <a href="/ip">IP page</a>. Same hash in a private window or after a network change means the
+                    signals above are enough to recognize this browser.</p>
+            </div>
+        </div>
+    </div>
+    <script type="module">
+        async function sha256(text) {
+            const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+            return Array.from(new Uint8Array(digest), b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        function canvasSignal() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 240;
+            canvas.height = 60;
+            const ctx = canvas.getContext('2d');
+            const gradient = ctx.createLinearGradient(0, 0, 240, 0);
+            gradient.addColorStop(0, '#f60');
+            gradient.addColorStop(1, '#069');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 240, 60);
+            ctx.font = '18px Arial';
+            ctx.fillStyle = '#fff';
+            ctx.fillText('sol4.space fingerprint \u{1F575}', 4, 36);
+            // The pixels depend on the GPU, driver, fonts and anti-aliasing: the data URL is the signal.
+            return canvas.toDataURL();
+        }
+
+        function webglSignal() {
+            const gl = document.createElement('canvas').getContext('webgl');
+            if (!gl) {
+                return 'WebGL disabled';
+            }
+            const debug = gl.getExtension('WEBGL_debug_renderer_info');
+            return JSON.stringify({
+                vendor: debug ? gl.getParameter(debug.UNMASKED_VENDOR_WEBGL) : gl.getParameter(gl.VENDOR),
+                renderer: debug ? gl.getParameter(debug.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER),
+                maxTextureSize: gl.getParameter(gl.MAX_TEXTURE_SIZE),
+                extensions: gl.getSupportedExtensions()?.length ?? 0
+            });
+        }
+
+        async function audioSignal() {
+            if (typeof OfflineAudioContext === 'undefined') {
+                return 'OfflineAudioContext unavailable';
+            }
+            const context = new OfflineAudioContext(1, 5000, 44100);
+            const oscillator = context.createOscillator();
+            oscillator.type = 'triangle';
+            oscillator.frequency.value = 10000;
+            const compressor = context.createDynamicsCompressor();
+            oscillator.connect(compressor);
+            compressor.connect(context.destination);
+            oscillator.start(0);
+            const samples = (await context.startRendering()).getChannelData(0);
+            // Floating-point rounding differs between audio stacks: the sum is stable per browser and machine.
+            let sum = 0;
+            for (let i = 4500; i < 5000; i++) {
+                sum += Math.abs(samples[i]);
+            }
+            return sum.toString();
+        }
+
+        function intlSignal() {
+            const options = Intl.DateTimeFormat().resolvedOptions();
+            return JSON.stringify({
+                timeZone: options.timeZone,
+                locale: options.locale,
+                calendar: options.calendar,
+                number: new Intl.NumberFormat().format(1234567.891),
+                date: new Date(Date.UTC(2020, 11, 31, 23, 59)).toLocaleString()
+            });
+        }
+
+        function navigatorSignal() {
+            return JSON.stringify({
+                cores: navigator.hardwareConcurrency ?? null,
+                memoryGb: navigator.deviceMemory ?? null,
+                languages: navigator.languages,
+                platform: navigator.platform,
+                touchPoints: navigator.maxTouchPoints,
+                pdfViewer: navigator.pdfViewerEnabled ?? null
+            });
+        }
+
+        function screenSignal() {
+            return JSON.stringify({
+                size: screen.width + 'x' + screen.height,
+                available: screen.availWidth + 'x' + screen.availHeight,
+                colorDepth: screen.colorDepth,
+                pixelRatio: window.devicePixelRatio
+            });
+        }
+
+        function row(label, value, hash) {
+            const tr = document.createElement('tr');
+            const th = document.createElement('th');
+            th.scope = 'row';
+            th.textContent = label;
+            const valueCell = document.createElement('td');
+            valueCell.className = 'text-break small';
+            valueCell.textContent = value.length > 300 ? value.slice(0, 300) + '... (' + value.length + ' chars)' : value;
+            const hashCell = document.createElement('td');
+            hashCell.className = 'font-monospace';
+            hashCell.textContent = hash.slice(0, 16);
+            tr.append(th, valueCell, hashCell);
+            return tr;
+        }
+
+        async function run() {
+            const signals = {
+                Canvas: canvasSignal(),
+                WebGL: webglSignal(),
+                Audio: await audioSignal(),
+                Intl: intlSignal(),
+                Navigator: navigatorSignal(),
+                Screen: screenSignal()
+            };
+            const rows = [];
+            for (const [name, value] of Object.entries(signals)) {
+                rows.push(row(name, value, await sha256(value)));
+            }
+            document.querySelector('#fingerprintTable tbody').replaceChildren(...rows);
+            document.getElementById('fingerprintTable').classList.remove('d-none');
+            const summary = document.getElementById('fingerprintSummary');
+            summary.textContent = 'Your fingerprint: ' + (await sha256(JSON.stringify(signals))).slice(0, 16);
+            summary.classList.remove('d-none');
+        }
+
+        document.getElementById('fingerprintRun').addEventListener('click', run);
+    </script>
+</section>
+
+<footer class="footer bg-black text-white" th:replace="~{index.html :: body-footer}">
+    <!-- footer -->
+</footer>
+
+<div class="d-none" th:replace="~{index.html :: footer-div-script}">
+    <!-- footer script -->
+</div>
+</body>
+</html>
