@@ -61,6 +61,17 @@ class OcrApiControllerTest {
     }
 
     @Test
+    fun shouldAcceptPdfBody() {
+        // Given
+        whenever(ocrService.recognize(anyOrNull(), anyOrNull(), any(), any())).thenReturn(OcrResult("scan", "fra", 1))
+
+        // When / Then
+        mockMvc.perform(givenRequest().contentType(MediaType.APPLICATION_PDF).content("%PDF-".toByteArray()))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.text").value("scan"))
+    }
+
+    @Test
     fun shouldPassApiKeyAndLanguage() {
         // Given
         whenever(ocrService.recognize(anyOrNull(), anyOrNull(), any(), any())).thenReturn(OcrResult("text", "eng", 1))

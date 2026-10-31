@@ -73,8 +73,7 @@ src/main/kotlin/fr/marstech/mtlinkspray/
 - `AdminApiKeyViewController` → `ApiKeyService` → `ApiKeyRepository` — admin page to create/list/enable-disable per-app API keys (`/admin/api-keys`, HTTP Basic protected)
 - `Md2PdfApiController` → `MarkdownToPdfService` — raw Markdown body to PDF, `X-Api-Key` (MLS-223)
 - `Pdf2MdApiController` → `PdfToMarkdownService` — raw PDF body to Markdown (PDFBox), `X-Api-Key` (MLS-196)
-- `OcrApiController` → `OcrServiceImpl` — raw PNG/JPEG body to text through a `tesseract` subprocess (apt package in both Dockerfiles), one OCR at a time (503 when busy), anonymous per-IP quota lifted by `X-Api-Key` (429), web page `/ocr` (MLS-252)
-- `OcrApiController` → `OcrServiceImpl` — raw PNG/JPEG body to text via a `tesseract` subprocess (apt package in both Dockerfiles), one OCR at a time (503 when busy), anonymous per-IP quota lifted by `X-Api-Key` (429), page `/ocr` (MLS-252)
+- `OcrApiController` → `OcrServiceImpl` — raw PNG/JPEG body, or a scanned PDF of at most 2 pages rendered at 300 dpi (MLS-253), to text through a `tesseract` subprocess (apt package in both Dockerfiles), one OCR at a time (503 when busy), anonymous per-IP quota lifted by `X-Api-Key` (429), web page `/ocr` (MLS-252)
 
 **Critical flows**:
 
@@ -226,4 +225,4 @@ This file is **living documentation**. Any agent (or human) making changes to th
 
 ---
 
-_Last updated: 2026-10-29 — prod instance CPU limit for timeouts (MLS-252)_
+_Last updated: 2026-10-30 — OCR of scanned PDFs, 2 pages max (MLS-253)_

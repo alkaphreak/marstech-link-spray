@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 /**
- * Image to text API (MLS-252): the request body is the raw image
+ * Image or scanned PDF to text API (MLS-252, MLS-253): the request body is the raw image
  * (`curl --data-binary @scan.png -H 'Content-Type: image/png'`), like pdf2md. Open to anonymous
  * callers within a per-IP quota, which a valid `X-Api-Key` lifts (the `/ocr` page calls it anonymously).
  */
@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/ocr")
 class OcrApiController(private val ocrService: OcrService) {
 
-    @PostMapping(consumes = [MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE])
+    @PostMapping(consumes = [MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.APPLICATION_PDF_VALUE])
     fun ocr(
         @RequestHeader("X-Api-Key", required = false) apiKey: String?,
         @RequestParam(defaultValue = "fra") lang: String,
