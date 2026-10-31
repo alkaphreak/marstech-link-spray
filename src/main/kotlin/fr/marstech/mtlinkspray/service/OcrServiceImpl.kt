@@ -27,8 +27,8 @@ import javax.imageio.ImageIO
  * An A4 page at 300 dpi takes about 5 s and 80 MB of RSS per language, 110 MB for fra+eng
  * (tesseract 4.1.1 in the production image, 2026-10-29): with the 512 MB instance only one OCR
  * runs at a time, the API defaults to fra alone, and anonymous callers get a quota.
- * A scanned PDF (MLS-253) is rendered page by page at 300 dpi in grey levels; at about 12 s a page
- * on the prod instance, only [maxPdfPages] pages fit in the timeout, which covers the whole request.
+ * A scanned PDF (MLS-253) is rendered page by page at 300 dpi in grey levels; at 15 s a page
+ * on the prod instance (measured on v0.5.0), only [maxPdfPages] page fits in the timeout, which covers the whole request.
  */
 @Service
 class OcrServiceImpl(
@@ -38,7 +38,7 @@ class OcrServiceImpl(
     @Value("\${mt.link-spray.ocr.timeout-seconds:30}") private val timeoutSeconds: Long,
     @Value("\${mt.link-spray.ocr.anonymous-quota:10}") private val anonymousQuota: Int,
     @Value("\${mt.link-spray.ocr.anonymous-window-ms:3600000}") private val anonymousWindowMillis: Long,
-    @Value("\${mt.link-spray.ocr.max-pdf-pages:2}") private val maxPdfPages: Int,
+    @Value("\${mt.link-spray.ocr.max-pdf-pages:1}") private val maxPdfPages: Int,
 ) : OcrService {
 
     private val running = Semaphore(1)

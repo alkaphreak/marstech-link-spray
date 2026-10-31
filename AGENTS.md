@@ -73,7 +73,7 @@ src/main/kotlin/fr/marstech/mtlinkspray/
 - `AdminApiKeyViewController` → `ApiKeyService` → `ApiKeyRepository` — admin page to create/list/enable-disable per-app API keys (`/admin/api-keys`, HTTP Basic protected)
 - `Md2PdfApiController` → `MarkdownToPdfService` — raw Markdown body to PDF, `X-Api-Key` (MLS-223)
 - `Pdf2MdApiController` → `PdfToMarkdownService` — raw PDF body to Markdown (PDFBox), `X-Api-Key` (MLS-196)
-- `OcrApiController` → `OcrServiceImpl` — raw PNG/JPEG body, or a scanned PDF of at most 2 pages rendered at 300 dpi (MLS-253), to text through a `tesseract` subprocess (apt package in both Dockerfiles), one OCR at a time (503 when busy), anonymous per-IP quota lifted by `X-Api-Key` (429), web page `/ocr` (MLS-252)
+- `OcrApiController` → `OcrServiceImpl` — raw PNG/JPEG body, or a scanned PDF of one page rendered at 300 dpi (MLS-253), to text through a `tesseract` subprocess (apt package in both Dockerfiles), one OCR at a time (503 when busy), anonymous per-IP quota lifted by `X-Api-Key` (429), web page `/ocr` (MLS-252)
 
 **Critical flows**:
 
@@ -172,7 +172,9 @@ rtk mvn test -f pom.xml
   unfiltered: env values appear in clear
 - **Prod instance**: `apps-s-1vcpu-0.5gb` (512 MB, 1 shared vCPU): time any native or subprocess workload
   with `docker run --cpus=1 --memory=512m` on the prod image before setting its timeout (MLS-252: OpenMP
-  threads sized on the host cores made OCR twice as slow)
+  threads sized on the host cores made OCR twice as slow). No local Docker daemon: run it on AlkaNaz
+  (`sudo -n /usr/local/bin/docker`, Marstech-Configs `llm/instructions/runners.md`), then confirm on prod after
+  the release. App Platform cuts a request at about 30 s with a 504 (MLS-253)
 - **Release bump**: choose `release.yml`'s `bump` input by semver from what the release holds, never the
   `patch` default unchecked: any new feature or endpoint `minor` (0.y.z included), fixes only `patch`, a
   breaking API change `major` (rule in Marstech-Configs `llm/shared/context.md`; v0.3.0 added pdf2md)
@@ -226,4 +228,4 @@ This file is **living documentation**. Any agent (or human) making changes to th
 
 ---
 
-_Last updated: 2026-10-31 — browser fingerprint transparency page (MLS-254)_
+_Last updated: 2026-10-31 — browser fingerprint page (MLS-254); OCR of scanned PDFs limited to 1 page (MLS-253)_
