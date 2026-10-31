@@ -51,6 +51,9 @@
                 <button class="btn btn-primary mb-3" id="fingerprintRun" type="button">
                     <i class="bi bi-fingerprint"></i> Compute my fingerprint
                 </button>
+                <button class="btn btn-outline-secondary mb-3 d-none" id="fingerprintCopy" type="button">
+                    <i class="bi bi-clipboard"></i> Copy
+                </button>
                 <p class="d-none" id="fingerprintSummary"></p>
                 <table class="table d-none" id="fingerprintTable">
                     <thead>
@@ -191,9 +194,24 @@
             const summary = document.getElementById('fingerprintSummary');
             summary.textContent = 'Your fingerprint: ' + (await sha256(JSON.stringify(signals))).slice(0, 16);
             summary.classList.remove('d-none');
+            document.getElementById('fingerprintCopy').classList.remove('d-none');
+        }
+
+        // Plain-text report (server headers, overall and per-signal hashes) to paste when comparing browsers.
+        async function copy() {
+            const lines = [document.getElementById('fingerprintSummary').textContent];
+            for (const tr of document.querySelectorAll('#serverInfo tbody tr, #fingerprintTable tbody tr')) {
+                const cells = tr.children;
+                lines.push(cells[0].textContent + ': ' + cells[cells.length - 1].textContent.trim());
+            }
+            const button = document.getElementById('fingerprintCopy');
+            await navigator.clipboard.writeText(lines.join('\n'));
+            button.innerHTML = '<i class="bi bi-check"></i> Copied';
+            setTimeout(() => button.innerHTML = '<i class="bi bi-clipboard"></i> Copy', 2000);
         }
 
         document.getElementById('fingerprintRun').addEventListener('click', run);
+        document.getElementById('fingerprintCopy').addEventListener('click', copy);
     </script>
 </section>
 
