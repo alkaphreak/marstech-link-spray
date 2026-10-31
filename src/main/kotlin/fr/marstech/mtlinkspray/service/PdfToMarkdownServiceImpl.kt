@@ -12,6 +12,15 @@ import java.io.IOException
 import java.io.InputStream
 import kotlin.math.roundToInt
 
+/** Loads [bytes] as a PDF, mapping unreadable or password-protected input to [IllegalArgumentException] (400). */
+internal fun loadPdf(bytes: ByteArray): PDDocument = try {
+    Loader.loadPDF(bytes)
+} catch (_: InvalidPasswordException) {
+    throw IllegalArgumentException("Password-protected PDFs are not supported")
+} catch (_: IOException) {
+    throw IllegalArgumentException("Body is not a readable PDF")
+}
+
 /**
  * PDF -> text (PDFBox) -> Markdown. Headings are inferred from font size relative to the body
  * text, bullet glyphs become `- ` items, soft line breaks inside a paragraph are joined and
@@ -33,20 +42,12 @@ class PdfToMarkdownServiceImpl(
             throw PayloadTooLargeException("PDF exceeds the maximum allowed size of $maxInputBytes bytes")
         }
         require(bytes.isNotEmpty()) { "PDF body is empty" }
-        return load(bytes).use { document ->
+        return loadPdf(bytes).use { document ->
             if (document.numberOfPages > maxPages) {
                 throw PayloadTooLargeException("PDF exceeds the maximum allowed page count of $maxPages")
             }
             toMarkdown(LineCollector().collect(document).filterNot { PAGE_NUMBER.matches(it.text) })
         }
-    }
-
-    private fun load(bytes: ByteArray): PDDocument = try {
-        Loader.loadPDF(bytes)
-    } catch (_: InvalidPasswordException) {
-        throw IllegalArgumentException("Password-protected PDFs are not supported")
-    } catch (_: IOException) {
-        throw IllegalArgumentException("Body is not a readable PDF")
     }
 
     private fun toMarkdown(lines: List<Line>): String {
