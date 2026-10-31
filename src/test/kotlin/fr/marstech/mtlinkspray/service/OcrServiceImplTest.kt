@@ -1,6 +1,10 @@
 package fr.marstech.mtlinkspray.service
 
 import fr.marstech.mtlinkspray.exception.PayloadTooLargeException
+import org.apache.pdfbox.pdmodel.PDDocument
+import org.apache.pdfbox.pdmodel.PDPage
+import org.apache.pdfbox.pdmodel.PDPageContentStream
+import org.apache.pdfbox.pdmodel.graphics.image.LosslessFactory
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -48,7 +52,39 @@ class OcrServiceImplTest {
         timeoutSeconds: Long = 5,
         anonymousQuota: Int = 10,
         anonymousWindowMillis: Long = 3_600_000,
-    ) = OcrServiceImpl(apiKeyService, command, maxInputBytes, timeoutSeconds, anonymousQuota, anonymousWindowMillis)
+        maxPdfPages: Int = 2,
+    ) = OcrServiceImpl(apiKeyService, command, maxInputBytes, timeoutSeconds, anonymousQuota, anonymousWindowMillis, maxPdfPages)
+
+    /** A PDF with one page per image, or blank pages when [images] is empty and [pages] is given. */
+    private fun pdfOf(vararg images: BufferedImage, pages: Int = images.size): ByteArray = PDDocument().use { document ->
+        repeat(pages) { i ->
+            val page = PDPage().also { document.addPage(it) }
+            images.getOrNull(i)?.let { image ->
+                PDPageContentStream(document, page).use {
+                    it.drawImage(LosslessFactory.createFromImage(document, image), 0f, 600f, 450f, 60f)
+                }
+            }
+        }
+        ByteArrayOutputStream().also { document.save(it) }.toByteArray()
+    }
+
+    private fun textImage(text: String) = BufferedImage(900, 120, BufferedImage.TYPE_INT_RGB).apply {
+        createGraphics().run {
+            color = Color.WHITE
+            fillRect(0, 0, width, height)
+            color = Color.BLACK
+            font = Font(Font.SANS_SERIF, Font.PLAIN, 48)
+            drawString(text, 30, 80)
+            dispose()
+        }
+    }
+
+    private fun realTesseract(): String {
+        val engine = listOf("/usr/bin/tesseract", "/usr/local/bin/tesseract", "/opt/homebrew/bin/tesseract")
+            .firstOrNull { Path.of(it).exists() }
+        assumeTrue(engine != null, "tesseract not installed")
+        return engine!!
+    }
 
     private fun OcrServiceImpl.anonymous(image: ByteArray = png, lang: String = "fra+eng") =
         recognize(null, "203.0.113.7", image.inputStream(), lang)
@@ -85,6 +121,45 @@ class OcrServiceImplTest {
     fun shouldRejectUnsupportedLanguage() {
         // When / Then
         assertThrows<IllegalArgumentException> { service().anonymous(lang = "deu; rm -rf /") }
+    }
+
+    @Test
+    fun shouldRunEngineOncePerPdfPage() {
+        // When
+        val result = service().anonymous(image = pdfOf(pages = 2))
+
+        // Then
+        assertEquals("text in fra+eng\n\ntext in fra+eng", result.text)
+    }
+
+    @Test
+    fun shouldRejectPdfOverMaxPagesBeforeRunningEngine() {
+        // Given
+        val marker = dir.resolve("ran")
+
+        // When / Then
+        assertThrows<PayloadTooLargeException> {
+            service(command = fakeEngine("touch $marker"), maxInputBytes = 1024 * 1024).anonymous(image = pdfOf(pages = 3))
+        }
+        assertEquals(false, marker.exists())
+    }
+
+    @Test
+    fun shouldRejectUnreadablePdf() {
+        // When / Then
+        assertThrows<IllegalArgumentException> { service().anonymous(image = "%PDF-broken".toByteArray()) }
+    }
+
+    @Test
+    fun shouldApplyTimeoutToWholePdfNotEachPage() {
+        // Given: each page fits in the timeout, both together do not
+        val service = service(command = fakeEngine("cat > /dev/null; sleep 0.7"), timeoutSeconds = 1)
+
+        // When
+        val e = assertThrows<ResponseStatusException> { service.anonymous(image = pdfOf(pages = 2)) }
+
+        // Then
+        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, e.statusCode)
     }
 
     @Test
@@ -192,26 +267,29 @@ class OcrServiceImplTest {
     @Test
     fun shouldRecognizeTextWithRealTesseract() {
         // Given: only where tesseract is installed (the Docker image, a dev Mac), skipped elsewhere
-        val engine = listOf("/usr/bin/tesseract", "/usr/local/bin/tesseract", "/opt/homebrew/bin/tesseract")
-            .firstOrNull { Path.of(it).exists() }
-        assumeTrue(engine != null, "tesseract not installed")
-        val image = BufferedImage(900, 120, BufferedImage.TYPE_INT_RGB).apply {
-            createGraphics().run {
-                color = Color.WHITE
-                fillRect(0, 0, width, height)
-                color = Color.BLACK
-                font = Font(Font.SANS_SERIF, Font.PLAIN, 48)
-                drawString("Hello OCR world", 30, 80)
-                dispose()
-            }
-        }
-        val bytes = ByteArrayOutputStream().also { ImageIO.write(image, "png", it) }.toByteArray()
+        val engine = realTesseract()
+        val bytes = ByteArrayOutputStream().also { ImageIO.write(textImage("Hello OCR world"), "png", it) }.toByteArray()
 
         // When
-        val result = service(command = engine!!, maxInputBytes = 1024 * 1024, timeoutSeconds = 30)
+        val result = service(command = engine, maxInputBytes = 1024 * 1024, timeoutSeconds = 30)
             .anonymous(image = bytes, lang = "eng")
 
         // Then
         assertContains(result.text, "Hello OCR world")
+    }
+
+    @Test
+    fun shouldRecognizeScannedPdfWithRealTesseract() {
+        // Given: a PDF whose pages are images only, no text layer
+        val engine = realTesseract()
+        val pdf = pdfOf(textImage("First scanned page"), textImage("Second scanned page"))
+
+        // When
+        val result = service(command = engine, maxInputBytes = 1024 * 1024, timeoutSeconds = 60)
+            .anonymous(image = pdf, lang = "eng")
+
+        // Then
+        assertContains(result.text, "First scanned page")
+        assertContains(result.text, "Second scanned page")
     }
 }
