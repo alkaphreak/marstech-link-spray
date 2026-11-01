@@ -13,7 +13,7 @@
 - **Build**: Maven (`pom.xml`)
 - **DB**: MongoDB (primary) — dev `localhost:27017`, none in tests, prod `$MONGODB_URI_LINK_SPRAY`
 - **Object storage**: Digital Ocean Spaces (S3-compatible, AWS SDK v2) — image storage (MLS-203)
-- **Testing**: JUnit 5 + Mockito-Kotlin + MockMvc — profile `test`, no MongoDB running: a full-context
+- **Testing**: JUnit 5 + Mockito-Kotlin + MockMvc + jqwik (property-based) — profile `test`, no MongoDB running: a full-context
   test must `@MockitoBean` any service that reaches a repository. A `@WebMvcTest` that renders a view
   needs `RootApiController` in `controllers` (the layout reads its version); a new view goes into
   `ViewRenderingTest`'s `@CsvSource`
@@ -123,6 +123,10 @@ See `.local/llm/README.md` for complete conventions.
 - **Constructor injection** — never `@Autowired` on fields
 - **Test method names**: camelCase only — `shouldReturnUrlWhenCodeExists()`. No backticks.
 - **Test structure**: Given-When-Then
+- **Property-based tests** (jqwik, MARSTECH-847): for pure functions with invariants (parsers,
+  validators, generators), in a `*PropertyTest` class next to the unit test. Always pin
+  `@Property(seed = ...)` so runs are deterministic; defaults live in
+  `src/test/resources/junit-platform.properties`
 - **DTOs for all API responses** — never return raw entities from controllers
 - **Schema-first**: data classes with validation annotations are the contract, not comments
 - **ADRs**: architecture decisions live in `docs/adr/` (MADR; create it from the Marstech-Configs
