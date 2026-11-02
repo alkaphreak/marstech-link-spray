@@ -42,6 +42,7 @@ class OcrServiceImpl(
     @Value("\${mt.link-spray.ocr.anonymous-window-ms:3600000}") private val anonymousWindowMillis: Long,
     @Value("\${mt.link-spray.ocr.max-pdf-pages:1}") private val maxPdfPages: Int,
     @Value("\${mt.link-spray.ocr.max-pdf-pixels:20000000}") private val maxPdfPixels: Long,
+    @Value("\${mt.link-spray.ocr.max-image-pixels:12000000}") private val maxImagePixels: Long,
 ) : OcrService {
 
     private val running = Semaphore(1)
@@ -61,6 +62,7 @@ class OcrServiceImpl(
         }
         val pdf = bytes.size >= PDF_MAGIC.size && bytes.copyOf(PDF_MAGIC.size).contentEquals(PDF_MAGIC)
         require(pdf || ImageTypes.detect(bytes) in SUPPORTED_TYPES) { "Body is not a PNG, JPEG or PDF" }
+        if (!pdf) checkImagePixels(bytes)
 
         // The permit and the deadline cover the PDF parsing too, not just the engine (MLS-255)
         if (!running.tryAcquire()) {
@@ -115,6 +117,29 @@ class OcrServiceImpl(
                 TOO_MANY_REQUESTS,
                 "Anonymous OCR quota of $anonymousQuota reached: retry later or send an X-Api-Key"
             )
+        }
+    }
+
+    /**
+     * The byte limit does not bound what tesseract decodes: a 173 KB grey PNG of 30000 x 30000 took 1.14 GB,
+     * a 20 Mpx colour JPEG 283 MB (tesseract 5.5.4, MLS-256). Only the header is read here, nothing is decoded.
+     */
+    private fun checkImagePixels(bytes: ByteArray) {
+        val pixels = ImageIO.createImageInputStream(bytes.inputStream()).use { input ->
+            ImageIO.getImageReaders(input).asSequence().firstOrNull()?.let { reader ->
+                try {
+                    reader.input = input
+                    reader.getWidth(0).toLong() * reader.getHeight(0)
+                } catch (_: IOException) {
+                    null
+                } finally {
+                    reader.dispose()
+                }
+            }
+        }
+        requireNotNull(pixels) { "Body is not a readable PNG or JPEG" }
+        if (pixels > maxImagePixels) {
+            throw PayloadTooLargeException("Image has $pixels pixels, OCR accepts $maxImagePixels: downscale it")
         }
     }
 

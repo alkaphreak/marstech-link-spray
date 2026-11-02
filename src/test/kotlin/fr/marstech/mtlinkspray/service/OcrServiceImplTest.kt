@@ -37,7 +37,11 @@ class OcrServiceImplTest {
 
     private val apiKeyService: ApiKeyService = mock()
 
-    private val png = byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A) + "pixels".toByteArray()
+    private fun pngOf(width: Int, height: Int): ByteArray = ByteArrayOutputStream().also {
+        ImageIO.write(BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY), "png", it)
+    }.toByteArray()
+
+    private val png = pngOf(1, 1)
 
     /** A stand-in for tesseract: a shell script that receives the same arguments ($4 is the language). */
     private fun fakeEngine(body: String): String = dir.resolve("engine-${System.nanoTime()}.sh").also {
@@ -55,8 +59,10 @@ class OcrServiceImplTest {
         anonymousWindowMillis: Long = 3_600_000,
         maxPdfPages: Int = 2,
         maxPdfPixels: Long = 20_000_000,
+        maxImagePixels: Long = 12_000_000,
     ) = OcrServiceImpl(
         apiKeyService, command, maxInputBytes, timeoutSeconds, anonymousQuota, anonymousWindowMillis, maxPdfPages, maxPdfPixels,
+        maxImagePixels,
     )
 
     /** A PDF with one page per image, or blank pages when [images] is empty and [pages] is given. */
@@ -213,6 +219,25 @@ class OcrServiceImplTest {
         // Then
         assertEquals(HttpStatus.SERVICE_UNAVAILABLE, e.statusCode)
         first.get()
+    }
+
+    @Test
+    fun shouldRejectImageAbovePixelBudgetBeforeRunningEngine() {
+        // Given: a few hundred bytes on the wire, 400 pixels once decoded
+        val marker = dir.resolve("ran")
+
+        // When / Then
+        assertThrows<PayloadTooLargeException> {
+            service(command = fakeEngine("touch $marker"), maxImagePixels = 100).anonymous(image = pngOf(20, 20))
+        }
+        assertEquals(false, marker.exists())
+    }
+
+    @Test
+    fun shouldRejectPngWithUnreadableHeader() {
+        // When / Then: PNG magic bytes, then garbage instead of an IHDR chunk
+        val bytes = byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A) + "pixels".toByteArray()
+        assertThrows<IllegalArgumentException> { service().anonymous(image = bytes) }
     }
 
     @Test
