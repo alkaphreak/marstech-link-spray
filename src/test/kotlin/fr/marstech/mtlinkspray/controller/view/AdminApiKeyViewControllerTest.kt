@@ -137,4 +137,37 @@ class AdminApiKeyViewControllerTest {
         )
             .andExpect(status().isUnauthorized)
     }
+
+    @Test
+    fun regenerateSecretShouldRedirectWithNewRawKey() {
+        // Given
+        `when`(apiKeyService.regenerateSecret("id1"))
+            .thenReturn(ApiKeyCreationResult(apiKey = givenApiKey(), rawKey = "key123.n3wS3cr3t"))
+
+        // When / Then
+        mockMvc.perform(
+            post("/admin/api-keys/id1/regenerate")
+                .with(csrf())
+                .with(httpBasic("admin", "test-admin-password"))
+        )
+            .andExpect(status().is3xxRedirection)
+            .andExpect(redirectedUrl("/admin/api-keys"))
+            .andExpect(flash().attribute("newRawKey", "key123.n3wS3cr3t"))
+            .andExpect(flash().attribute("newKeyName", "Maeva App"))
+    }
+
+    @Test
+    fun regenerateSecretShouldRequireAuthentication() {
+        mockMvc.perform(post("/admin/api-keys/id1/regenerate").with(csrf()))
+            .andExpect(status().isUnauthorized)
+    }
+
+    @Test
+    fun getApiKeysShouldOfferRegenerateActionPerKey() {
+        `when`(apiKeyService.listApiKeys()).thenReturn(listOf(givenApiKey()))
+
+        mockMvc.perform(get("/admin/api-keys").with(httpBasic("admin", "test-admin-password")))
+            .andExpect(status().isOk)
+            .andExpect(content().string(containsString("/admin/api-keys/id1/regenerate")))
+    }
 }

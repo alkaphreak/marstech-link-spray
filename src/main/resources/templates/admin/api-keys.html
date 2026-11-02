@@ -30,7 +30,7 @@
         <div class="row" th:if="${newRawKey}">
             <div class="col">
                 <div class="alert alert-warning" role="alert">
-                    <strong>API key created for <span th:text="${newKeyName}">app name</span>.</strong>
+                    <strong>New API key for <span th:text="${newKeyName}">app name</span>.</strong>
                     Copy it now - it will not be shown again:
                     <pre class="mb-2" th:text="${newRawKey}">keyId.secret</pre>
                     <button class="btn btn-primary"
@@ -104,6 +104,11 @@
                                         th:text="${apiKey.isEnabled} ? 'Disable' : 'Enable'">
                                     Disable
                                 </button>
+                            </form>
+                            <form method="post"
+                                  onsubmit="return confirm('Regenerate this secret? The current key stops working immediately.')"
+                                  th:action="@{'/admin/api-keys/' + ${apiKey.id} + '/regenerate'}">
+                                <button class="btn btn-sm btn-outline-danger" type="submit">Regenerate secret</button>
                             </form>
                         </td>
                     </tr>

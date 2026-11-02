@@ -70,6 +70,14 @@ class ApiKeyServiceImpl(
         return apiKeyRepository.save(apiKey)
     }
 
+    override fun regenerateSecret(id: String): ApiKeyCreationResult {
+        val apiKey = apiKeyRepository.findById(id)
+            .orElseThrow { NoSuchElementException("API key $id not found") }
+        val secret = generateSecret()
+        val saved = apiKeyRepository.save(apiKey.copy(secretHash = passwordEncoder.encode(secret)!!))
+        return ApiKeyCreationResult(apiKey = saved, rawKey = "${saved.keyId}.$secret")
+    }
+
     private fun generateKeyId(): String = UUID.randomUUID().toString().replace("-", "").take(12)
 
     private fun generateSecret(): String =

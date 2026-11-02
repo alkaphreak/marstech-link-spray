@@ -45,6 +45,17 @@ class AdminApiKeyViewController(
         return getRedirectUrl("/admin/api-keys")
     }
 
+    @PostMapping("/{id}/regenerate")
+    fun regenerateSecret(
+        @PathVariable @NotBlank id: String,
+        redirectAttributes: RedirectAttributes,
+    ): String {
+        val result = apiKeyService.regenerateSecret(id)
+        redirectAttributes.addFlashAttribute("newRawKey", result.rawKey)
+        redirectAttributes.addFlashAttribute("newKeyName", result.apiKey.name)
+        return getRedirectUrl("/admin/api-keys")
+    }
+
     override fun getModelAndView(): ModelAndView = getModelAndView(ADMIN_API_KEYS)
 
     fun getModelAndView(httpServletRequest: HttpServletRequest): ModelAndView =

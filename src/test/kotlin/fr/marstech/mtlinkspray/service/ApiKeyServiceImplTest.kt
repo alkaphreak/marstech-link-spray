@@ -179,4 +179,32 @@ class ApiKeyServiceImplTest {
             apiKeyService.setEnabled("unknown", false)
         }
     }
+
+    @Test
+    fun regenerateSecretShouldKeepKeyIdAndReplaceSecret() {
+        // Given
+        val apiKey = givenApiKey()
+        `when`(apiKeyRepository.findById("id1")).thenReturn(Optional.of(apiKey))
+        `when`(apiKeyRepository.save(org.mockito.kotlin.any())).thenAnswer { it.arguments[0] }
+
+        // When
+        val result = apiKeyService.regenerateSecret("id1")
+
+        // Then
+        val (keyId, secret) = result.rawKey.split(".", limit = 2)
+        assertEquals("key123", keyId)
+        assertEquals(apiKey.namespace, result.apiKey.namespace)
+        `when`(apiKeyRepository.findByKeyId("key123")).thenReturn(Optional.of(result.apiKey))
+        assertEquals(result.apiKey, apiKeyService.resolve("key123.$secret"))
+        assertThrows<IllegalAccessException> { apiKeyService.resolve("key123.s3cr3t") }
+    }
+
+    @Test
+    fun regenerateSecretShouldThrowWhenApiKeyNotFound() {
+        `when`(apiKeyRepository.findById("unknown")).thenReturn(Optional.empty())
+
+        assertThrows<NoSuchElementException> {
+            apiKeyService.regenerateSecret("unknown")
+        }
+    }
 }
