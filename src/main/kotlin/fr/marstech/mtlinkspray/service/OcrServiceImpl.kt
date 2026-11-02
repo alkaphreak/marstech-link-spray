@@ -20,6 +20,8 @@ import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import javax.imageio.ImageIO
+import kotlin.math.floor
+import kotlin.math.max
 
 /**
  * Runs the `tesseract` binary as a subprocess (image on stdin, text on stdout) rather than
@@ -86,8 +88,12 @@ class OcrServiceImpl(
         return (0 until document.numberOfPages).joinToString("\n\n") { page ->
             // Byte and page limits do not bound the raster: one 7200 pt page is 858 MiB at 300 dpi
             val box = document.getPage(page).cropBox
-            val scale = PDF_DPI / POINTS_PER_INCH
-            if (box.width * scale * box.height * scale > maxPdfPixels) {
+            // Same per-axis sizing as PDFRenderer (floor, at least 1 px), so a 1e9 x 0.001 pt page is not "small";
+            // written as !(<=) so a NaN or infinite box is rejected too
+            val scale = (PDF_DPI / POINTS_PER_INCH).toDouble()
+            val width = max(floor(box.width * scale), 1.0)
+            val height = max(floor(box.height * scale), 1.0)
+            if (!(width * height <= maxPdfPixels)) {
                 throw PayloadTooLargeException("PDF page ${page + 1} is too large to OCR: scan it at A3 or smaller")
             }
             checkDeadline(deadline)

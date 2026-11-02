@@ -148,20 +148,35 @@ class OcrServiceImplTest {
         assertEquals(false, marker.exists())
     }
 
-    @Test
-    fun shouldRejectPdfPageAbovePixelBudgetBeforeRendering() {
-        // Given: one blank 7200 x 7200 pt page, 858 MiB once rendered at 300 dpi
-        val marker = dir.resolve("ran")
-        val pdf = PDDocument().use { document ->
-            document.addPage(PDPage(PDRectangle(7200f, 7200f)))
-            ByteArrayOutputStream().also { document.save(it) }.toByteArray()
-        }
+    private fun blankPdf(width: Float, height: Float): ByteArray = PDDocument().use { document ->
+        document.addPage(PDPage(PDRectangle(width, height)))
+        ByteArrayOutputStream().also { document.save(it) }.toByteArray()
+    }
 
-        // When / Then
+    private fun assertRejectedBeforeRendering(pdf: ByteArray) {
+        val marker = dir.resolve("ran")
         assertThrows<PayloadTooLargeException> {
             service(command = fakeEngine("touch $marker"), maxInputBytes = 1024 * 1024).anonymous(image = pdf)
         }
         assertEquals(false, marker.exists())
+    }
+
+    @Test
+    fun shouldRejectPdfPageAbovePixelBudgetBeforeRendering() {
+        // Given: one blank 7200 x 7200 pt page, 858 MiB once rendered at 300 dpi
+        val pdf = blankPdf(7200f, 7200f)
+
+        // When / Then
+        assertRejectedBeforeRendering(pdf)
+    }
+
+    @Test
+    fun shouldRejectSubpixelHeightPdfPageBeforeRendering() {
+        // Given: 4.2 Mpx by area, but PDFBox floors each axis to at least 1 px: 1e9 x 1 px, 954 MiB in grey
+        val pdf = blankPdf(240_000_000f, 0.001f)
+
+        // When / Then
+        assertRejectedBeforeRendering(pdf)
     }
 
     @Test
