@@ -4,6 +4,7 @@ import fr.marstech.mtlinkspray.exception.PayloadTooLargeException
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.pdmodel.PDPage
 import org.apache.pdfbox.pdmodel.PDPageContentStream
+import org.apache.pdfbox.pdmodel.common.PDRectangle
 import org.apache.pdfbox.pdmodel.graphics.image.LosslessFactory
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.Test
@@ -53,7 +54,10 @@ class OcrServiceImplTest {
         anonymousQuota: Int = 10,
         anonymousWindowMillis: Long = 3_600_000,
         maxPdfPages: Int = 2,
-    ) = OcrServiceImpl(apiKeyService, command, maxInputBytes, timeoutSeconds, anonymousQuota, anonymousWindowMillis, maxPdfPages)
+        maxPdfPixels: Long = 20_000_000,
+    ) = OcrServiceImpl(
+        apiKeyService, command, maxInputBytes, timeoutSeconds, anonymousQuota, anonymousWindowMillis, maxPdfPages, maxPdfPixels,
+    )
 
     /** A PDF with one page per image, or blank pages when [images] is empty and [pages] is given. */
     private fun pdfOf(vararg images: BufferedImage, pages: Int = images.size): ByteArray = PDDocument().use { document ->
@@ -142,6 +146,73 @@ class OcrServiceImplTest {
             service(command = fakeEngine("touch $marker"), maxInputBytes = 1024 * 1024).anonymous(image = pdfOf(pages = 3))
         }
         assertEquals(false, marker.exists())
+    }
+
+    private fun blankPdf(width: Float, height: Float): ByteArray = PDDocument().use { document ->
+        document.addPage(PDPage(PDRectangle(width, height)))
+        ByteArrayOutputStream().also { document.save(it) }.toByteArray()
+    }
+
+    private fun assertRejectedBeforeRendering(pdf: ByteArray) {
+        val marker = dir.resolve("ran")
+        assertThrows<PayloadTooLargeException> {
+            service(command = fakeEngine("touch $marker"), maxInputBytes = 1024 * 1024).anonymous(image = pdf)
+        }
+        assertEquals(false, marker.exists())
+    }
+
+    @Test
+    fun shouldRejectPdfPageAbovePixelBudgetBeforeRendering() {
+        // Given: one blank 7200 x 7200 pt page, 858 MiB once rendered at 300 dpi
+        val pdf = blankPdf(7200f, 7200f)
+
+        // When / Then
+        assertRejectedBeforeRendering(pdf)
+    }
+
+    @Test
+    fun shouldRejectSubpixelHeightPdfPageBeforeRendering() {
+        // Given: 4.2 Mpx by area, but PDFBox floors each axis to at least 1 px: 1e9 x 1 px, 954 MiB in grey
+        val pdf = blankPdf(240_000_000f, 0.001f)
+
+        // When / Then
+        assertRejectedBeforeRendering(pdf)
+    }
+
+    @Test
+    fun shouldNotRunEngineOnceDeadlineIsSpent() {
+        // Given
+        val marker = dir.resolve("ran")
+
+        // When
+        val e = assertThrows<ResponseStatusException> {
+            service(command = fakeEngine("touch $marker"), timeoutSeconds = 0).anonymous()
+        }
+
+        // Then
+        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, e.statusCode)
+        assertEquals(false, marker.exists())
+    }
+
+    @Test
+    fun shouldAcquirePermitBeforeParsingPdf() {
+        // Given: a first OCR holds the permit until the test removes the gate file
+        val started = dir.resolve("started")
+        val gate = dir.resolve("gate").also { Files.createFile(it) }
+        val service = service(
+            command = fakeEngine("cat > /dev/null; touch $started; while [ -f $gate ]; do sleep 0.05; done"),
+            maxInputBytes = 1024 * 1024,
+        )
+        val first = CompletableFuture.supplyAsync { service.anonymous() }
+        while (!started.exists()) Thread.sleep(20)
+
+        // When: a PDF over the page limit is not even parsed while the permit is taken
+        val e = assertThrows<ResponseStatusException> { service.anonymous(image = pdfOf(pages = 3)) }
+        Files.delete(gate)
+
+        // Then
+        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, e.statusCode)
+        first.get()
     }
 
     @Test

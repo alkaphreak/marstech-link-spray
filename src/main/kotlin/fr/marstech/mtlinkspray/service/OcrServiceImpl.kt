@@ -20,6 +20,8 @@ import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import javax.imageio.ImageIO
+import kotlin.math.floor
+import kotlin.math.max
 
 /**
  * Runs the `tesseract` binary as a subprocess (image on stdin, text on stdout) rather than
@@ -39,6 +41,7 @@ class OcrServiceImpl(
     @Value("\${mt.link-spray.ocr.anonymous-quota:10}") private val anonymousQuota: Int,
     @Value("\${mt.link-spray.ocr.anonymous-window-ms:3600000}") private val anonymousWindowMillis: Long,
     @Value("\${mt.link-spray.ocr.max-pdf-pages:1}") private val maxPdfPages: Int,
+    @Value("\${mt.link-spray.ocr.max-pdf-pixels:20000000}") private val maxPdfPixels: Long,
 ) : OcrService {
 
     private val running = Semaphore(1)
@@ -59,31 +62,41 @@ class OcrServiceImpl(
         val pdf = bytes.size >= PDF_MAGIC.size && bytes.copyOf(PDF_MAGIC.size).contentEquals(PDF_MAGIC)
         require(pdf || ImageTypes.detect(bytes) in SUPPORTED_TYPES) { "Body is not a PNG, JPEG or PDF" }
 
-        (if (pdf) loadPdf(bytes) else null).use { document ->
-            if (document != null && document.numberOfPages > maxPdfPages) {
-                throw PayloadTooLargeException(
-                    "PDF has ${document.numberOfPages} pages, OCR accepts $maxPdfPages: split it or OCR it locally"
-                )
-            }
-            if (!running.tryAcquire()) {
-                throw ResponseStatusException(SERVICE_UNAVAILABLE, "Another OCR is running, retry in a few seconds")
-            }
-            try {
-                val start = System.nanoTime()
-                val deadline = start + TimeUnit.SECONDS.toNanos(timeoutSeconds)
-                val text = if (document == null) runTesseract(bytes, languages, deadline)
-                else recognizePages(document, languages, deadline)
-                return OcrResult(text, languages, TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start))
-            } finally {
-                running.release()
-            }
+        // The permit and the deadline cover the PDF parsing too, not just the engine (MLS-255)
+        if (!running.tryAcquire()) {
+            throw ResponseStatusException(SERVICE_UNAVAILABLE, "Another OCR is running, retry in a few seconds")
+        }
+        try {
+            val start = System.nanoTime()
+            val deadline = start + TimeUnit.SECONDS.toNanos(timeoutSeconds)
+            val text = if (pdf) loadPdf(bytes).use { recognizePages(it, languages, deadline) }
+            else runTesseract(bytes, languages, deadline)
+            return OcrResult(text, languages, TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start))
+        } finally {
+            running.release()
         }
     }
 
     /** One page rendered at a time: a grey A4 page at 300 dpi is about 9 MB, beside tesseract's ~110 MB. */
     private fun recognizePages(document: PDDocument, languages: String, deadline: Long): String {
+        if (document.numberOfPages > maxPdfPages) {
+            throw PayloadTooLargeException(
+                "PDF has ${document.numberOfPages} pages, OCR accepts $maxPdfPages: split it or OCR it locally"
+            )
+        }
         val renderer = PDFRenderer(document)
         return (0 until document.numberOfPages).joinToString("\n\n") { page ->
+            // Byte and page limits do not bound the raster: one 7200 pt page is 858 MiB at 300 dpi
+            val box = document.getPage(page).cropBox
+            // Same per-axis sizing as PDFRenderer (floor, at least 1 px), so a 1e9 x 0.001 pt page is not "small";
+            // written as !(<=) so a NaN or infinite box is rejected too
+            val scale = (PDF_DPI / POINTS_PER_INCH).toDouble()
+            val width = max(floor(box.width * scale), 1.0)
+            val height = max(floor(box.height * scale), 1.0)
+            if (!(width * height <= maxPdfPixels)) {
+                throw PayloadTooLargeException("PDF page ${page + 1} is too large to OCR: scan it at A3 or smaller")
+            }
+            checkDeadline(deadline)
             val image = renderer.renderImageWithDPI(page, PDF_DPI, ImageType.GRAY)
             val png = ByteArrayOutputStream().also { ImageIO.write(image, "png", it) }.toByteArray()
             runTesseract(png, languages, deadline)
@@ -105,7 +118,15 @@ class OcrServiceImpl(
         }
     }
 
+    /** PDFBox rendering cannot be interrupted: stop between steps instead, before the next render or engine run. */
+    private fun checkDeadline(deadline: Long) {
+        if (System.nanoTime() >= deadline) {
+            throw ResponseStatusException(SERVICE_UNAVAILABLE, "OCR took longer than $timeoutSeconds s")
+        }
+    }
+
     private fun runTesseract(bytes: ByteArray, languages: String, deadline: Long): String {
+        checkDeadline(deadline)
         val output = Files.createTempFile("ocr", ".txt")
         try {
             val process = try {
@@ -139,6 +160,7 @@ class OcrServiceImpl(
         val SUPPORTED_TYPES = setOf("image/png", "image/jpeg")
         val PDF_MAGIC = "%PDF-".toByteArray()
         const val PDF_DPI = 300f
+        const val POINTS_PER_INCH = 72f
         // Only the language data installed in the Docker image (tesseract-ocr-fra, -eng)
         val LANGUAGES = Regex("^(fra|eng)(\\+(fra|eng))?$")
     }
