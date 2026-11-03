@@ -64,19 +64,19 @@ class ApiKeyServiceImpl(
     override fun listApiKeys(): List<ApiKeyEntity> = apiKeyRepository.findAll()
 
     override fun setEnabled(id: String, isEnabled: Boolean): ApiKeyEntity {
-        val apiKey = apiKeyRepository.findById(id)
-            .orElseThrow { NoSuchElementException("API key $id not found") }
-        apiKey.isEnabled = isEnabled
-        return apiKeyRepository.save(apiKey)
+        if (apiKeyRepository.findAndSetIsEnabledById(id, isEnabled) == 0L) throw notFound(id)
+        return apiKeyRepository.findById(id).orElseThrow { notFound(id) }
     }
 
     override fun regenerateSecret(id: String): ApiKeyCreationResult {
-        val apiKey = apiKeyRepository.findById(id)
-            .orElseThrow { NoSuchElementException("API key $id not found") }
+        val apiKey = apiKeyRepository.findById(id).orElseThrow { notFound(id) }
         val secret = generateSecret()
-        val saved = apiKeyRepository.save(apiKey.copy(secretHash = passwordEncoder.encode(secret)!!))
-        return ApiKeyCreationResult(apiKey = saved, rawKey = "${saved.keyId}.$secret")
+        val secretHash = passwordEncoder.encode(secret)!!
+        if (apiKeyRepository.findAndSetSecretHashById(id, secretHash) == 0L) throw notFound(id)
+        return ApiKeyCreationResult(apiKey = apiKey.copy(secretHash = secretHash), rawKey = "${apiKey.keyId}.$secret")
     }
+
+    private fun notFound(id: String) = NoSuchElementException("API key $id not found")
 
     private fun generateKeyId(): String = UUID.randomUUID().toString().replace("-", "").take(12)
 
