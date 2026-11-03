@@ -11,7 +11,9 @@ import org.junit.jupiter.api.assertThrows
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.eq
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import java.util.*
 
@@ -160,23 +162,56 @@ class ApiKeyServiceImplTest {
     }
 
     @Test
-    fun setEnabledShouldToggleAndSaveApiKey() {
-        val apiKey = givenApiKey(isEnabled = true)
-        `when`(apiKeyRepository.findById("id1")).thenReturn(Optional.of(apiKey))
-        `when`(apiKeyRepository.save(apiKey)).thenReturn(apiKey)
+    fun setEnabledShouldUpdateOnlyTheEnabledField() {
+        // Given
+        `when`(apiKeyRepository.findAndSetIsEnabledById("id1", false)).thenReturn(1L)
+        `when`(apiKeyRepository.findById("id1")).thenReturn(Optional.of(givenApiKey(isEnabled = false)))
 
+        // When
         val result = apiKeyService.setEnabled("id1", false)
 
+        // Then
         assertFalse(result.isEnabled)
-        verify(apiKeyRepository).save(apiKey)
+        verify(apiKeyRepository).findAndSetIsEnabledById("id1", false)
+        verify(apiKeyRepository, never()).save(org.mockito.kotlin.any())
     }
 
     @Test
     fun setEnabledShouldThrowWhenApiKeyNotFound() {
-        `when`(apiKeyRepository.findById("unknown")).thenReturn(Optional.empty())
+        `when`(apiKeyRepository.findAndSetIsEnabledById("unknown", false)).thenReturn(0L)
 
         assertThrows<NoSuchElementException> {
             apiKeyService.setEnabled("unknown", false)
+        }
+    }
+
+    @Test
+    fun regenerateSecretShouldKeepKeyIdAndReplaceSecret() {
+        // Given
+        val apiKey = givenApiKey()
+        `when`(apiKeyRepository.findById("id1")).thenReturn(Optional.of(apiKey))
+        `when`(apiKeyRepository.findAndSetSecretHashById(eq("id1"), org.mockito.kotlin.any())).thenReturn(1L)
+
+        // When
+        val result = apiKeyService.regenerateSecret("id1")
+
+        // Then
+        val (keyId, secret) = result.rawKey.split(".", limit = 2)
+        assertEquals("key123", keyId)
+        assertEquals(apiKey.namespace, result.apiKey.namespace)
+        `when`(apiKeyRepository.findByKeyId("key123")).thenReturn(Optional.of(result.apiKey))
+        assertEquals(result.apiKey, apiKeyService.resolve("key123.$secret"))
+        assertThrows<IllegalAccessException> { apiKeyService.resolve("key123.s3cr3t") }
+        verify(apiKeyRepository).findAndSetSecretHashById("id1", result.apiKey.secretHash)
+        verify(apiKeyRepository, never()).save(org.mockito.kotlin.any())
+    }
+
+    @Test
+    fun regenerateSecretShouldThrowWhenApiKeyNotFound() {
+        `when`(apiKeyRepository.findById("unknown")).thenReturn(Optional.empty())
+
+        assertThrows<NoSuchElementException> {
+            apiKeyService.regenerateSecret("unknown")
         }
     }
 }
