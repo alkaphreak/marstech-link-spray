@@ -9,13 +9,15 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.servlet.ModelAndView
 import org.springframework.web.servlet.mvc.support.RedirectAttributes
 
+private const val BASE_PATH = "/admin/api-keys"
+
 /**
  * Admin page to manage API keys for client apps (MLS-203). Protected by HTTP Basic auth
  * (see `SecurityConfig`, restricted to the "/admin" path tree). Key creation is admin-only, never
  * self-service, per MLS-203 decision.
  */
 @Controller
-@RequestMapping("/admin/api-keys")
+@RequestMapping(BASE_PATH)
 class AdminApiKeyViewController(
     private val apiKeyService: ApiKeyService
 ) : ThymeleafViewControllerInterface {
@@ -33,7 +35,7 @@ class AdminApiKeyViewController(
         val result = apiKeyService.createApiKey(name, namespace)
         redirectAttributes.addFlashAttribute("newRawKey", result.rawKey)
         redirectAttributes.addFlashAttribute("newKeyName", result.apiKey.name)
-        return getRedirectUrl("/admin/api-keys")
+        return getRedirectUrl(BASE_PATH)
     }
 
     @PostMapping("/{id}/toggle")
@@ -42,7 +44,7 @@ class AdminApiKeyViewController(
         @RequestParam isEnabled: Boolean,
     ): String {
         apiKeyService.setEnabled(id, isEnabled)
-        return getRedirectUrl("/admin/api-keys")
+        return getRedirectUrl(BASE_PATH)
     }
 
     @PostMapping("/{id}/regenerate")
@@ -53,7 +55,7 @@ class AdminApiKeyViewController(
         val result = apiKeyService.regenerateSecret(id)
         redirectAttributes.addFlashAttribute("newRawKey", result.rawKey)
         redirectAttributes.addFlashAttribute("newKeyName", result.apiKey.name)
-        return getRedirectUrl("/admin/api-keys")
+        return getRedirectUrl(BASE_PATH)
     }
 
     override fun getModelAndView(): ModelAndView = getModelAndView(ADMIN_API_KEYS)
