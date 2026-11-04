@@ -98,6 +98,9 @@
             <li>From <a href="https://marstech.fr/">Marstech</a> for public use, since 2021</li>
             <li>Created by <a href="https://cv.marstech.fr/" target="_blank">Stéphane ROBIN</a></li>
             <li><a href="https://github.com/alkaphreak/marstech-link-spray" target="_blank">github/marstech-link-spray</a></li>
+            <li th:with="view=${T(fr.marstech.mtlinkspray.enums.ViewNameEnum).PRIVACY}">
+                <a th:href="@{'/'+${view.getViewName()}}">Privacy</a>
+            </li>
             <li th:with="view=${T(fr.marstech.mtlinkspray.enums.ViewNameEnum).ABUSE}">
                 <a th:href="@{'/'+${view.getViewName()}}">Abuse report</a>
             </li>
@@ -114,6 +117,8 @@
 
     <!-- static/assets/js/mt-script.js -->
     <script th:src="@{'/assets/js/mt-script.js'}"></script>
+    <!-- static/assets/js/fingerprint.js: fills the hidden "fp" field of data-fingerprint forms (MLS-254) -->
+    <script th:src="@{'/assets/js/fingerprint.js'}" type="module"></script>
 </div>
 </body>
 </html>

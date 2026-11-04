@@ -1,8 +1,10 @@
 package fr.marstech.mtlinkspray.controller.view
 
 
+import fr.marstech.mtlinkspray.entity.WriteSignatureEntity.ResourceType
 import fr.marstech.mtlinkspray.enums.ViewNameEnum.SHORTENER
 import fr.marstech.mtlinkspray.service.ShortenerService
+import fr.marstech.mtlinkspray.service.WriteSignatureService
 import fr.marstech.mtlinkspray.validation.ValidUrl
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.constraints.NotBlank
@@ -15,7 +17,10 @@ import org.springframework.web.servlet.ModelAndView
 
 @Controller
 @RequestMapping("/shortener")
-class ViewShortenerController(val shortenerService: ShortenerService) : ThymeleafViewControllerInterface {
+class ViewShortenerController(
+    val shortenerService: ShortenerService,
+    private val writeSignatureService: WriteSignatureService,
+) : ThymeleafViewControllerInterface {
 
     override fun getModelAndView() = getModelAndView(SHORTENER)
 
@@ -24,8 +29,14 @@ class ViewShortenerController(val shortenerService: ShortenerService) : Thymelea
 
     @PostMapping
     fun createShortenedLink(
-        @RequestParam(name = "input-link") @NotBlank @ValidUrl inputLink: String, httpServletRequest: HttpServletRequest
-    ): ModelAndView = getModelAndView()
-        .addObject("inputLink", inputLink)
-        .addObject("shortenedLink", shortenerService.shorten(inputLink, httpServletRequest))
+        @RequestParam(name = "input-link") @NotBlank @ValidUrl inputLink: String,
+        @RequestParam(required = false) fp: String?,
+        httpServletRequest: HttpServletRequest
+    ): ModelAndView {
+        val shortenedLink = shortenerService.shorten(inputLink, httpServletRequest)
+        writeSignatureService.record(ResourceType.SHORT_LINK, shortenedLink, fp, httpServletRequest)
+        return getModelAndView()
+            .addObject("inputLink", inputLink)
+            .addObject("shortenedLink", shortenedLink)
+    }
 }
