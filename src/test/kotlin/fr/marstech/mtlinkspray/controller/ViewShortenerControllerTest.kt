@@ -15,7 +15,7 @@ class ViewShortenerControllerTest {
     private val shortenerService = mock(ShortenerService::class.java)
     private val httpServletRequest = mock(HttpServletRequest::class.java)
 
-    private val controller = ViewShortenerController(shortenerService)
+    private val controller = ViewShortenerController(shortenerService, mock(fr.marstech.mtlinkspray.service.WriteSignatureService::class.java))
 
     @Test
     fun getViewShouldReturnModelAndViewWithCorrectViewName() {
@@ -31,7 +31,7 @@ class ViewShortenerControllerTest {
         `when`(shortenerService.shorten(inputLink, httpServletRequest)).thenReturn(shortenedLink)
 
         // When
-        val modelAndView = controller.createShortenedLink(inputLink, httpServletRequest)
+        val modelAndView = controller.createShortenedLink(inputLink, null, httpServletRequest)
 
         // Then
         assertEquals(inputLink, modelAndView.model["inputLink"])
@@ -46,7 +46,7 @@ class ViewShortenerControllerTest {
         `when`(shortenerService.shorten(blankInput, httpServletRequest)).thenReturn(null)
 
         // When
-        val modelAndView = controller.createShortenedLink(blankInput, httpServletRequest)
+        val modelAndView = controller.createShortenedLink(blankInput, null, httpServletRequest)
 
         // Then
         assertEquals(SHORTENER.viewName, modelAndView.viewName)

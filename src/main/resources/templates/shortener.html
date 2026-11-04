@@ -23,7 +23,8 @@
     <div class="container">
         <div class="row align-items-center">
             <div class="col">
-                <form accept-charset="UTF-8" action="/" method="post" th:action="@{'/'+${view.getViewName()}}">
+                <form accept-charset="UTF-8" action="/" data-fingerprint method="post" th:action="@{'/'+${view.getViewName()}}">
+                    <input name="fp" type="hidden"/>
                     <div class="mb-3">
                         <label class="form-label" for="input-link">Target link</label>
                         <!--/*@thymesVar id="inputLink" type="java.lang.String"*/-->

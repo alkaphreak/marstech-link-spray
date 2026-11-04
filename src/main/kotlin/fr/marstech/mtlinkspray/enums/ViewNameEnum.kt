@@ -18,10 +18,12 @@ enum class ViewNameEnum(
     OCR(viewName = "ocr", viewPage = "OCR", orderInMenu = 9),
     FINGERPRINT(viewName = "fingerprint", viewPage = "Fingerprint", orderInMenu = 10),
     ABUSE(viewName = "abuse", viewPage = "Abuse"),
+    PRIVACY(viewName = "privacy", viewPage = "Privacy", orderInMenu = -1, isInMenu = false),
 
     DASHBOARD(viewName = "dashboard", viewPage = "Dashboard"),
 
     ADMIN_API_KEYS(viewName = "admin/api-keys", viewPage = "API Keys Admin", orderInMenu = -1, isInMenu = false),
+    ADMIN_SIGNATURES(viewName = "admin/signatures", viewPage = "Signatures Admin", orderInMenu = -1, isInMenu = false),
 
     HOME(viewName = "index", viewPage = "Home", orderInMenu = -1, isInMenu = false),
     ERROR(viewName = "error", viewPage = "Error", orderInMenu = -1, isInMenu = false);

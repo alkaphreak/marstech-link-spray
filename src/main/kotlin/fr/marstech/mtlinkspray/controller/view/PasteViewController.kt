@@ -2,8 +2,10 @@ package fr.marstech.mtlinkspray.controller.view
 
 import fr.marstech.mtlinkspray.dto.PasteRequest
 import fr.marstech.mtlinkspray.dto.PasteResponse
+import fr.marstech.mtlinkspray.entity.WriteSignatureEntity.ResourceType
 import fr.marstech.mtlinkspray.enums.ViewNameEnum.PASTE
 import fr.marstech.mtlinkspray.service.PasteService
+import fr.marstech.mtlinkspray.service.WriteSignatureService
 import fr.marstech.mtlinkspray.utils.NetworkUtils.getFilteredPort
 import fr.marstech.mtlinkspray.utils.NetworkUtils.getHost
 import fr.marstech.mtlinkspray.utils.NetworkUtils.getScheme
@@ -22,7 +24,10 @@ import java.nio.charset.StandardCharsets
 
 @Controller
 @RequestMapping("/paste")
-class PasteViewController(private val pasteService: PasteService) : ThymeleafViewControllerInterface {
+class PasteViewController(
+    private val pasteService: PasteService,
+    private val writeSignatureService: WriteSignatureService,
+) : ThymeleafViewControllerInterface {
 
     override fun getModelAndView(): ModelAndView = getModelAndView(PASTE)
 
@@ -80,12 +85,11 @@ class PasteViewController(private val pasteService: PasteService) : ThymeleafVie
     @PostMapping
     fun createPaste(
         @RequestParam(name = "inputPasteBinTextArea") inputPasteBinTextArea: String,
+        @RequestParam(required = false) fp: String?,
         httpServletRequest: HttpServletRequest
-    ): String = PasteRequest(
-        content = inputPasteBinTextArea,
-    ).let {
-        pasteService.createPaste(it, httpServletRequest)
-    }.let {
-        getRedirectUrl("/paste/$it")
+    ): String {
+        val pasteId = pasteService.createPaste(PasteRequest(content = inputPasteBinTextArea), httpServletRequest)
+        writeSignatureService.record(ResourceType.PASTE, pasteId, fp, httpServletRequest)
+        return getRedirectUrl("/paste/$pasteId")
     }
 }

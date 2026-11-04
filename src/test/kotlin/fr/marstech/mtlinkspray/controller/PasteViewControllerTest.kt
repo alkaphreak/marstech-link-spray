@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletRequest
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import fr.marstech.mtlinkspray.service.WriteSignatureService
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito.*
@@ -26,6 +27,9 @@ class PasteViewControllerTest {
 
     @Mock
     private lateinit var pasteService: PasteService
+
+    @Mock
+    private lateinit var writeSignatureService: WriteSignatureService
 
     @InjectMocks
     private lateinit var pasteViewController: PasteViewController
@@ -84,7 +88,7 @@ class PasteViewControllerTest {
             pasteService.createPaste(any(), any())
         ).thenReturn("newid")
         mockMvc = MockMvcBuilders.standaloneSetup(
-            PasteViewController(pasteService)
+            PasteViewController(pasteService, mock(WriteSignatureService::class.java))
         ).build()
 
         mockMvc.perform(

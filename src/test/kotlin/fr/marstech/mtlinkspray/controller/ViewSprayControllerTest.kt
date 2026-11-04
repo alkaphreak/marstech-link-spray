@@ -2,6 +2,7 @@ package fr.marstech.mtlinkspray.controller
 
 import fr.marstech.mtlinkspray.controller.view.ViewSprayController
 import fr.marstech.mtlinkspray.service.SprayService
+import fr.marstech.mtlinkspray.service.WriteSignatureService
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
@@ -14,7 +15,8 @@ import kotlin.test.assertTrue
 class ViewSprayControllerTest {
 
     private val sprayService: SprayService = mock(SprayService::class.java)
-    private val controller = ViewSprayController(sprayService)
+    private val writeSignatureService: WriteSignatureService = mock(WriteSignatureService::class.java)
+    private val controller = ViewSprayController(sprayService, writeSignatureService)
 
     @Test
     fun getSprayPageShouldReturnCorrectView() {
@@ -70,7 +72,7 @@ class ViewSprayControllerTest {
             .thenReturn(shortenedUrl)
 
         // When
-        val result: ModelAndView = controller.getShortenedSpray("https://example.com", request)
+        val result: ModelAndView = controller.getShortenedSpray("https://example.com", null, request)
 
         // Then
         assertEquals("spray", result.viewName)
