@@ -69,7 +69,7 @@ class ApiPasteControllerTest {
             .contentType(APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(request))
             .let(mockMvc::perform)
-            .andExpect(status().isOk)
+            .andExpect(status().isCreated)
             .andExpect(jsonPath("$.id").value(pasteId))
             .andExpect(jsonPath("$.title").value("Test"))
             .andExpect(jsonPath("$.content").value("Hello World"))
@@ -149,7 +149,7 @@ class ApiPasteControllerTest {
             .contentType(APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(request))
             .let(mockMvc::perform)
-            .andExpect(status().isOk)
+            .andExpect(status().isCreated)
             .andExpect(jsonPath("$.id").value(pasteId))
             .andExpect(jsonPath("$.content").value("Minimal content"))
     }
@@ -352,7 +352,7 @@ class ApiPasteControllerTest {
             .contentType(APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(request))
             .let(mockMvc::perform)
-            .andExpect(status().isOk)
+            .andExpect(status().isCreated)
             .andExpect(jsonPath("$.id").value(pasteId))
     }
 
@@ -382,7 +382,7 @@ class ApiPasteControllerTest {
             .contentType(APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(request))
             .let(mockMvc::perform)
-            .andExpect(status().isOk)
+            .andExpect(status().isCreated)
             .andExpect(jsonPath("$.id").value(pasteId))
     }
 
@@ -421,7 +421,7 @@ class ApiPasteControllerTest {
             .contentType(APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(request))
             .let(mockMvc::perform)
-            .andExpect(status().isOk)
+            .andExpect(status().isCreated)
             .andExpect(jsonPath("$.id").value(pasteId))
     }
 

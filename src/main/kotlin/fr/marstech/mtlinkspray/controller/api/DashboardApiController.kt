@@ -4,6 +4,7 @@ import fr.marstech.mtlinkspray.dto.DashboardDto
 import fr.marstech.mtlinkspray.service.DashboardService
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
+import org.springframework.http.HttpStatus
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
 
@@ -21,6 +22,7 @@ class DashboardApiController(
     ): DashboardDto = dashboardService.getDashboard(id)
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     fun createDashboard(
         @RequestBody @Valid dashboardDto: DashboardDto
     ): DashboardDto = dashboardService.createDashboard(dashboardDto)

@@ -28,7 +28,7 @@ class PasteApiController(private val pasteService: PasteService) {
     ): ResponseEntity<PasteResponse> =
         pasteService.createPaste(request, httpServletRequest)
             .let { pasteService.getPaste(it, request.password) }
-            .let { return ResponseEntity.ok(fromEntity(it)) }
+            .let { return ResponseEntity.status(CREATED).body(fromEntity(it)) }
 
     @GetMapping("/{pasteId}")
     fun getPaste(

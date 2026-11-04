@@ -49,7 +49,7 @@ class DashboardApiControllerTest {
 
         mockMvc.perform(
             post("/api/dashboard").contentType(APPLICATION_JSON).content(objectMapper.writeValueAsString(dashboard))
-        ).andExpect(status().isOk).andExpect(content().json(objectMapper.writeValueAsString(dashboard)))
+        ).andExpect(status().isCreated).andExpect(content().json(objectMapper.writeValueAsString(dashboard)))
     }
 
     @Test

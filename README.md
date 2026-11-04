@@ -99,6 +99,7 @@ src/main/kotlin/fr/marstech/mtlinkspray/
 | GET    | `/api/version`               | Returns current application version |
 | GET    | `/api/spray`                 | Generate a Link Spray URL           |
 | GET    | `/api/url-shortener/shorten` | Shorten a URL                       |
+| POST   | `/api/url-shortener`         | Shorten a URL (JSON, 201 Created)   |
 | GET    | `/api/paste/{pasteId}`       | Retrieve a paste                    |
 | POST   | `/api/paste`                 | Create a new paste                  |
 | GET    | `/api/dashboard/{id}`        | Get a dashboard by ID               |
