@@ -9,9 +9,6 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
-- Write signatures: short links, shortened sprays and pastes created from the website record a browser fingerprint hash,
-  the IP address and the User-Agent, deleted automatically after 12 months (MongoDB TTL index); admin lookup at
-  `/admin/signatures`, privacy notice at `/privacy` (MLS-254)
 - `POST /api/url-shortener` with a JSON body `{"url": ...}`: creates a short link and returns 201 Created, the
   short URL in `Location` and as `{"shortUrl": ...}`; `GET /api/url-shortener/shorten` is unchanged (MLS-258)
 
@@ -19,6 +16,20 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - `POST /api/paste`, `POST /api/images` and `POST /api/dashboard` return 201 Created instead of 200 OK; the
   body is unchanged (MLS-258)
+
+---
+
+## [0.7.0] - 2026-11-04
+
+### Added
+
+- Write signatures: short links, shortened sprays and pastes created from the website record a browser fingerprint hash,
+  the IP address and the User-Agent, deleted automatically after 12 months (MongoDB TTL index); admin lookup at
+  `/admin/signatures`, privacy notice at `/privacy` (MLS-254)
+
+---
+
+## [0.6.6] - 2026-11-04
 
 ### Fixed
 
