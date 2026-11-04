@@ -55,33 +55,24 @@ h1, h2, h3, h4, h5, h6 { margin-bottom: 0.5rem; }
 
 section { padding: var(--space-4) 0 var(--space-6); }
 
-/* Header: brand row, then the tools rail (horizontal scroll on phones, no JS) */
-.mt-menu { border-bottom: 1px solid var(--border-soft); }
+/* Header: brand row, then the Skin's .mt-menu tools menu. Below lg (992px, the Skin breakpoint) the
+   menu collapses behind the burger through Bootstrap collapse (navbar-expand-lg on <header>).
+   ponytail: fixed lg breakpoint, fits the 13 current tools; more tools -> move both to xl */
 .mt-header .container { display: flex; align-items: center; min-height: 64px; }
-.mt-menu ul {
-    display: flex;
-    gap: 0;
-    margin-bottom: 0;
-    list-style: none;
-    overflow-x: auto;
-    scrollbar-width: thin;
+.mt-header {
+    --bs-navbar-color: var(--fg-2);
+    --bs-navbar-toggler-padding-y: 0.25rem;
+    --bs-navbar-toggler-padding-x: 0.75rem;
+    --bs-navbar-toggler-font-size: 1.25rem;
+    --bs-navbar-toggler-border-color: var(--border);
+    --bs-navbar-toggler-border-radius: 0;
+    --bs-navbar-toggler-focus-width: 0.25rem;
+    --bs-navbar-toggler-transition: box-shadow var(--motion-fast) var(--ease-standard);
+    /* Bootstrap's burger icon, stroked in --fg-2 (169, 180, 192) */
+    --bs-navbar-toggler-icon-bg: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28169, 180, 192, 1%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
 }
-@media (min-width: 768px) { .mt-menu ul { flex-wrap: wrap; } }
-.mt-menu a {
-    display: inline-flex;
-    align-items: center;
-    min-height: 44px;
-    padding-inline: var(--space-3);
-    font: var(--text-xs)/1 var(--font-mono);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    white-space: nowrap;
-    color: var(--fg-2);
-    text-decoration: none;
-    border-bottom: 1px solid transparent;
-}
-@media (hover: hover) { .mt-menu a:hover { color: var(--fg); border-bottom-color: var(--border); } }
-.mt-menu a[aria-current="page"] { color: var(--accent); border-bottom-color: var(--accent); }
+.navbar-toggler { min-width: 44px; min-height: 44px; }
+.navbar-toggler:focus { box-shadow: var(--focus-ring); }
 
 /* Footer */
 .mt-foot {
