@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- Fingerprint page: the result is announced to screen readers, one failing signal no longer blocks the others, and the copy button reports a clipboard failure (MLS-254)
+
 ---
 
 ## [0.6.5] - 2026-11-04
