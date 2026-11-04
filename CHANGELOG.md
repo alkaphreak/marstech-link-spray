@@ -11,11 +11,16 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - `POST /api/url-shortener` with a JSON body `{"url": ...}`: creates a short link and returns 201 Created, the
   short URL in `Location` and as `{"shortUrl": ...}`; `GET /api/url-shortener/shorten` is unchanged (MLS-258)
+- `POST /api/img/compress?format=webp|jpeg|png&quality=&maxDimension=`: compresses or converts a raw PNG or
+  JPEG body with `cwebp` or `caesiumclt` (ADR 0002), metadata stripped; capped at 8 MP for WebP and JPEG output,
+  3 MP for PNG; `X-Image-Compressed: false` when the encoder failed and the original came back (MLS-108)
 
 ### Changed
 
 - `POST /api/paste`, `POST /api/images` and `POST /api/dashboard` return 201 Created instead of 200 OK; the
   body is unchanged (MLS-258)
+- OCR and image compression share one native-workload permit: a request arriving while the other runs gets a
+  503 (MLS-108)
 
 ---
 
