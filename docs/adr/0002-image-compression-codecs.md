@@ -23,8 +23,8 @@ already takes about 460 MB (`-XX:MaxRAMPercentage=45` heap plus about 230 MB off
 ## Decision Outcome
 
 Chosen option: "External CLI encoders", because they reuse a pattern already in production, keep
-native memory out of the JVM process, and the measured ones fit in the container for images up to
-about 8 megapixels.
+native memory out of the JVM process, and their memory grows with the pixel count, so a per-encoder
+pixel cap keeps them inside the container budget.
 
 | Format       | Encoder                                   | Install                                      | Verdict  |
 |--------------|-------------------------------------------|----------------------------------------------|----------|
@@ -37,17 +37,23 @@ about 8 megapixels.
 
 Rules for the implementation ticket:
 
-- Reject inputs above 8 megapixels before encoding, reading the dimensions from the image header
-  without decoding the pixels (the encoders' memory grows with the pixel count).
-- Run one encode at a time (a single permit): two parallel encodes do not fit next to the JVM.
+- Cap inputs per encoder, reading the dimensions from the image header without decoding the pixels.
+  The JVM can reach about 460 MB, leaving about 50 MB for a subprocess, which shares the container's
+  memory limit. Provisional caps from the encoder-only figures below: `cwebp` 8 megapixels (36 MB at
+  7.2 MP), `caesiumclt` 3 megapixels (32 MB at 2.8 MP, 44 MB at 4 MP, 73 MB at 7.2 MP).
+- Confirm or lower these caps with a combined measurement (the application running in a 512 MB
+  container plus one encode) before enabling the endpoint: a timeout does not protect the JVM from a
+  container OOM kill.
+- Share one permit between compression and OCR (`OcrServiceImpl` holds its own `Semaphore(1)`,
+  80 to 110 MB for Tesseract plus PDF rendering): no two native workloads may run at the same time.
 - Kill the encoder process after a timeout, and return the original image when it fails.
 
 ### Consequences
 
 - Good: one pattern (`ProcessBuilder`, binaries in the `Dockerfile`) for OCR and compression, no
   native code inside the JVM, and caesiumclt covers MLS-118 without a Rust build.
-- Bad: about 50 MB of headroom is left in the container, so even 8 megapixels is tight. Large
-  photos and AVIF wait for the instance sizing decision of MLS-238.
+- Bad: about 50 MB of headroom is left in the container, so JPEG and PNG optimization is limited to
+  small images, and large photos and AVIF wait for the instance sizing decision of MLS-238.
 - Bad: two binaries are downloaded at image build time and must be pinned and updated by hand.
 
 ### Measurements
@@ -65,6 +71,10 @@ Peak memory is the encoder process alone, without the JVM.
 | UI icon PNG 512 px, 26 KB      | cwebp      | 6 KB      | 0.1 s  | 10 MB            |
 |                                | caesiumclt | 5 KB      | 0.1 s  | 11 MB            |
 |                                | oxipng     | 13 KB     | 0.3 s  | 9 MB             |
+| Photo JPEG 2.8 MP, 871 KB      | cwebp      | 192 KB    | 0.6 s  | 16 MB            |
+|                                | caesiumclt | 307 KB    | 1.4 s  | 32 MB            |
+| Photo JPEG 4.0 MP, 1.4 MB      | cwebp      | 337 KB    | 1.0 s  | 22 MB            |
+|                                | caesiumclt | 479 KB    | 3.3 s  | 44 MB            |
 | Photo JPEG 7.2 MP, 2.2 MB      | cwebp      | 487 KB    | 0.9 s  | 36 MB            |
 |                                | avifenc    | 315 KB    | 5.5 s  | 157 MB           |
 |                                | caesiumclt | 766 KB    | 1.3 s  | 73 MB            |
