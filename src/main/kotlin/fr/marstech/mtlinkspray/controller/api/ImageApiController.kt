@@ -9,6 +9,7 @@ import org.springframework.http.HttpHeaders.CACHE_CONTROL
 import org.springframework.http.HttpHeaders.CONTENT_DISPOSITION
 import org.springframework.http.ContentDisposition
 import org.springframework.http.MediaType
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.core.io.InputStreamResource
 import org.springframework.validation.annotation.Validated
@@ -33,7 +34,7 @@ class ImageApiController(private val imageService: ImageService) {
         httpServletRequest: HttpServletRequest,
     ): ResponseEntity<ImageUploadResponse> =
         imageService.uploadImage(apiKey, file, isPrivate, httpServletRequest)
-            .let { ResponseEntity.ok(ImageUploadResponse.fromEntity(it)) }
+            .let { ResponseEntity.status(HttpStatus.CREATED).body(ImageUploadResponse.fromEntity(it)) }
 
     @GetMapping
     fun listImages(@RequestHeader("X-Api-Key") apiKey: String?): ResponseEntity<List<ImageMetadataDto>> =

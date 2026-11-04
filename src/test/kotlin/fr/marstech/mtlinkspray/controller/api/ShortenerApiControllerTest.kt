@@ -14,8 +14,11 @@ import org.springframework.context.annotation.Import
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.http.MediaType.APPLICATION_JSON
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.header
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
@@ -86,6 +89,36 @@ class ShortenerApiControllerTest {
 
         // When / Then
         mockMvc.perform(get("/api/url-shortener/shorten").param("url", inputUrl))
+            .andExpect(status().isInternalServerError)
+    }
+
+    @Test
+    fun shouldCreateShortenedUrlWith201() {
+        // Given
+        val shortenedUrl = "https://short.ly/abc123"
+        whenever(shortenerService.shorten(any<String>(), any())).thenReturn(shortenedUrl)
+
+        // When / Then
+        mockMvc.perform(post("/api/url-shortener").contentType(APPLICATION_JSON).content("""{"url":"https://example.com"}"""))
+            .andExpect(status().isCreated)
+            .andExpect(header().string("Location", shortenedUrl))
+            .andExpect(jsonPath("$.shortUrl").value(shortenedUrl))
+    }
+
+    @Test
+    fun shouldReturn400WithFieldErrorForInvalidUrlInBody() {
+        mockMvc.perform(post("/api/url-shortener").contentType(APPLICATION_JSON).content("""{"url":"notaurl"}"""))
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.fieldErrors[0].field").value("url"))
+    }
+
+    @Test
+    fun shouldReturn500OnPostWhenServiceReturnsNull() {
+        // Given
+        whenever(shortenerService.shorten(any<String>(), any())).thenReturn(null)
+
+        // When / Then
+        mockMvc.perform(post("/api/url-shortener").contentType(APPLICATION_JSON).content("""{"url":"https://example.com"}"""))
             .andExpect(status().isInternalServerError)
     }
 }

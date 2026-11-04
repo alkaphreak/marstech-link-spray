@@ -57,7 +57,7 @@ class ImageApiControllerTest {
             .file(file)
             .header("X-Api-Key", "key123.secret")
             .let(mockMvc::perform)
-            .andExpect(status().isOk)
+            .andExpect(status().isCreated)
             .andExpect(jsonPath("$.id").value(image.id))
             .andExpect(jsonPath("$.originalFilename").value("photo.jpg"))
             .andExpect(jsonPath("$.contentType").value("image/jpeg"))
