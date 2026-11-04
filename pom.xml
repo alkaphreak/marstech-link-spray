@@ -62,8 +62,9 @@
         <!--suppress XmlUnresolvedReference -->
         <sonar.organization>${env.SONAR_ORGANIZATION}</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+        <!-- Vendored MarsTech-Skin (fixed upstream, not here): @font-face and reduced-motion !important are false positives -->
         <sonar.exclusions>
-            src/main/resources/static/assets/css/style.css
+            src/main/resources/static/assets/skin/**
         </sonar.exclusions>
         <!-- No JS test tooling here -->
         <sonar.coverage.exclusions>src/main/resources/static/**/*.js</sonar.coverage.exclusions>

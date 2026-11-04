@@ -1,0 +1,136 @@
+/* sol4.space: bridge between Bootstrap 5.3 and MarsTech-Skin (MLS-250).
+ * Load order: bootstrap.min.css, skin/fonts.css, skin/tokens.css, skin/marstech.css, this file.
+ * Bootstrap components read their colors from --bs-* variables: point them at the Skin tokens,
+ * so pages keep their Bootstrap markup and get the "Glacier neon" look. Pages need
+ * data-bs-theme="dark" on <html> for Bootstrap's dark component palette.
+ */
+
+:root,
+[data-bs-theme="dark"] {
+    --bs-body-bg: var(--bg);
+    --bs-body-bg-rgb: 5, 7, 10;
+    --bs-body-color: var(--fg);
+    --bs-body-color-rgb: 201, 209, 217;
+    --bs-body-font-family: var(--font-body);
+    --bs-body-font-size: var(--text-base);
+    --bs-body-line-height: var(--leading-body);
+    --bs-font-monospace: var(--font-mono);
+    --bs-heading-color: var(--fg);
+    --bs-emphasis-color: var(--fg);
+    --bs-secondary-color: var(--muted);
+    --bs-tertiary-color: var(--meta);
+    --bs-secondary-bg: var(--surface-warm);
+    --bs-tertiary-bg: var(--surface);
+    --bs-border-color: var(--border);
+    --bs-border-color-translucent: var(--border-soft);
+    --bs-link-color: var(--mt-link);
+    --bs-link-color-rgb: 255, 106, 168;
+    --bs-link-hover-color: var(--mt-link);
+    --bs-link-hover-color-rgb: 255, 106, 168;
+    --bs-code-color: var(--mt-link);
+    --bs-primary: var(--accent);
+    --bs-primary-rgb: 124, 199, 255;
+    --bs-focus-ring-color: rgba(124, 199, 255, 0.35);
+    /* The Skin uses clipped corners, never rounded ones (DESIGN.md) */
+    --bs-border-radius: 0;
+    --bs-border-radius-sm: 0;
+    --bs-border-radius-lg: 0;
+    --bs-border-radius-xl: 0;
+    --bs-border-radius-pill: 0;
+}
+
+/* Page skeleton: footer at the bottom of short pages */
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Flex items default to min-width: auto, which lets the tools rail widen the page on phones */
+body > * { min-width: 0; }
+
+/* marstech.css zeroes margins; Bootstrap pages rely on its vertical rhythm */
+p { margin-bottom: 1rem; }
+h1, h2, h3, h4, h5, h6 { margin-bottom: 0.5rem; }
+
+section { padding: var(--space-4) 0 var(--space-6); }
+
+/* Header: brand row, then the tools rail (horizontal scroll on phones, no JS) */
+.mt-menu { border-bottom: 1px solid var(--border-soft); }
+.mt-header .container { display: flex; align-items: center; min-height: 64px; }
+.mt-menu ul {
+    display: flex;
+    gap: 0;
+    margin-bottom: 0;
+    list-style: none;
+    overflow-x: auto;
+    scrollbar-width: thin;
+}
+@media (min-width: 768px) { .mt-menu ul { flex-wrap: wrap; } }
+.mt-menu a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding-inline: var(--space-3);
+    font: var(--text-xs)/1 var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+    color: var(--fg-2);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+}
+@media (hover: hover) { .mt-menu a:hover { color: var(--fg); border-bottom-color: var(--border); } }
+.mt-menu a[aria-current="page"] { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* Footer */
+.mt-foot {
+    margin-top: auto;
+    border-top: 1px solid var(--border-soft);
+    padding-block: var(--space-6);
+    color: var(--muted);
+    font-size: var(--text-sm);
+}
+.mt-foot ul { display: flex; flex-wrap: wrap; align-items: center; gap: 0 var(--space-4); margin: 0; padding: 0; list-style: none; }
+.mt-foot a { display: inline-flex; align-items: center; min-height: 44px; }
+
+/* Buttons: marstech.css resets .btn borders; restore Bootstrap's outline variants on the tokens */
+.btn[class*="btn-outline-"] { border-color: var(--bs-btn-border-color); color: var(--bs-btn-color); }
+/* Outline primary looks like the Skin's secondary button: --accent is kept to two uses per screen
+   (active menu entry and the primary button, DESIGN.md) */
+.btn-outline-primary,
+.btn-outline-secondary {
+    --bs-btn-color: var(--fg);
+    --bs-btn-border-color: var(--border);
+    --bs-btn-hover-color: var(--fg);
+    --bs-btn-hover-bg: var(--surface-warm);
+    --bs-btn-hover-border-color: var(--fg-2);
+    --bs-btn-active-color: var(--fg);
+    --bs-btn-active-bg: var(--surface-warm);
+    --bs-btn-active-border-color: var(--fg-2);
+}
+.btn-outline-danger {
+    --bs-btn-color: var(--danger);
+    --bs-btn-border-color: var(--danger);
+    --bs-btn-hover-color: var(--accent-on);
+    --bs-btn-hover-bg: var(--danger);
+    --bs-btn-hover-border-color: var(--danger);
+    --bs-btn-active-color: var(--accent-on);
+    --bs-btn-active-bg: var(--danger);
+    --bs-btn-active-border-color: var(--danger);
+}
+.btn:disabled,
+.btn.disabled { background-color: var(--surface-warm); color: var(--meta); border-color: var(--border); opacity: 1; }
+.btn-primary { --bs-btn-hover-bg: var(--accent-hover); --bs-btn-hover-color: var(--accent-on); }
+
+/* Form fields: Skin look on Bootstrap controls (Bootstrap hardcodes its blue focus color) */
+.form-control,
+.form-select { min-height: 44px; font-family: var(--font-mono); font-size: var(--text-sm); }
+.form-control::placeholder { color: var(--meta); }
+.form-control:focus,
+.form-select:focus,
+.form-check-input:focus { border-color: var(--accent); box-shadow: var(--focus-ring); }
+.form-check-input:checked { background-color: var(--accent); border-color: var(--accent); }
+.form-label { font: 500 var(--text-xs)/1.3 var(--font-mono); text-transform: uppercase; letter-spacing: var(--mt-label-tracking); color: var(--fg-2); }
+
+#liveAlertPlaceholder .alert { margin: 10px 0; }
