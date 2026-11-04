@@ -94,7 +94,7 @@ async function safe(signal) {
     try {
         return await signal();
     } catch (e) {
-        return 'unavailable (' + ((e && e.name) || 'Error') + ')';
+        return 'unavailable (' + (e?.name || 'Error') + ')';
     }
 }
 
