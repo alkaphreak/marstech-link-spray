@@ -61,7 +61,7 @@ class OcrServiceImplTest {
         maxPdfPixels: Long = 20_000_000,
         maxImagePixels: Long = 12_000_000,
     ) = OcrServiceImpl(
-        apiKeyService, command, maxInputBytes, timeoutSeconds, anonymousQuota, anonymousWindowMillis, maxPdfPages, maxPdfPixels,
+        apiKeyService, NativeWorkPermit(), command, maxInputBytes, timeoutSeconds, anonymousQuota, anonymousWindowMillis, maxPdfPages, maxPdfPixels,
         maxImagePixels,
     )
 

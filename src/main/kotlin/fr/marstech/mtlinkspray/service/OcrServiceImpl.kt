@@ -8,17 +8,13 @@ import org.apache.pdfbox.rendering.ImageType
 import org.apache.pdfbox.rendering.PDFRenderer
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE
-import org.springframework.http.HttpStatus.TOO_MANY_REQUESTS
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.nio.file.Files
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicInteger
 import javax.imageio.ImageIO
 import kotlin.math.floor
 import kotlin.math.max
@@ -35,26 +31,24 @@ import kotlin.math.max
 @Service
 class OcrServiceImpl(
     private val apiKeyService: ApiKeyService,
+    private val running: NativeWorkPermit,
     @Value("\${mt.link-spray.ocr.command:tesseract}") private val command: String,
     @Value("\${mt.link-spray.ocr.max-input-bytes:10485760}") private val maxInputBytes: Int,
     @Value("\${mt.link-spray.ocr.timeout-seconds:30}") private val timeoutSeconds: Long,
-    @Value("\${mt.link-spray.ocr.anonymous-quota:10}") private val anonymousQuota: Int,
-    @Value("\${mt.link-spray.ocr.anonymous-window-ms:3600000}") private val anonymousWindowMillis: Long,
+    @Value("\${mt.link-spray.ocr.anonymous-quota:10}") anonymousQuota: Int,
+    @Value("\${mt.link-spray.ocr.anonymous-window-ms:3600000}") anonymousWindowMillis: Long,
     @Value("\${mt.link-spray.ocr.max-pdf-pages:1}") private val maxPdfPages: Int,
     @Value("\${mt.link-spray.ocr.max-pdf-pixels:20000000}") private val maxPdfPixels: Long,
     @Value("\${mt.link-spray.ocr.max-image-pixels:12000000}") private val maxImagePixels: Long,
 ) : OcrService {
 
-    private val running = Semaphore(1)
-    private val anonymousCounts = ConcurrentHashMap<String, AtomicInteger>()
-    @Volatile
-    private var windowStart = System.currentTimeMillis()
+    private val anonymous = AnonymousQuota("OCR", anonymousQuota, anonymousWindowMillis)
 
     override fun recognize(rawApiKey: String?, clientIp: String?, image: InputStream, lang: String): OcrResult {
         // A "+" left unencoded in the query string arrives as a space
         val languages = lang.trim().replace(' ', '+')
         require(LANGUAGES.matches(languages)) { "Unsupported language '$lang': use fra, eng or fra+eng" }
-        if (rawApiKey == null) countAnonymous(clientIp ?: "unknown") else apiKeyService.resolve(rawApiKey)
+        if (rawApiKey == null) anonymous.count(clientIp ?: "unknown") else apiKeyService.resolve(rawApiKey)
 
         val bytes = image.readNBytes(maxInputBytes + 1)
         if (bytes.size > maxInputBytes) {
@@ -66,7 +60,7 @@ class OcrServiceImpl(
 
         // The permit and the deadline cover the PDF parsing too, not just the engine (MLS-255)
         if (!running.tryAcquire()) {
-            throw ResponseStatusException(SERVICE_UNAVAILABLE, "Another OCR is running, retry in a few seconds")
+            throw ResponseStatusException(SERVICE_UNAVAILABLE, "Another OCR or image job is running, retry in a few seconds")
         }
         try {
             val start = System.nanoTime()
@@ -103,21 +97,6 @@ class OcrServiceImpl(
             val png = ByteArrayOutputStream().also { ImageIO.write(image, "png", it) }.toByteArray()
             runTesseract(png, languages, deadline)
         }.trim()
-    }
-
-    private fun countAnonymous(clientIp: String) {
-        val now = System.currentTimeMillis()
-        // ponytail: fixed window cleared for every IP at once, sliding window or MLS-161 (Redis) if boundary bursts matter
-        if (now - windowStart >= anonymousWindowMillis) {
-            anonymousCounts.clear()
-            windowStart = now
-        }
-        if (anonymousCounts.computeIfAbsent(clientIp) { AtomicInteger() }.incrementAndGet() > anonymousQuota) {
-            throw ResponseStatusException(
-                TOO_MANY_REQUESTS,
-                "Anonymous OCR quota of $anonymousQuota reached: retry later or send an X-Api-Key"
-            )
-        }
     }
 
     /**
