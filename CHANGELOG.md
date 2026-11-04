@@ -9,6 +9,43 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.6.5] - 2026-11-04
+
+### Changed
+
+- Visual redesign on the MarsTech-Skin design system ("Glacier neon"): the Bootswatch Pulse theme is
+  replaced by the Skin tokens and components with self-hosted fonts, Bootstrap components follow the
+  tokens, and pages now set a viewport so phones no longer render at desktop width (MLS-250)
+- Tools menu: one row from 992px, a burger opening a vertical list below, instead of a single
+  overflowing row (MLS-250)
+
+### Added
+
+- Leading icons on the Generate (random), Generate URL (spray) and Get shortened link buttons (MLS-250)
+
+---
+
+## [0.6.4] - 2026-11-03
+
+### Added
+
+- API keys admin: regenerate a key's secret while keeping its key id and namespace (MLS-209)
+
+### Fixed
+
+- API keys admin: toggling and regenerating a key update a single field each, so one can no longer
+  revert the other (MLS-209)
+
+---
+
+## [0.6.3] - 2026-11-02
+
+### Fixed
+
+- OCR: PNG and JPEG images above a pixel budget are rejected before reaching tesseract (MLS-256)
+
+---
+
 ## [0.6.2] - 2026-11-02
 
 ### Added

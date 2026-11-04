@@ -44,14 +44,20 @@
     <meta content="#05070a" name="theme-color"/>
 </head>
 <body>
-<header th:fragment="body-header">
+<header class="navbar-expand-lg" th:fragment="body-header">
     <div class="mt-header">
         <div class="container">
             <a class="mt-brand" href="/">sol4<span class="dot">.</span>space</a>
+            <button aria-controls="site-menu" aria-expanded="false" aria-label="Toggle navigation"
+                    class="navbar-toggler collapsed ms-auto" data-bs-target="#site-menu" data-bs-toggle="collapse"
+                    type="button">
+                <span class="navbar-toggler-icon"></span>
+            </button>
         </div>
     </div>
-    <nav aria-label="Tools" class="mt-menu" id="site-menu">
-        <ul class="container">
+    <!-- Below lg the tools collapse into a vertical menu behind the burger (Bootstrap collapse) -->
+    <nav aria-label="Tools" class="mt-menu collapse navbar-collapse" id="site-menu">
+        <ul class="container navbar-nav">
             <li th:each="view : ${T(fr.marstech.mtlinkspray.enums.ViewNameEnum).inMenu()}">
                 <a th:attr="aria-current=${null != viewNameEnum && viewNameEnum.name() == view.name()} ? 'page' : null"
                    th:href="@{'/' + ${view.getViewName()}}"
