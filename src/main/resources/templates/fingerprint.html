@@ -54,7 +54,7 @@
                 <button class="btn btn-outline-secondary mb-3 d-none" id="fingerprintCopy" type="button">
                     <i class="bi bi-clipboard"></i> Copy
                 </button>
-                <p class="d-none" id="fingerprintSummary"></p>
+                <p aria-live="polite" id="fingerprintSummary" role="status"></p>
                 <table class="table d-none" id="fingerprintTable">
                     <thead>
                     <tr>
@@ -176,14 +176,23 @@
             return tr;
         }
 
+        // One failing sensor (e.g. no 2D canvas context) must not abort the others: it gets a stable placeholder.
+        async function safe(signal) {
+            try {
+                return await signal();
+            } catch (e) {
+                return 'unavailable (' + ((e && e.name) || 'Error') + ')';
+            }
+        }
+
         async function run() {
             const signals = {
-                Canvas: canvasSignal(),
-                WebGL: webglSignal(),
-                Audio: await audioSignal(),
-                Intl: intlSignal(),
-                Navigator: navigatorSignal(),
-                Screen: screenSignal()
+                Canvas: await safe(canvasSignal),
+                WebGL: await safe(webglSignal),
+                Audio: await safe(audioSignal),
+                Intl: await safe(intlSignal),
+                Navigator: await safe(navigatorSignal),
+                Screen: await safe(screenSignal)
             };
             const rows = [];
             for (const [name, value] of Object.entries(signals)) {
@@ -193,7 +202,6 @@
             document.getElementById('fingerprintTable').classList.remove('d-none');
             const summary = document.getElementById('fingerprintSummary');
             summary.textContent = 'Your fingerprint: ' + (await sha256(JSON.stringify(signals))).slice(0, 16);
-            summary.classList.remove('d-none');
             document.getElementById('fingerprintCopy').classList.remove('d-none');
         }
 
@@ -205,8 +213,13 @@
                 lines.push(cells[0].textContent + ': ' + cells[cells.length - 1].textContent.trim());
             }
             const button = document.getElementById('fingerprintCopy');
-            await navigator.clipboard.writeText(lines.join('\n'));
-            button.innerHTML = '<i class="bi bi-check"></i> Copied';
+            try {
+                await navigator.clipboard.writeText(lines.join('\n'));
+                button.innerHTML = '<i class="bi bi-check"></i> Copied';
+            } catch (e) {
+                // NotAllowedError when clipboard access is denied
+                button.innerHTML = '<i class="bi bi-x"></i> Copy failed';
+            }
             setTimeout(() => button.innerHTML = '<i class="bi bi-clipboard"></i> Copy', 2000);
         }
 
