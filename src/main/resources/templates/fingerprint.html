@@ -54,7 +54,7 @@
                 <button class="btn btn-outline-secondary mb-3 d-none" id="fingerprintCopy" type="button">
                     <i class="bi bi-clipboard"></i> Copy
                 </button>
-                <p aria-live="polite" id="fingerprintSummary" role="status"></p>
+                <output aria-live="polite" class="d-block mb-3" id="fingerprintSummary"></output>
                 <table class="table d-none" id="fingerprintTable">
                     <thead>
                     <tr>
@@ -217,7 +217,7 @@
                 await navigator.clipboard.writeText(lines.join('\n'));
                 button.innerHTML = '<i class="bi bi-check"></i> Copied';
             } catch (e) {
-                // NotAllowedError when clipboard access is denied
+                console.warn('Clipboard write failed', e); // NotAllowedError when clipboard access is denied
                 button.innerHTML = '<i class="bi bi-x"></i> Copy failed';
             }
             setTimeout(() => button.innerHTML = '<i class="bi bi-clipboard"></i> Copy', 2000);
