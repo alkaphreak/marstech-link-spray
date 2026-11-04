@@ -59,6 +59,37 @@ class ImageCompressionServiceTest {
         assertEquals("image/png", result.mediaType)
     }
 
+    /** A stand-in encoder that records its arguments in [log] and writes like [fakeEncoder]. */
+    private fun recordingEncoder(log: Path, target: String) = fakeEncoder(target = target, extra = "echo \"\$@\" > '$log'")
+
+    @Test
+    fun `maxDimension resizes the long edge with cwebp`() {
+        val log = dir.resolve("args")
+        service(cwebp = recordingEncoder(log, "\$out")).compress(null, null, png.inputStream(), ImageFormat.WEBP, 75, 10)
+        assertTrue(Files.readString(log).contains("-resize 10 0"))
+    }
+
+    @Test
+    fun `caesiumclt converts only across formats and resizes the long edge`() {
+        val log = dir.resolve("args")
+        service(caesium = recordingEncoder(log, "\$out/in.jpg")).compress(null, null, png.inputStream(), ImageFormat.JPEG, 75, 10)
+        assertTrue(Files.readString(log).contains("--format jpeg --long-edge 10"))
+        service(caesium = recordingEncoder(log, "\$out/in.png")).compress(ImageFormat.PNG)
+        assertFalse(Files.readString(log).contains("--format"))
+    }
+
+    @Test
+    fun `out-of-range quality and maxDimension are rejected`() {
+        assertThrows<IllegalArgumentException> { service().compress(null, null, png.inputStream(), ImageFormat.WEBP, 101, null) }
+        assertThrows<IllegalArgumentException> { service().compress(null, null, png.inputStream(), ImageFormat.WEBP, 75, 0) }
+    }
+
+    @Test
+    fun `a missing encoder binary returns 503`() {
+        val e = assertThrows<ResponseStatusException> { service(cwebp = dir.resolve("missing").toString()).compress(ImageFormat.WEBP) }
+        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, e.statusCode)
+    }
+
     @Test
     fun `a failing encoder returns the original image`() {
         val result = service(cwebp = fakeEncoder(extra = "exit 1")).compress(ImageFormat.WEBP)
