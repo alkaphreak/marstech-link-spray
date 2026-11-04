@@ -40,7 +40,7 @@ internal class ViewRenderingTest {
 
     @ParameterizedTest
     @CsvSource(
-        "/, navbarColor01",
+        "/, site-menu",
         "/qr, qrForm",
         "/spray, inputLinkList",
         "/mailto, mailtoForm",
