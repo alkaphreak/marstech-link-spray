@@ -1,7 +1,9 @@
 package fr.marstech.mtlinkspray.controller.view
 
+import fr.marstech.mtlinkspray.entity.WriteSignatureEntity.ResourceType
 import fr.marstech.mtlinkspray.enums.ViewNameEnum.SPRAY
 import fr.marstech.mtlinkspray.service.SprayService
+import fr.marstech.mtlinkspray.service.WriteSignatureService
 import fr.marstech.mtlinkspray.service.SprayService.Companion.getLinkList
 import fr.marstech.mtlinkspray.service.SprayService.Companion.getLinkListText
 import fr.marstech.mtlinkspray.service.SprayService.Companion.getLinkSpray
@@ -17,7 +19,8 @@ import org.springframework.web.servlet.ModelAndView
 @Controller
 @RequestMapping("/spray")
 class ViewSprayController(
-    private val sprayService: SprayService
+    private val sprayService: SprayService,
+    private val writeSignatureService: WriteSignatureService,
 ) : ThymeleafViewControllerInterface {
 
     @GetMapping
@@ -35,10 +38,13 @@ class ViewSprayController(
 
     @PostMapping("/shorten")
     fun getShortenedSpray(
-        @RequestParam inputLinkList: String, httpServletRequest: HttpServletRequest
+        @RequestParam inputLinkList: String,
+        @RequestParam(required = false) fp: String?,
+        httpServletRequest: HttpServletRequest
     ): ModelAndView {
         val linkList = getLinkList(inputLinkList)
         val shortenedSprayUrl = sprayService.shortenAndSpray(linkList, httpServletRequest)
+        writeSignatureService.record(ResourceType.SPRAY, shortenedSprayUrl, fp, httpServletRequest)
         return getModelAndView()
             .addObject("linkList", linkList)
             .addObject("linkListText", getLinkListText(linkList))

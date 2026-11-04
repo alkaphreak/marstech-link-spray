@@ -34,6 +34,27 @@ class ViewShortenerControllerMvcTest {
     @MockitoBean
     lateinit var shortenerService: ShortenerService
 
+    @MockitoBean
+    lateinit var writeSignatureService: fr.marstech.mtlinkspray.service.WriteSignatureService
+
+    @Test
+    fun shouldRecordWriteSignatureWithFingerprint() {
+        // Given
+        whenever(shortenerService.shorten(any<String>(), any())).thenReturn("https://short.ly/abc123")
+
+        // When
+        mockMvc.perform(post("/shortener").param(INPUT_LINK, "https://example.com").param("fp", "ab".repeat(32)))
+            .andExpect(status().isOk)
+
+        // Then
+        verify(writeSignatureService).record(
+            org.mockito.kotlin.eq(fr.marstech.mtlinkspray.entity.WriteSignatureEntity.ResourceType.SHORT_LINK),
+            org.mockito.kotlin.eq("https://short.ly/abc123"),
+            org.mockito.kotlin.eq("ab".repeat(32)),
+            any(),
+        )
+    }
+
     @Test
     fun shouldShortenValidUrl() {
         // Given

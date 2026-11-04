@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html data-bs-theme="dark" lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{index.html :: html-head}">
+    <title></title>
+</head>
+<body>
+
+<header th:replace="~{index.html :: body-header}">
+    <!-- nav bar-->
+</header>
+
+<section class="intro-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col">
+                <h3>Privacy</h3>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="get-started">
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <h5>What is recorded</h5>
+                <p>When you create a short link, a shortened spray or a paste from this website, sol4.space records,
+                    next to the created resource:</p>
+                <ul>
+                    <li>a hash of your browser fingerprint (the same signals as on the
+                        <a href="/fingerprint">fingerprint page</a>), never the raw signals;</li>
+                    <li>your IP address and your browser's User-Agent;</li>
+                    <li>the date.</li>
+                </ul>
+                <p>Visits and short-link redirects record nothing. Calls to the API carry no browser fingerprint:
+                    the API key already identifies the client application.</p>
+                <p>Paste, image and abuse report records also keep the IP address of their author for as long as
+                    the record exists.</p>
+
+                <h5>Why</h5>
+                <p>Only to fight abuse: to tie illegal content published on the platform to a signature when it is
+                    reported, or when the authorities request it. The legal basis is the legitimate interest of the
+                    host in keeping the service free of abuse. No advertising, no resale, no cross-referencing with
+                    other data.</p>
+
+                <h5 id="privacy-retention">How long</h5>
+                <p>Signatures are deleted automatically 12 months after the creation. Only the administrator can
+                    read them, from an abuse report or a legal request.</p>
+
+                <h5>Your rights</h5>
+                <p>Under the GDPR and Québec's Law 25, you can ask to access, correct or delete the data about you,
+                    or object to its processing, through the
+                    <a th:href="@{/abuse}">contact form</a>.
+                    A fingerprint can be spoofed: it is a clue, never a proof on its own.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer th:replace="~{index.html :: body-footer}">
+    <!-- footer -->
+</footer>
+
+<div class="d-none" th:replace="~{index.html :: footer-div-script}">
+    <!-- footer script -->
+</div>
+</body>
+</html>

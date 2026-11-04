@@ -7,6 +7,12 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Write signatures: short links, shortened sprays and pastes created from the website record a browser fingerprint hash,
+  the IP address and the User-Agent, deleted automatically after 12 months (MongoDB TTL index); admin lookup at
+  `/admin/signatures`, privacy notice at `/privacy` (MLS-254)
+
 ### Fixed
 
 - Fingerprint page: the result is announced to screen readers, one failing signal no longer blocks the others, and the copy button reports a clipboard failure (MLS-254)

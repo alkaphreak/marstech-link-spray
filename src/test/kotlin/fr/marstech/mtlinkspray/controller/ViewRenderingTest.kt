@@ -1,6 +1,7 @@
 package fr.marstech.mtlinkspray.controller
 
 import fr.marstech.mtlinkspray.service.ApiKeyService
+import fr.marstech.mtlinkspray.service.WriteSignatureService
 import org.hamcrest.Matchers.containsString
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -32,6 +33,9 @@ internal class ViewRenderingTest {
     @MockitoBean
     private lateinit var apiKeyService: ApiKeyService
 
+    @MockitoBean
+    private lateinit var writeSignatureService: WriteSignatureService
+
     @Value("\${mt.link-spray.admin.username}")
     private lateinit var adminUsername: String
 
@@ -53,6 +57,7 @@ internal class ViewRenderingTest {
         "/shortener, input-link",
         "/dashboard, input-dashboard-name",
         "/abuse, inputAbuseDecsription",
+        "/privacy, privacy-retention",
     )
     fun shouldRenderPublicView(path: String, elementId: String) {
         // Given / When / Then
@@ -67,5 +72,23 @@ internal class ViewRenderingTest {
         mockMvc.perform(get("/admin/api-keys").with(httpBasic(adminUsername, adminPassword)))
             .andExpect(status().isOk)
             .andExpect(content().string(containsString("id=\"input-namespace\"")))
+    }
+
+    @Test
+    fun shouldRenderAdminSignaturesView() {
+        // Given / When / Then
+        mockMvc.perform(get("/admin/signatures?resourceId=abc").with(httpBasic(adminUsername, adminPassword)))
+            .andExpect(status().isOk)
+            .andExpect(content().string(containsString("No signature for this resource.")))
+    }
+
+    @Test
+    fun shouldPutFingerprintFieldOnWriteForms() {
+        // Given / When / Then
+        listOf("/shortener", "/paste").forEach { path ->
+            mockMvc.perform(get(path))
+                .andExpect(content().string(containsString("data-fingerprint")))
+                .andExpect(content().string(containsString("name=\"fp\"")))
+        }
     }
 }

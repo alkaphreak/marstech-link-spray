@@ -31,6 +31,9 @@ class PasteViewControllerTest {
     @MockitoBean
     lateinit var pasteService: PasteService
 
+    @MockitoBean
+    lateinit var writeSignatureService: fr.marstech.mtlinkspray.service.WriteSignatureService
+
     @Test
     fun viewPasteLinksToQrCodeOfPasteUrl() {
         // Given
