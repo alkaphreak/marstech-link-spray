@@ -43,7 +43,9 @@ class ViewSprayController(
         httpServletRequest: HttpServletRequest
     ): ModelAndView {
         val linkList = getLinkList(inputLinkList)
-        val shortenedSprayUrl = sprayService.shortenAndSpray(linkList, httpServletRequest)
+        val shortenedSprayUrl = sprayService.shortenAndSpray(linkList, httpServletRequest) { child ->
+            writeSignatureService.record(ResourceType.SHORT_LINK, child, fp, httpServletRequest)
+        }
         writeSignatureService.record(ResourceType.SPRAY, shortenedSprayUrl, fp, httpServletRequest)
         return getModelAndView()
             .addObject("linkList", linkList)

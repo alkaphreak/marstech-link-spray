@@ -14,10 +14,15 @@ class SprayServiceImpl(
      * Shortens every URL in the list, builds a spray link from the shortened URLs,
      * then shortens that spray link into a single short URL.
      */
-    override fun shortenAndSpray(urls: List<String>, httpServletRequest: HttpServletRequest): String {
+    override fun shortenAndSpray(
+        urls: List<String>,
+        httpServletRequest: HttpServletRequest,
+        onChildShortened: (String) -> Unit,
+    ): String {
         val shortenedUrls = urls.map { url ->
-            shortenerService.shorten(url, httpServletRequest)
-                ?: throw UrlShorteningException("Failed to shorten URL", null)
+            (shortenerService.shorten(url, httpServletRequest)
+                ?: throw UrlShorteningException("Failed to shorten URL", null))
+                .also(onChildShortened)
         }
         val sprayUrl = getLinkSpray(httpServletRequest, shortenedUrls)
         return shortenerService.shorten(sprayUrl, httpServletRequest)

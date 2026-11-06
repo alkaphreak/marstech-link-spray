@@ -37,10 +37,12 @@ internal class SprayServiceImplTest {
         `when`(shortenerService.shorten(sprayUrl, httpServletRequest)).thenReturn(finalShortUrl)
 
         // When
-        val result = sprayService.shortenAndSpray(urls, httpServletRequest)
+        val children = mutableListOf<String>()
+        val result = sprayService.shortenAndSpray(urls, httpServletRequest) { children += it }
 
-        // Then
+        // Then: only the per-URL links reach the callback, not the final spray link
         assertEquals(finalShortUrl, result)
+        assertEquals(listOf(shortUrl1, shortUrl2), children)
     }
 
     @Test

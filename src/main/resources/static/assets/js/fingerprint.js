@@ -115,6 +115,8 @@ export async function fingerprint(signals) {
     return sha256(JSON.stringify(signals ?? await collectSignals()));
 }
 
+const SUBMIT_TIMEOUT_MS = 2000;
+
 // Write forms marked data-fingerprint get the hash in their hidden "fp" field just before submitting.
 // Any failure still submits the form, without a fingerprint: creating the resource matters more.
 for (const form of document.querySelectorAll('form[data-fingerprint]')) {
@@ -125,7 +127,11 @@ for (const form of document.querySelectorAll('form[data-fingerprint]')) {
         }
         event.preventDefault();
         try {
-            field.value = await fingerprint();
+            // A signal that never settles (offline audio rendering) must not hold the form back.
+            field.value = await Promise.race([
+                fingerprint(),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), SUBMIT_TIMEOUT_MS))
+            ]);
         } catch (e) {
             console.warn('Fingerprint unavailable', e);
         }

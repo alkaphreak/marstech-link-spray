@@ -1,11 +1,16 @@
 package fr.marstech.mtlinkspray.controller
 
 import fr.marstech.mtlinkspray.controller.view.ViewSprayController
+import fr.marstech.mtlinkspray.entity.WriteSignatureEntity.ResourceType.SHORT_LINK
+import fr.marstech.mtlinkspray.entity.WriteSignatureEntity.ResourceType.SPRAY
 import fr.marstech.mtlinkspray.service.SprayService
 import fr.marstech.mtlinkspray.service.WriteSignatureService
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.`when`
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.web.servlet.ModelAndView
 import kotlin.test.assertEquals
@@ -68,17 +73,24 @@ class ViewSprayControllerTest {
         // Given
         val request = MockHttpServletRequest()
         val shortenedUrl = "http://localhost/abc123"
-        `when`(sprayService.shortenAndSpray(listOf("https://example.com"), request))
-            .thenReturn(shortenedUrl)
+        val childUrl = "http://localhost/child1"
+        val fp = "ab".repeat(32)
+        whenever(sprayService.shortenAndSpray(eq(listOf("https://example.com")), eq(request), any()))
+            .thenAnswer { invocation ->
+                invocation.getArgument<(String) -> Unit>(2).invoke(childUrl)
+                shortenedUrl
+            }
 
         // When
-        val result: ModelAndView = controller.getShortenedSpray("https://example.com", null, request)
+        val result: ModelAndView = controller.getShortenedSpray("https://example.com", fp, request)
 
-        // Then
+        // Then: the child short link is signed as well as the spray
         assertEquals("spray", result.viewName)
         assertNotNull(result.model["linkList"])
         assertNotNull(result.model["linkListText"])
         assertEquals(shortenedUrl, result.model["linkSpray"])
         assertEquals(true, result.model["linkSprayShortened"])
+        verify(writeSignatureService).record(SHORT_LINK, childUrl, fp, request)
+        verify(writeSignatureService).record(SPRAY, shortenedUrl, fp, request)
     }
 }

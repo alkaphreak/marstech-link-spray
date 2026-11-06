@@ -17,7 +17,18 @@ interface SprayService {
      * @param httpServletRequest the current HTTP request (used to build absolute URLs)
      * @return a single shortened URL that redirects to a spray page of shortened links
      */
-    fun shortenAndSpray(urls: List<String>, httpServletRequest: HttpServletRequest): String
+    fun shortenAndSpray(urls: List<String>, httpServletRequest: HttpServletRequest): String =
+        shortenAndSpray(urls, httpServletRequest) {}
+
+    /**
+     * Same as [shortenAndSpray], calling [onChildShortened] with each per-URL short link, which is
+     * shareable on its own (the web UI records a write signature for each, MLS-254).
+     */
+    fun shortenAndSpray(
+        urls: List<String>,
+        httpServletRequest: HttpServletRequest,
+        onChildShortened: (String) -> Unit,
+    ): String
 
     companion object {
 
