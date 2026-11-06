@@ -8,6 +8,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.springframework.data.mongodb.core.MongoTemplate
@@ -83,5 +84,23 @@ internal class WriteSignatureServiceTest {
         val index = argumentCaptor<IndexDefinition>().also { verify(indexOps).createIndex(it.capture()) }.firstValue
         assertEquals(365L * 24 * 3600, index.indexOptions.getLong("expireAfterSeconds"))
         assertEquals(1, index.indexKeys.getInteger("createdAt"))
+    }
+
+    @Test
+    fun shouldRetryTtlIndexOnRecordUntilCreated() {
+        // Given: MongoDB down at startup, back for the next writes
+        val indexOps = mock<IndexOperations>()
+        whenever(mongoTemplate.indexOps(WriteSignatureEntity::class.java)).thenReturn(indexOps)
+        whenever(indexOps.createIndex(any<IndexDefinition>()))
+            .thenThrow(IllegalStateException("down"))
+            .thenReturn("createdAt_1")
+        service.ensureRetentionIndex()
+
+        // When
+        service.record(PASTE, "abc123", null, request)
+        service.record(PASTE, "def456", null, request)
+
+        // Then: one failed startup attempt, one retry on the first write, none after
+        verify(indexOps, times(2)).createIndex(any<IndexDefinition>())
     }
 }

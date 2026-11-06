@@ -33,10 +33,18 @@ class WriteSignatureService(
         Thread.ofVirtual().name("write-signature-ttl-index").start(::ensureRetentionIndex)
     }
 
+    // Set once the TTL index exists: until then each record() retries, so a MongoDB that was down at
+    // startup does not leave signatures stored without expiry.
+    // ponytail: unthrottled retry, a permanent failure (index option conflict, no createIndex right) costs one
+    // failed createIndex and one error log per write; add a retry interval if that ever shows in the logs.
+    @Volatile
+    private var retentionIndexReady = false
+
     fun ensureRetentionIndex() {
         try {
             mongoTemplate.indexOps(WriteSignatureEntity::class.java)
                 .createIndex(Index().on("createdAt", ASC).expire(RETENTION))
+            retentionIndexReady = true
         } catch (e: RuntimeException) {
             log.error("Write signature TTL index not created: signatures will not expire", e)
         }
@@ -44,6 +52,7 @@ class WriteSignatureService(
 
     fun record(type: ResourceType, resourceId: String?, fingerprintHash: String?, request: HttpServletRequest) {
         if (resourceId.isNullOrBlank()) return
+        if (!retentionIndexReady) ensureRetentionIndex()
         try {
             repository.save(
                 WriteSignatureEntity(
