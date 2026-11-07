@@ -179,6 +179,8 @@ rtk mvn test -f pom.xml
   threads sized on the host cores made OCR twice as slow). No local Docker daemon: run it on AlkaNaz
   (`sudo -n /usr/local/bin/docker`, Marstech-Configs `llm/instructions/runners.md`), then confirm on prod after
   the release. App Platform cuts a request at about 30 s with a 504 (MLS-253)
+- **Changelog**: move `[Unreleased]` into `[X.Y.Z]` (changelogger skill) and merge it before dispatching
+  `release.yml`, which never edits `CHANGELOG.md` (v0.6.6, v0.7.0 and v0.8.0 shipped without a section, MLS-254)
 - **Release bump**: choose `release.yml`'s `bump` input by semver from what the release holds, never the
   `patch` default unchecked: any new feature or endpoint `minor` (0.y.z included), fixes only `patch`, a
   breaking API change `major` (rule in Marstech-Configs `llm/shared/context.md`; v0.3.0 added pdf2md)
