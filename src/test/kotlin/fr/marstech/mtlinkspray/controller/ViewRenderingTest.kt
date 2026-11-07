@@ -3,7 +3,12 @@ package fr.marstech.mtlinkspray.controller
 import fr.marstech.mtlinkspray.service.ApiKeyService
 import fr.marstech.mtlinkspray.service.WriteSignatureService
 import org.hamcrest.Matchers.containsString
+import fr.marstech.mtlinkspray.dto.DashboardDto
+import fr.marstech.mtlinkspray.entity.DashboardLink
+import fr.marstech.mtlinkspray.enums.DashboardTheme
+import fr.marstech.mtlinkspray.service.DashboardService
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.whenever
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.springframework.beans.factory.annotation.Autowired
@@ -36,6 +41,9 @@ internal class ViewRenderingTest {
     @MockitoBean
     private lateinit var writeSignatureService: WriteSignatureService
 
+    @MockitoBean
+    private lateinit var dashboardService: DashboardService
+
     @Value("\${mt.link-spray.admin.username}")
     private lateinit var adminUsername: String
 
@@ -64,6 +72,23 @@ internal class ViewRenderingTest {
         mockMvc.perform(get(path))
             .andExpect(status().isOk)
             .andExpect(content().string(containsString("id=\"$elementId\"")))
+    }
+
+    @Test
+    fun shouldRenderPublicLinkPage() {
+        // Given
+        whenever(dashboardService.getDashboardBySlug("me")).thenReturn(
+            DashboardDto(
+                name = "Me", slug = "me", bio = "Hello", avatarUrl = "https://img.example/a.png", theme = DashboardTheme.LIGHT,
+                items = mutableListOf(DashboardLink(name = "Site", url = "https://example.com"))
+            )
+        )
+        // When / Then
+        mockMvc.perform(get("/p/me"))
+            .andExpect(status().isOk)
+            .andExpect(content().string(containsString("data-bs-theme=\"light\"")))
+            .andExpect(content().string(containsString("id=\"dashboard-bio\"")))
+            .andExpect(content().string(containsString("href=\"https://example.com\"")))
     }
 
     @Test

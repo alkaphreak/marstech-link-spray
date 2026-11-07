@@ -24,13 +24,15 @@ class DashboardApiController(
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     fun createDashboard(
-        @RequestBody @Valid dashboardDto: DashboardDto
-    ): DashboardDto = dashboardService.createDashboard(dashboardDto)
+        @RequestBody @Valid dashboardDto: DashboardDto,
+        @RequestHeader("X-Api-Key", required = false) apiKey: String?,
+    ): DashboardDto = dashboardService.createDashboard(dashboardDto, apiKey)
 
     @PutMapping("/{id}")
     @Validated
     fun updateDashboard(
         @PathVariable @NotBlank(message = "ID cannot be blank") id: String,
-        @RequestBody @Valid dashboardDto: DashboardDto
-    ): DashboardDto = dashboardService.updateDashboard(id, dashboardDto)
+        @RequestBody @Valid dashboardDto: DashboardDto,
+        @RequestHeader("X-Api-Key", required = false) apiKey: String?,
+    ): DashboardDto = dashboardService.updateDashboard(id, dashboardDto, apiKey)
 }
