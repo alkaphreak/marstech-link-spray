@@ -7,6 +7,23 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+---
+
+## [0.8.1] - 2026-11-06
+
+### Fixed
+
+- Web write forms (shortener, spray, paste) wait at most 2 s for the browser fingerprint, then submit without
+  it, instead of hanging when a signal never settles (MLS-254)
+- The 12-month TTL index on write signatures is retried on each write until created, so a MongoDB down at
+  startup no longer leaves signatures stored without expiry (MLS-254)
+- "Shorten and spray" from the web UI records a write signature for each per-URL short link, not only for the
+  final spray link (MLS-254)
+
+---
+
+## [0.8.0] - 2026-11-04
+
 ### Added
 
 - `POST /api/url-shortener` with a JSON body `{"url": ...}`: creates a short link and returns 201 Created, the
@@ -21,15 +38,6 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   body is unchanged (MLS-258)
 - OCR and image compression share one native-workload permit: a request arriving while the other runs gets a
   503 (MLS-108)
-
-### Fixed
-
-- Web write forms (shortener, spray, paste) wait at most 2 s for the browser fingerprint, then submit without
-  it, instead of hanging when a signal never settles (MLS-254)
-- The 12-month TTL index on write signatures is retried on each write until created, so a MongoDB down at
-  startup no longer leaves signatures stored without expiry (MLS-254)
-- "Shorten and spray" from the web UI records a write signature for each per-URL short link, not only for the
-  final spray link (MLS-254)
 
 ---
 
