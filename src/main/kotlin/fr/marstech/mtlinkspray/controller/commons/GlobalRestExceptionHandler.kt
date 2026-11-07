@@ -6,6 +6,7 @@ import fr.marstech.mtlinkspray.exception.PayloadTooLargeException
 import jakarta.validation.ConstraintViolationException
 import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
+import org.springframework.dao.DuplicateKeyException
 import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatus.*
 import org.springframework.http.ResponseEntity
@@ -128,6 +129,20 @@ class GlobalRestExceptionHandler(
             path = request.getDescription(false).removePrefix("uri=")
         )
         return ResponseEntity(errorResponse, BAD_REQUEST)
+    }
+
+    @ExceptionHandler(DuplicateKeyException::class)
+    fun handleConflict(
+        e: DuplicateKeyException,
+        request: WebRequest
+    ): ResponseEntity<ErrorResponse> {
+        val errorResponse = ErrorResponse.from(
+            status = CONFLICT.value(),
+            error = "Conflict",
+            message = e.message ?: "Resource already exists",
+            path = request.getDescription(false).removePrefix("uri=")
+        )
+        return ResponseEntity(errorResponse, CONFLICT)
     }
 
     @ExceptionHandler(NoSuchElementException::class)

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html data-bs-theme="dark" lang="en" xmlns:th="http://www.thymeleaf.org">
+<html data-bs-theme="dark" lang="en" th:attr="data-bs-theme=${dashboard != null ? dashboard.theme.bsTheme : 'dark'}"
+      xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{index.html :: html-head}">
     <title></title>
 </head>
@@ -16,8 +17,11 @@
             <div class="col" th:unless="${dashboard}">
                 <h3>Dashboard</h3>
             </div>
-            <div class="col" th:if="${dashboard}">
+            <div class="col text-center" th:if="${dashboard}">
+                <img alt="" class="rounded-circle mb-3" height="96" id="dashboard-avatar" th:if="${dashboard.avatarUrl}"
+                     th:src="${dashboard.avatarUrl}" width="96"/>
                 <h3 th:text="${dashboard.name}">Dashboard</h3>
+                <p id="dashboard-bio" th:if="${dashboard.bio}" th:text="${dashboard.bio}">Bio</p>
                 <p th:if="${dashboard.description}" th:text="${dashboard.description}">
                     Dashboard description
                 </p>
@@ -58,12 +62,12 @@
          th:with="view=${T(fr.marstech.mtlinkspray.enums.ViewNameEnum).DASHBOARD}">
     <div class="container">
         <div class="row">
-            <div class="col" th:width="${dashboard}">
-                <div th:each="item : ${dashboard.items}">
-                    <!--/*@thymesVar id="item" type="fr.marstech.mtlinkspray.entity.DashboardItem"*/-->
+            <div class="col-md-6 mx-auto d-grid gap-2" id="dashboard-links">
+                <!--/*@thymesVar id="item" type="fr.marstech.mtlinkspray.entity.DashboardLink"*/-->
+                <a class="btn btn-outline-primary" rel="noopener nofollow" target="_blank"
+                   th:each="item : ${dashboard.items}" th:href="${item.url}" th:title="${item.description}">
                     <span th:text="${item.name}">Name</span>
-                    <span th:text="${item.description}">Description</span>
-                </div>
+                </a>
 
             </div>
         </div>
