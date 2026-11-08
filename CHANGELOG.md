@@ -9,6 +9,28 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.9.0] - 2026-11-08
+
+### Added
+
+- Public link pages at `/p/{slug}` on top of dashboards: vanity slug, bio and https avatar (MLS-115)
+
+### Changed
+
+- Editing a dashboard requires the `X-Api-Key` that created it; dashboards created without a key are
+  read-only (MLS-115)
+
+### Fixed
+
+- Dashboard link items deserialize from JSON and expose their url (MLS-115)
+- Creating a dashboard over an existing id returns 409 instead of overwriting it, and the check is atomic
+  (insert) (MLS-115, MLS-259)
+- Two dashboards can no longer claim the same slug at once: the unique slug index is now created at startup
+  (MLS-259)
+- The `LIGHT` theme, which left the page dark, is removed: public pages are dark only (MLS-259)
+
+---
+
 ## [0.8.1] - 2026-11-06
 
 ### Fixed
