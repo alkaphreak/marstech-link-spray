@@ -19,18 +19,23 @@ import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.springframework.dao.DuplicateKeyException
+import org.springframework.data.mongodb.core.MongoTemplate
+import org.springframework.data.mongodb.core.index.IndexDefinition
+import org.springframework.data.mongodb.core.index.IndexOperations
 import java.util.*
 
 class DashboardServiceTest {
     private val dashboardRepository = mock<DashboardRepository>()
     private val apiKeyService = mock<ApiKeyService>()
-    private val dashboardService = DashboardServiceImpl(dashboardRepository, apiKeyService)
+    private val mongoTemplate = mock<MongoTemplate>()
+    private val dashboardService = DashboardServiceImpl(dashboardRepository, apiKeyService, mongoTemplate)
 
     private val ownerKey = ApiKeyEntity(id = "owner", name = "app", keyId = "k1", secretHash = "h", namespace = "ns1")
     private val otherKey = ApiKeyEntity(id = "other", name = "app2", keyId = "k2", secretHash = "h", namespace = "ns2")
 
     init {
         whenever(dashboardRepository.save(any<DashboardEntity>())).thenAnswer { it.arguments[0] }
+        whenever(dashboardRepository.insert(any<DashboardEntity>())).thenAnswer { it.arguments[0] }
         whenever(apiKeyService.resolve("owner-raw")).thenReturn(ownerKey)
         whenever(apiKeyService.resolve("other-raw")).thenReturn(otherKey)
     }
@@ -43,12 +48,12 @@ class DashboardServiceTest {
     fun shouldCreateDashboardOwnedByApiKey() {
         // Given
         val items: MutableList<DashboardItem> = mutableListOf(DashboardLink(name = "Site", url = "https://example.com"))
-        val dto = DashboardDto(name = "Me", items = items, slug = "me", bio = "Hi", theme = DashboardTheme.LIGHT)
+        val dto = DashboardDto(name = "Me", items = items, slug = "me", bio = "Hi", theme = DashboardTheme.DARK)
         // When
         val created = dashboardService.createDashboard(dto, "owner-raw")
         // Then
         assertEquals(dto, created)
-        val saved = argumentCaptor<DashboardEntity>().also { verify(dashboardRepository).save(it.capture()) }.firstValue
+        val saved = argumentCaptor<DashboardEntity>().also { verify(dashboardRepository).insert(it.capture()) }.firstValue
         assertEquals("owner", saved.apiKeyId)
     }
 
@@ -58,17 +63,39 @@ class DashboardServiceTest {
         val created = dashboardService.createDashboard("Test Dashboard")
         // Then
         assertEquals("Test Dashboard", created.name)
-        val saved = argumentCaptor<DashboardEntity>().also { verify(dashboardRepository).save(it.capture()) }.firstValue
+        val saved = argumentCaptor<DashboardEntity>().also { verify(dashboardRepository).insert(it.capture()) }.firstValue
         assertNull(saved.apiKeyId)
     }
 
     @Test
     fun shouldRejectCreationOverAnExistingId() {
         // Given
-        whenever(dashboardRepository.existsById("d1")).thenReturn(true)
+        whenever(dashboardRepository.insert(any<DashboardEntity>())).thenThrow(DuplicateKeyException("E11000 duplicate key _id"))
         // When / Then
         assertThrows<DuplicateKeyException> { dashboardService.createDashboard(DashboardDto(id = "d1"), "owner-raw") }
         verify(dashboardRepository, never()).save(any<DashboardEntity>())
+    }
+
+    @Test
+    fun shouldCreateUniqueSparseSlugIndex() {
+        // Given
+        val indexOps = mock<IndexOperations>()
+        whenever(mongoTemplate.indexOps(DashboardEntity::class.java)).thenReturn(indexOps)
+        // When
+        dashboardService.ensureSlugIndex()
+        // Then
+        val index = argumentCaptor<IndexDefinition>().also { verify(indexOps).createIndex(it.capture()) }.firstValue
+        assertEquals(1, index.indexKeys.getInteger("slug"))
+        assertEquals(true, index.indexOptions.getBoolean("unique"))
+        assertEquals(true, index.indexOptions.getBoolean("sparse"))
+    }
+
+    @Test
+    fun shouldNotFailWhenSlugIndexCannotBeCreated() {
+        // Given: MongoDB unreachable
+        whenever(mongoTemplate.indexOps(DashboardEntity::class.java)).thenThrow(IllegalStateException("down"))
+        // When / Then: logged, not thrown
+        dashboardService.ensureSlugIndex()
     }
 
     @Test
