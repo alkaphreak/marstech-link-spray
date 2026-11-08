@@ -79,14 +79,14 @@ internal class ViewRenderingTest {
         // Given
         whenever(dashboardService.getDashboardBySlug("me")).thenReturn(
             DashboardDto(
-                name = "Me", slug = "me", bio = "Hello", avatarUrl = "https://img.example/a.png", theme = DashboardTheme.LIGHT,
+                name = "Me", slug = "me", bio = "Hello", avatarUrl = "https://img.example/a.png", theme = DashboardTheme.DARK,
                 items = mutableListOf(DashboardLink(name = "Site", url = "https://example.com"))
             )
         )
         // When / Then
         mockMvc.perform(get("/p/me"))
             .andExpect(status().isOk)
-            .andExpect(content().string(containsString("data-bs-theme=\"light\"")))
+            .andExpect(content().string(containsString("data-bs-theme=\"dark\"")))
             .andExpect(content().string(containsString("id=\"dashboard-bio\"")))
             .andExpect(content().string(containsString("href=\"https://example.com\"")))
     }

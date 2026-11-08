@@ -4,21 +4,43 @@ import fr.marstech.mtlinkspray.dto.DashboardDto
 import fr.marstech.mtlinkspray.entity.DashboardEntity
 import fr.marstech.mtlinkspray.entity.HistoryItem
 import fr.marstech.mtlinkspray.repository.DashboardRepository
+import org.slf4j.LoggerFactory
+import org.springframework.boot.context.event.ApplicationReadyEvent
+import org.springframework.context.event.EventListener
 import org.springframework.dao.DuplicateKeyException
+import org.springframework.data.domain.Sort.Direction.ASC
+import org.springframework.data.mongodb.core.MongoTemplate
+import org.springframework.data.mongodb.core.index.Index
 import org.springframework.stereotype.Service
 
 @Service
 class DashboardServiceImpl(
     private val dashboardRepository: DashboardRepository,
     private val apiKeyService: ApiKeyService,
+    private val mongoTemplate: MongoTemplate,
 ) : DashboardService {
+    private val log = LoggerFactory.getLogger(javaClass)
+
+    // Auto index creation is off in this app, so the slug's unique index is created explicitly (idempotent).
+    // Off the startup thread: an unreachable MongoDB (test profile) must neither block nor fail startup.
+    @EventListener(ApplicationReadyEvent::class)
+    fun onApplicationReady() {
+        Thread.ofVirtual().name("dashboard-slug-index").start(::ensureSlugIndex)
+    }
+
+    fun ensureSlugIndex() {
+        try {
+            mongoTemplate.indexOps(DashboardEntity::class.java).createIndex(Index().on("slug", ASC).unique().sparse())
+        } catch (e: RuntimeException) {
+            log.error("Dashboard slug unique index not created: concurrent claims of one slug can both succeed", e)
+        }
+    }
 
     override fun createDashboard(dashboardDto: DashboardDto, rawApiKey: String?): DashboardDto {
         val apiKeyId = rawApiKey?.let { apiKeyService.resolve(it).id }
-        // The id comes from the client: saving over an existing one would hijack it
-        if (dashboardRepository.existsById(dashboardDto.id)) throw DuplicateKeyException("Dashboard id already exists")
         checkSlugFree(dashboardDto.slug, dashboardDto.id)
-        return dashboardRepository.save(
+        // The id comes from the client: insert, not save, so an existing id fails with DuplicateKeyException instead of being overwritten
+        return dashboardRepository.insert(
             DashboardEntity(
                 id = dashboardDto.id,
                 description = dashboardDto.description,
@@ -64,7 +86,7 @@ class DashboardServiceImpl(
     private fun findById(id: String): DashboardEntity =
         dashboardRepository.findById(id).orElseThrow { NoSuchElementException("Dashboard not found") }
 
-    // ponytail: check-then-save, two concurrent claims of one slug can both pass if the unique index is missing; the index makes the loser fail
+    // Check-then-save gives a readable error; the unique index (ensureSlugIndex) makes the loser of a concurrent claim fail
     private fun checkSlugFree(slug: String?, ownId: String) {
         if (slug != null && dashboardRepository.findBySlug(slug)?.takeIf { it.id != ownId } != null)
             throw DuplicateKeyException("Slug '$slug' is already taken")
