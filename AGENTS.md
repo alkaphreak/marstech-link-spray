@@ -74,6 +74,7 @@ src/main/kotlin/fr/marstech/mtlinkspray/
 - `Md2PdfApiController` → `MarkdownToPdfService` — raw Markdown body to PDF, `X-Api-Key` (MLS-223)
 - `Pdf2MdApiController` → `PdfToMarkdownService` — raw PDF body to Markdown (PDFBox), `X-Api-Key` (MLS-196)
 - `OcrApiController` → `OcrServiceImpl` — raw PNG/JPEG body, or a scanned PDF of one page rendered at 300 dpi (MLS-253), to text through a `tesseract` subprocess (apt package in both Dockerfiles), one OCR at a time (503 when busy), anonymous per-IP quota lifted by `X-Api-Key` (429), web page `/ocr` (MLS-252)
+- `ImageCompressionApiController` → `ImageCompressionService` — `POST /api/img/compress`, raw PNG/JPEG body compressed or converted through `cwebp` (WebP) and `caesiumclt` (JPEG/PNG) subprocesses (installed in both Dockerfiles, ADR 0002), sharing the `NativeWorkPermit` with OCR, pixel caps 8 MP WebP / 8 MP JPEG / 3 MP PNG, anonymous per-IP quota lifted by `X-Api-Key` (MLS-108)
 
 **Critical flows**:
 
