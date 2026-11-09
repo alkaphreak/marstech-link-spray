@@ -4,6 +4,7 @@ import fr.marstech.mtlinkspray.MtLinkSprayApplication
 import fr.marstech.mtlinkspray.conf.SecurityConfig
 import fr.marstech.mtlinkspray.conf.ValidationConfig
 import fr.marstech.mtlinkspray.controller.commons.GlobalRestExceptionHandler
+import fr.marstech.mtlinkspray.dto.LinkStatsResponse
 import fr.marstech.mtlinkspray.service.ShortenerService
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -120,5 +121,21 @@ class ShortenerApiControllerTest {
         // When / Then
         mockMvc.perform(post("/api/url-shortener").contentType(APPLICATION_JSON).content("""{"url":"https://example.com"}"""))
             .andExpect(status().isInternalServerError)
+    }
+    @Test
+    fun shouldReturnLinkStats() {
+        whenever(shortenerService.getStats("abc123")).thenReturn(LinkStatsResponse(3, null))
+
+        mockMvc.perform(get("/api/url-shortener/abc123/stats"))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.clickCount").value(3))
+    }
+
+    @Test
+    fun shouldReturn404ForStatsOfUnknownLink() {
+        whenever(shortenerService.getStats("nope")).thenThrow(NoSuchElementException("Short link 'nope' does not exist"))
+
+        mockMvc.perform(get("/api/url-shortener/nope/stats"))
+            .andExpect(status().isNotFound)
     }
 }

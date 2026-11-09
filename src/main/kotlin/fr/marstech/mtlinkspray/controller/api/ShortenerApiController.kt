@@ -1,5 +1,6 @@
 package fr.marstech.mtlinkspray.controller.api
 
+import fr.marstech.mtlinkspray.dto.LinkStatsResponse
 import fr.marstech.mtlinkspray.dto.ShortenRequest
 import fr.marstech.mtlinkspray.dto.ShortenResponse
 import fr.marstech.mtlinkspray.service.ShortenerService
@@ -11,6 +12,7 @@ import jakarta.validation.constraints.Size
 import org.springframework.http.ResponseEntity
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -45,6 +47,10 @@ class ShortenerApiController(
     ): ResponseEntity<ShortenResponse> =
         shorten(request.url, httpServletRequest)
             .let { ResponseEntity.created(URI.create(it)).body(ShortenResponse(it)) }
+
+    /** Click count of a short link: anonymous, no IP or fingerprint behind it (MLS-261). */
+    @GetMapping("/{uid}/stats")
+    fun getStats(@PathVariable uid: String): LinkStatsResponse = shortenerService.getStats(uid)
 
     private fun shorten(inputUrl: String, httpServletRequest: HttpServletRequest): String = when {
         // In some case the validation may be bypassed
