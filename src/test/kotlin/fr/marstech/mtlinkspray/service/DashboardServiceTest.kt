@@ -95,7 +95,22 @@ class DashboardServiceTest {
         // Given: MongoDB unreachable
         whenever(mongoTemplate.indexOps(DashboardEntity::class.java)).thenThrow(IllegalStateException("down"))
         // When / Then: logged, not thrown
-        dashboardService.ensureSlugIndex()
+        assertEquals(false, dashboardService.ensureSlugIndex())
+    }
+
+    @Test
+    fun shouldRetrySlugIndexUntilCreatedWithCappedBackoff() {
+        // Given: MongoDB down for 7 attempts, then up
+        val indexOps = mock<IndexOperations>()
+        whenever(mongoTemplate.indexOps(DashboardEntity::class.java)).thenReturn(indexOps)
+        var calls = 0
+        whenever(indexOps.createIndex(any<IndexDefinition>())).thenAnswer { if (++calls <= 7) throw IllegalStateException("down") else "slug_1" }
+        val sleeps = mutableListOf<Long>()
+        // When
+        dashboardService.createSlugIndexWithRetry { sleeps += it.seconds }
+        // Then
+        assertEquals(8, calls)
+        assertEquals(listOf(1L, 2L, 4L, 8L, 16L, 32L, 60L), sleeps)
     }
 
     @Test
