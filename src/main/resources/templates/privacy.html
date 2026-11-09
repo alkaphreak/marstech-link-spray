@@ -32,7 +32,8 @@
                     <li>your IP address and your browser's User-Agent;</li>
                     <li>the date.</li>
                 </ul>
-                <p>Visits and short-link redirects record nothing. Calls to the API carry no browser fingerprint:
+                <p>Visits record nothing. A short-link redirect only adds one to that link's click counter and
+                    updates its last-click date: no IP, User-Agent or fingerprint. Calls to the API carry no browser fingerprint:
                     the API key already identifies the client application.</p>
                 <p>Paste, image and abuse report records also keep the IP address of their author for as long as
                     the record exists.</p>

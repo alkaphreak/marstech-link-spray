@@ -1,5 +1,6 @@
 package fr.marstech.mtlinkspray.service
 
+import fr.marstech.mtlinkspray.dto.LinkStatsResponse
 import fr.marstech.mtlinkspray.entity.HistoryItem
 import fr.marstech.mtlinkspray.entity.LinkItem
 import fr.marstech.mtlinkspray.entity.LinkItemTarget
@@ -47,11 +48,14 @@ class ShortenerServiceImpl(
 
     override fun getTarget(
         uid: String,
-    ): String =
-        linkItemRepository.findById(uid)
-            .orElseThrow { NoSuchElementException("Short link '$uid' does not exist") }
-            .target
-            .targetUrl
+    ): String = findLink(uid).target.targetUrl
+        .also { linkItemRepository.findAndIncrementClickCountById(uid, LocalDateTime.now()) }
+
+    override fun getStats(uid: String): LinkStatsResponse =
+        findLink(uid).let { LinkStatsResponse(it.clickCount, it.lastClickedAt) }
+
+    private fun findLink(uid: String): LinkItem = linkItemRepository.findById(uid)
+        .orElseThrow { NoSuchElementException("Short link '$uid' does not exist") }
 
     companion object {
         private const val MAX_INSERT_ATTEMPTS = 3

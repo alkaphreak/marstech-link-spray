@@ -16,4 +16,6 @@ data class LinkItem(
     override var author: HistoryItem,
     override var historyItems: MutableList<HistoryItem> = mutableListOf(),
     val target: LinkItemTarget,
+    val clickCount: Long = 0,
+    val lastClickedAt: LocalDateTime? = null,
 ) : StandardEntity

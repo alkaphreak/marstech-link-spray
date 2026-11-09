@@ -1,5 +1,6 @@
 package fr.marstech.mtlinkspray.service
 
+import fr.marstech.mtlinkspray.dto.LinkStatsResponse
 import fr.marstech.mtlinkspray.entity.HistoryItem
 import fr.marstech.mtlinkspray.entity.LinkItem
 import fr.marstech.mtlinkspray.entity.LinkItemTarget
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argThat
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.times
@@ -180,5 +182,33 @@ internal class ShortenerServiceTest {
             shortenerService.shorten("https://www.example.com", httpServletRequest)
         }
         verify(linkItemRepository, times(3)).insert(argThat<LinkItem> { id == "test-id" })
+    }
+    private fun storedLink(id: String, clicks: Long = 0, lastClick: LocalDateTime? = null) = LinkItem(
+        id = id, author = HistoryItem(), target = LinkItemTarget("https://www.example.com"),
+        clickCount = clicks, lastClickedAt = lastClick,
+    )
+
+    @Test
+    fun getTargetShouldCountTheClick() {
+        whenever(linkItemRepository.findById("abc")).thenReturn(Optional.of(storedLink("abc")))
+
+        Assertions.assertEquals("https://www.example.com", shortenerService.getTarget("abc"))
+        verify(linkItemRepository).findAndIncrementClickCountById(eq("abc"), any())
+    }
+
+    @Test
+    fun getTargetOfUnknownLinkShouldThrowWithoutCounting() {
+        whenever(linkItemRepository.findById("nope")).thenReturn(Optional.empty())
+
+        Assertions.assertThrows(NoSuchElementException::class.java) { shortenerService.getTarget("nope") }
+        verify(linkItemRepository, never()).findAndIncrementClickCountById(any(), any())
+    }
+
+    @Test
+    fun getStatsShouldReturnTheStoredCounter() {
+        val lastClick = LocalDateTime.of(2026, 11, 9, 12, 0)
+        whenever(linkItemRepository.findById("abc")).thenReturn(Optional.of(storedLink("abc", 42, lastClick)))
+
+        Assertions.assertEquals(LinkStatsResponse(42, lastClick), shortenerService.getStats("abc"))
     }
 }

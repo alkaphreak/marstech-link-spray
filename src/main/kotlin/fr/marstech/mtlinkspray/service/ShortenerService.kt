@@ -1,5 +1,6 @@
 package fr.marstech.mtlinkspray.service
 
+import fr.marstech.mtlinkspray.dto.LinkStatsResponse
 import fr.marstech.mtlinkspray.utils.NetworkUtils.getFilteredPort
 import fr.marstech.mtlinkspray.utils.NetworkUtils.getHost
 import fr.marstech.mtlinkspray.utils.NetworkUtils.getScheme
@@ -25,6 +26,9 @@ interface ShortenerService {
      * @return the target URL
      */
     fun getTarget(uid: String): String
+
+    /** Click count and last click date of a short link (MLS-261). */
+    fun getStats(uid: String): LinkStatsResponse
 
     companion object {
         /**
