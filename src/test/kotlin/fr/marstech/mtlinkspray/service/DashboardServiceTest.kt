@@ -95,7 +95,57 @@ class DashboardServiceTest {
         // Given: MongoDB unreachable
         whenever(mongoTemplate.indexOps(DashboardEntity::class.java)).thenThrow(IllegalStateException("down"))
         // When / Then: logged, not thrown
-        dashboardService.ensureSlugIndex()
+        assertEquals(false, dashboardService.ensureSlugIndex())
+    }
+
+    @Test
+    fun shouldRetrySlugIndexUntilCreatedWithCappedBackoff() {
+        // Given: MongoDB down for 7 attempts, then up
+        val indexOps = mock<IndexOperations>()
+        whenever(mongoTemplate.indexOps(DashboardEntity::class.java)).thenReturn(indexOps)
+        var calls = 0
+        whenever(indexOps.createIndex(any<IndexDefinition>())).thenAnswer { if (++calls <= 7) throw IllegalStateException("down") else "slug_1" }
+        val sleeps = mutableListOf<Long>()
+        // When
+        dashboardService.createSlugIndexWithRetry { sleeps += it.seconds }
+        // Then
+        assertEquals(8, calls)
+        assertEquals(listOf(1L, 2L, 4L, 8L, 16L, 32L, 60L), sleeps)
+    }
+
+    @Test
+    fun shouldStopSlugIndexRetryWhenInterruptedDuringSleep() {
+        // Given: MongoDB down
+        val indexOps = mock<IndexOperations>()
+        whenever(mongoTemplate.indexOps(DashboardEntity::class.java)).thenReturn(indexOps)
+        whenever(indexOps.createIndex(any<IndexDefinition>())).thenThrow(IllegalStateException("down"))
+        // When: shutdown interrupts the sleep
+        dashboardService.createSlugIndexWithRetry { throw InterruptedException() }
+        // Then: one attempt, loop left
+        verify(indexOps).createIndex(any<IndexDefinition>())
+    }
+
+    @Test
+    fun shouldNotRetrySlugIndexOnceStopped() {
+        // Given: context closed, retry flag set
+        dashboardService.stopSlugIndexRetry()
+        // When
+        dashboardService.createSlugIndexWithRetry { error("must not sleep") }
+        // Then
+        verify(mongoTemplate, never()).indexOps(DashboardEntity::class.java)
+    }
+
+    @Test
+    fun shouldStartSlugIndexCreationOnApplicationReady() {
+        // Given
+        val indexOps = mock<IndexOperations>()
+        val created = java.util.concurrent.CountDownLatch(1)
+        whenever(mongoTemplate.indexOps(DashboardEntity::class.java)).thenReturn(indexOps)
+        whenever(indexOps.createIndex(any<IndexDefinition>())).thenAnswer { created.countDown(); "slug_1" }
+        // When
+        dashboardService.onApplicationReady()
+        // Then
+        assertEquals(true, created.await(5, java.util.concurrent.TimeUnit.SECONDS))
     }
 
     @Test
