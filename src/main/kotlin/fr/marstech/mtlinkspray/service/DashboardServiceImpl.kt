@@ -24,6 +24,10 @@ class DashboardServiceImpl(
     private val log = LoggerFactory.getLogger(javaClass)
     private var slugIndexThread: Thread? = null
 
+    // Own flag, not the interrupt status: a driver wait can clear the interrupt before throwing a RuntimeException
+    @Volatile
+    private var slugIndexRetryStopped = false
+
     // Auto index creation is off in this app, so the slug's unique index is created explicitly (idempotent).
     // Off the startup thread: an unreachable MongoDB (test profile) must neither block nor fail startup.
     @EventListener(ApplicationReadyEvent::class)
@@ -34,6 +38,7 @@ class DashboardServiceImpl(
     // A closed context (devtools restart, evicted test context) must not keep retrying against a closed MongoClient
     @PreDestroy
     fun stopSlugIndexRetry() {
+        slugIndexRetryStopped = true
         slugIndexThread?.interrupt()
     }
 
@@ -43,8 +48,7 @@ class DashboardServiceImpl(
     fun createSlugIndexWithRetry(sleep: (Duration) -> Unit = Thread::sleep) {
         var delay = Duration.ofSeconds(1)
         var firstAttempt = true
-        // The interrupt check covers a driver that swallows the interrupt inside createIndex
-        while (!Thread.currentThread().isInterrupted && !ensureSlugIndex(firstAttempt)) {
+        while (!slugIndexRetryStopped && !ensureSlugIndex(firstAttempt)) {
             firstAttempt = false
             try {
                 sleep(delay)

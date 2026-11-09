@@ -114,6 +114,41 @@ class DashboardServiceTest {
     }
 
     @Test
+    fun shouldStopSlugIndexRetryWhenInterruptedDuringSleep() {
+        // Given: MongoDB down
+        val indexOps = mock<IndexOperations>()
+        whenever(mongoTemplate.indexOps(DashboardEntity::class.java)).thenReturn(indexOps)
+        whenever(indexOps.createIndex(any<IndexDefinition>())).thenThrow(IllegalStateException("down"))
+        // When: shutdown interrupts the sleep
+        dashboardService.createSlugIndexWithRetry { throw InterruptedException() }
+        // Then: one attempt, loop left
+        verify(indexOps).createIndex(any<IndexDefinition>())
+    }
+
+    @Test
+    fun shouldNotRetrySlugIndexOnceStopped() {
+        // Given: context closed, retry flag set
+        dashboardService.stopSlugIndexRetry()
+        // When
+        dashboardService.createSlugIndexWithRetry { error("must not sleep") }
+        // Then
+        verify(mongoTemplate, never()).indexOps(DashboardEntity::class.java)
+    }
+
+    @Test
+    fun shouldStartSlugIndexCreationOnApplicationReady() {
+        // Given
+        val indexOps = mock<IndexOperations>()
+        val created = java.util.concurrent.CountDownLatch(1)
+        whenever(mongoTemplate.indexOps(DashboardEntity::class.java)).thenReturn(indexOps)
+        whenever(indexOps.createIndex(any<IndexDefinition>())).thenAnswer { created.countDown(); "slug_1" }
+        // When
+        dashboardService.onApplicationReady()
+        // Then
+        assertEquals(true, created.await(5, java.util.concurrent.TimeUnit.SECONDS))
+    }
+
+    @Test
     fun shouldRejectCreationWithTakenSlug() {
         // Given
         whenever(dashboardRepository.findBySlug("me")).thenReturn(DashboardEntity(id = "x", author = HistoryItem(), slug = "me"))
