@@ -87,20 +87,69 @@ internal class WriteSignatureServiceTest {
     }
 
     @Test
-    fun shouldRetryTtlIndexOnRecordUntilCreated() {
-        // Given: MongoDB down at startup, back for the next writes
+    fun shouldNotTouchIndexOnRecord() {
+        // When: MongoDB index not created yet
+        service.record(PASTE, "abc123", null, request)
+
+        // Then: the request path never waits on createIndex
+        verify(mongoTemplate, never()).indexOps(WriteSignatureEntity::class.java)
+    }
+
+    @Test
+    fun shouldRetryTtlIndexUntilCreatedWithCappedBackoff() {
+        // Given: MongoDB down for 7 attempts, then up
         val indexOps = mock<IndexOperations>()
         whenever(mongoTemplate.indexOps(WriteSignatureEntity::class.java)).thenReturn(indexOps)
-        whenever(indexOps.createIndex(any<IndexDefinition>()))
-            .thenThrow(IllegalStateException("down"))
-            .thenReturn("createdAt_1")
-        service.ensureRetentionIndex()
+        var calls = 0
+        whenever(indexOps.createIndex(any<IndexDefinition>())).thenAnswer { if (++calls <= 7) throw IllegalStateException("down") else "createdAt_1" }
+        val sleeps = mutableListOf<Long>()
 
         // When
-        service.record(PASTE, "abc123", null, request)
-        service.record(PASTE, "def456", null, request)
+        service.createRetentionIndexWithRetry { sleeps += it.seconds }
 
-        // Then: one failed startup attempt, one retry on the first write, none after
-        verify(indexOps, times(2)).createIndex(any<IndexDefinition>())
+        // Then
+        assertEquals(8, calls)
+        assertEquals(listOf(1L, 2L, 4L, 8L, 16L, 32L, 60L), sleeps)
+    }
+
+    @Test
+    fun shouldStopTtlIndexRetryWhenInterruptedDuringSleep() {
+        // Given: MongoDB down
+        val indexOps = mock<IndexOperations>()
+        whenever(mongoTemplate.indexOps(WriteSignatureEntity::class.java)).thenReturn(indexOps)
+        whenever(indexOps.createIndex(any<IndexDefinition>())).thenThrow(IllegalStateException("down"))
+
+        // When: shutdown interrupts the sleep
+        service.createRetentionIndexWithRetry { throw InterruptedException() }
+
+        // Then: one attempt, loop left
+        verify(indexOps, times(1)).createIndex(any<IndexDefinition>())
+    }
+
+    @Test
+    fun shouldNotRetryTtlIndexOnceStopped() {
+        // Given: context closed
+        service.stopRetentionIndexRetry()
+
+        // When
+        service.createRetentionIndexWithRetry { error("must not sleep") }
+
+        // Then
+        verify(mongoTemplate, never()).indexOps(WriteSignatureEntity::class.java)
+    }
+
+    @Test
+    fun shouldStartTtlIndexCreationOnApplicationReady() {
+        // Given
+        val indexOps = mock<IndexOperations>()
+        val created = java.util.concurrent.CountDownLatch(1)
+        whenever(mongoTemplate.indexOps(WriteSignatureEntity::class.java)).thenReturn(indexOps)
+        whenever(indexOps.createIndex(any<IndexDefinition>())).thenAnswer { created.countDown(); "createdAt_1" }
+
+        // When
+        service.onApplicationReady()
+
+        // Then
+        assertEquals(true, created.await(5, java.util.concurrent.TimeUnit.SECONDS))
     }
 }
