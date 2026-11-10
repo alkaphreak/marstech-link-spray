@@ -138,6 +138,8 @@ See `.local/llm/README.md` for complete conventions.
 - **Request-param validation**: `ValidationConfig` sets `adaptConstraintViolations`, so a `@Validated`
   controller throws `MethodValidationException` (mapped to 400, MLS-244). To reproduce it in a test, use
   `@WebMvcTest` with `@Import(ValidationConfig::class)`: a standalone MockMvc never runs that validation
+- **Typed request params**: a typed `@RequestParam` (`Int`, `LocalTime`, ...) that fails to convert is already a 400
+  (`GlobalRestExceptionHandler.handleMethodArgumentTypeMismatch`): check that handler before claiming a 500 (MLS-213)
 - **Kotlin KDoc comments nest** — never write a literal `/**` sequence inside a `/** ... */` comment body (e.g. avoid `` `/admin/**` ``); it opens a nested comment and causes "Unclosed comment" compile errors. Rephrase instead (e.g. "the /admin path tree").
 - **Conventional commits** for all commit messages — append ticket ID and full YouTrack URL on a trailing line when available:
   ```
