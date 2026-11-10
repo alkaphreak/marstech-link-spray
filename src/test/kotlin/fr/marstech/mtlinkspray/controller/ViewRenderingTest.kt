@@ -61,6 +61,7 @@ internal class ViewRenderingTest {
         "/fingerprint, fingerprintRun",
         "/paste, inputPasteBinTextArea",
         "/random, randomForm",
+        "/sleep, sleepForm",
         "/uuid, uuid-value",
         "/shortener, input-link",
         "/dashboard, input-dashboard-name",

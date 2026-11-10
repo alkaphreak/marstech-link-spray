@@ -17,6 +17,7 @@ enum class ViewNameEnum(
     IP(viewName = "ip", viewPage = "IP", orderInMenu = 8),
     OCR(viewName = "ocr", viewPage = "OCR", orderInMenu = 9),
     FINGERPRINT(viewName = "fingerprint", viewPage = "Fingerprint", orderInMenu = 10),
+    SLEEP(viewName = "sleep", viewPage = "Sleep", orderInMenu = 11),
     ABUSE(viewName = "abuse", viewPage = "Abuse"),
     PRIVACY(viewName = "privacy", viewPage = "Privacy", orderInMenu = -1, isInMenu = false),
 

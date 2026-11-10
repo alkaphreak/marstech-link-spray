@@ -38,7 +38,7 @@ src/main/kotlin/fr/marstech/mtlinkspray/
 ├── controller/
 │   ├── api/        # REST API endpoints (ShortenerApiController, SprayApiController,
 │   │               #   PasteApiController, DashboardApiController, ImageApiController,
-│   │               #   UuidApiController, RandomNumberApiController, RootApiController,
+│   │               #   UuidApiController, RandomNumberApiController, SleepApiController, RootApiController,
 │   │               #   Md2PdfApiController, Pdf2MdApiController, OcrApiController)
 │   ├── view/       # Thymeleaf view controllers (incl. AdminApiKeyViewController)
 │   └── commons/    # Shared controller utilities
