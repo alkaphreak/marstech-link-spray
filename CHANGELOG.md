@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Sleep cycle calculator: page `/sleep` (shareable `?wakeAt=` / `?sleepAt=` links) and `GET /api/sleep`, 90-minute cycles plus 15 minutes to fall asleep (MLS-213)
+
 ### Fixed
 
 - Write signatures: the TTL index is retried in the background with a capped backoff, no longer on every web write while it is missing (MLS-254)

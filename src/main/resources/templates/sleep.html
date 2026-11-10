@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html data-bs-theme="dark" lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{index.html :: html-head}">
+    <title></title>
+</head>
+<body>
+
+<header th:replace="~{index.html :: body-header}">
+    <!-- nav bar-->
+</header>
+
+<section class="intro-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col">
+                <h3>Sleep cycle calculator</h3>
+                <p class="text-body-secondary">90-minute cycles, plus 15 minutes to fall asleep.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="get-started">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col">
+
+                <form id="sleepForm">
+                    <div class="mb-3">
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="sleepMode" id="sleepModeWakeAt"
+                                   value="wakeAt" checked>
+                            <label class="form-check-label" for="sleepModeWakeAt">I want to wake up at</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="sleepMode" id="sleepModeSleepAt"
+                                   value="sleepAt">
+                            <label class="form-check-label" for="sleepModeSleepAt">I go to bed at</label>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="sleepTime" class="form-label">Time</label>
+                        <input type="time" id="sleepTime" class="form-control" value="07:00" required>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button id="sleepCalculateBtn" class="btn btn-primary" type="submit">
+                            <i class="bi bi-moon-stars"></i>
+                            Calculate
+                        </button>
+                        <button id="sleepCopyBtn" class="btn btn-primary" type="button" disabled>
+                            <i class="bi bi-link-45deg"></i>
+                            Copy link
+                        </button>
+                    </div>
+
+                    <h5 class="mt-4" id="sleepResultTitle"></h5>
+                    <ul class="list-group" id="sleepResults"></ul>
+                    <div id="sleepAlert" class="mt-3"></div>
+                </form>
+
+                <script>
+                    const sleepForm = document.getElementById('sleepForm');
+                    const sleepTime = document.getElementById('sleepTime');
+                    const sleepResults = document.getElementById('sleepResults');
+                    const sleepResultTitle = document.getElementById('sleepResultTitle');
+                    const sleepAlert = document.getElementById('sleepAlert');
+                    const sleepCopyBtn = document.getElementById('sleepCopyBtn');
+
+                    function sleepMode() {
+                        return document.querySelector('input[name="sleepMode"]:checked').value;
+                    }
+
+                    function showSleepAlert(message, type) {
+                        const div = document.createElement('div');
+                        div.className = 'alert alert-' + type;
+                        div.textContent = message;
+                        sleepAlert.replaceChildren(div);
+                    }
+
+                    async function calculate() {
+                        const mode = sleepMode();
+                        const query = new URLSearchParams({[mode]: sleepTime.value});
+                        sleepAlert.replaceChildren();
+                        const resp = await fetch('/api/sleep?' + query, {headers: {'Accept': 'application/json'}});
+                        const data = await resp.json().catch(() => ({}));
+                        if (!resp.ok) {
+                            showSleepAlert(data.message || 'Request failed', 'warning');
+                            return;
+                        }
+                        history.replaceState(null, '', '/sleep?' + query);
+                        sleepCopyBtn.disabled = false;
+                        sleepResultTitle.textContent = mode === 'wakeAt' ? 'Go to bed at' : 'Wake up at';
+                        sleepResults.replaceChildren(...data.options.map(o => {
+                            const li = document.createElement('li');
+                            li.className = 'list-group-item d-flex justify-content-between';
+                            const time = document.createElement('strong');
+                            time.textContent = o.time.substring(0, 5);
+                            const detail = document.createElement('span');
+                            detail.textContent = o.cycles + ' cycles, ' + (o.sleepMinutes / 60) + ' h of sleep';
+                            li.append(time, detail);
+                            return li;
+                        }));
+                    }
+
+                    sleepForm.addEventListener('submit', e => {
+                        e.preventDefault();
+                        calculate().catch(err => showSleepAlert('Request failed: ' + err.message, 'danger'));
+                    });
+
+                    sleepCopyBtn.addEventListener('click', async () => {
+                        try {
+                            await navigator.clipboard.writeText(location.href);
+                            showSleepAlert('Link copied to clipboard', 'success');
+                        } catch (e) {
+                            showSleepAlert('Copy failed', 'warning');
+                        }
+                    });
+
+                    // Shared link: restore the mode and time from the URL, then calculate
+                    const params = new URLSearchParams(location.search);
+                    for (const mode of ['wakeAt', 'sleepAt']) {
+                        if (params.get(mode)) {
+                            document.getElementById(mode === 'wakeAt' ? 'sleepModeWakeAt' : 'sleepModeSleepAt').checked = true;
+                            sleepTime.value = params.get(mode);
+                            sleepForm.requestSubmit();
+                        }
+                    }
+                </script>
+
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer th:replace="~{index.html :: body-footer}">
+    <!-- footer -->
+</footer>
+
+<div class="d-none" th:replace="~{index.html :: footer-div-script}">
+    <!-- footer script -->
+</div>
+</body>
+</html>
