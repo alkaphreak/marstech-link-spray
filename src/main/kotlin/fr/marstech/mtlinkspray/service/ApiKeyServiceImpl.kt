@@ -59,7 +59,7 @@ class ApiKeyServiceImpl(
                 namespace = namespace,
             )
         )
-        log.info("API key created: id={}, keyId={}, namespace={}, name={}", apiKey.id, keyId, namespace, name)
+        log.info("API key created: id={}, keyId={}, namespace={}, name={}", apiKey.id, keyId, namespace.forLog(), name.forLog())
         return ApiKeyCreationResult(apiKey = apiKey, rawKey = "$keyId.$secret")
     }
 
@@ -68,7 +68,7 @@ class ApiKeyServiceImpl(
     override fun setEnabled(id: String, isEnabled: Boolean): ApiKeyEntity {
         if (apiKeyRepository.findAndSetIsEnabledById(id, isEnabled) == 0L) throw notFound(id)
         val apiKey = apiKeyRepository.findById(id).orElseThrow { notFound(id) }
-        log.info("API key enabled set: id={}, keyId={}, namespace={}, enabled={}", id, apiKey.keyId, apiKey.namespace, isEnabled)
+        log.info("API key enabled set: id={}, keyId={}, namespace={}, enabled={}", id, apiKey.keyId, apiKey.namespace.forLog(), isEnabled)
         return apiKey
     }
 
@@ -77,9 +77,12 @@ class ApiKeyServiceImpl(
         val secret = generateSecret()
         val secretHash = passwordEncoder.encode(secret)!!
         if (apiKeyRepository.findAndSetSecretHashById(id, secretHash) == 0L) throw notFound(id)
-        log.info("API key secret regenerated: id={}, keyId={}, namespace={}", id, apiKey.keyId, apiKey.namespace)
+        log.info("API key secret regenerated: id={}, keyId={}, namespace={}", id, apiKey.keyId, apiKey.namespace.forLog())
         return ApiKeyCreationResult(apiKey = apiKey.copy(secretHash = secretHash), rawKey = "${apiKey.keyId}.$secret")
     }
+
+    /** Escapes CR/LF so an admin-supplied value cannot forge extra log lines. */
+    private fun String.forLog(): String = replace("\r", "\\r").replace("\n", "\\n")
 
     private fun notFound(id: String) = NoSuchElementException("API key $id not found")
 

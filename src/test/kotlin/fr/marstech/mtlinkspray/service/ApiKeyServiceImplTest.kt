@@ -266,6 +266,20 @@ class ApiKeyServiceImplTest {
         assertSecretsNotLogged(output, "s3cr3t", apiKey.secretHash)
     }
 
+    @Test
+    fun createApiKeyShouldEscapeLineBreaksInLoggedValues(output: CapturedOutput) {
+        // Given
+        `when`(apiKeyRepository.findByNamespace(org.mockito.kotlin.any())).thenReturn(Optional.empty())
+        `when`(apiKeyRepository.save(org.mockito.kotlin.any())).thenAnswer { it.arguments[0] }
+
+        // When
+        apiKeyService.createApiKey("App\nAPI key created: id=forged", "ns\r\nx")
+
+        // Then
+        assertTrue(output.out.contains("namespace=ns\\r\\nx, name=App\\nAPI key created: id=forged"))
+        assertFalse(output.out.lines().any { it.startsWith("API key created: id=forged") })
+    }
+
     private fun assertSecretsNotLogged(output: CapturedOutput, secret: String, secretHash: String) {
         assertFalse(output.all.contains(secret))
         assertFalse(output.all.contains(secretHash))
