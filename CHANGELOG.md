@@ -7,13 +7,35 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+---
+
+## [0.10.0] - 2026-11-09
+
 ### Added
 
 - Sleep cycle calculator: page `/sleep` (shareable `?wakeAt=` / `?sleepAt=` links) and `GET /api/sleep`, 90-minute cycles plus 15 minutes to fall asleep (MLS-213)
 
+---
+
+## [0.9.2] - 2026-11-09
+
+### Added
+
+- Click counting on short links: each redirect increments an anonymous per-link counter (atomic, no IP,
+  User-Agent or fingerprint), read through `GET /api/url-shortener/{uid}/stats`; the privacy page says so (MLS-261)
+
+### Dependencies
+
+- AWS SDK S3 2.57.3 → 2.57.10, commonmark 0.30.1 → 0.32.0, and the rest of the Dependabot maven group (#212)
+
+---
+
+## [0.9.1] - 2026-11-09
+
 ### Fixed
 
 - Write signatures: the TTL index is retried in the background with a capped backoff, no longer on every web write while it is missing (MLS-254)
+- Dashboards: the unique slug index is retried with a capped backoff when its creation fails at startup (MLS-260)
 
 ---
 
