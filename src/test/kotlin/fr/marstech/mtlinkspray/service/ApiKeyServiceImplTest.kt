@@ -8,15 +8,19 @@ import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.eq
+import org.springframework.boot.test.system.CapturedOutput
+import org.springframework.boot.test.system.OutputCaptureExtension
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import java.util.*
 
+@ExtendWith(OutputCaptureExtension::class)
 class ApiKeyServiceImplTest {
 
     private val apiKeyRepository = mock(ApiKeyRepository::class.java)
@@ -213,5 +217,57 @@ class ApiKeyServiceImplTest {
         assertThrows<NoSuchElementException> {
             apiKeyService.regenerateSecret("unknown")
         }
+    }
+
+    @Test
+    fun createApiKeyShouldLogKeyIdAndNamespaceWithoutSecretOrHash(output: CapturedOutput) {
+        // Given
+        `when`(apiKeyRepository.findByNamespace("maeva-app-1")).thenReturn(Optional.empty())
+        `when`(apiKeyRepository.save(org.mockito.kotlin.any())).thenAnswer { (it.arguments[0] as ApiKeyEntity).copy(id = "id1") }
+
+        // When
+        val result = apiKeyService.createApiKey("Maeva App", "maeva-app-1")
+
+        // Then
+        val (keyId, secret) = result.rawKey.split(".", limit = 2)
+        assertTrue(output.out.contains("API key created: id=id1, keyId=$keyId, namespace=maeva-app-1, name=Maeva App"))
+        assertSecretsNotLogged(output, secret, result.apiKey.secretHash)
+    }
+
+    @Test
+    fun setEnabledShouldLogKeyIdNamespaceAndState(output: CapturedOutput) {
+        // Given
+        val apiKey = givenApiKey(isEnabled = false)
+        `when`(apiKeyRepository.findAndSetIsEnabledById("id1", false)).thenReturn(1L)
+        `when`(apiKeyRepository.findById("id1")).thenReturn(Optional.of(apiKey))
+
+        // When
+        apiKeyService.setEnabled("id1", false)
+
+        // Then
+        assertTrue(output.out.contains("API key enabled set: id=id1, keyId=key123, namespace=maeva-app-1, enabled=false"))
+        assertSecretsNotLogged(output, "s3cr3t", apiKey.secretHash)
+    }
+
+    @Test
+    fun regenerateSecretShouldLogKeyIdAndNamespaceWithoutSecretOrHash(output: CapturedOutput) {
+        // Given
+        val apiKey = givenApiKey()
+        `when`(apiKeyRepository.findById("id1")).thenReturn(Optional.of(apiKey))
+        `when`(apiKeyRepository.findAndSetSecretHashById(eq("id1"), org.mockito.kotlin.any())).thenReturn(1L)
+
+        // When
+        val result = apiKeyService.regenerateSecret("id1")
+
+        // Then
+        val secret = result.rawKey.substringAfter(".")
+        assertTrue(output.out.contains("API key secret regenerated: id=id1, keyId=key123, namespace=maeva-app-1"))
+        assertSecretsNotLogged(output, secret, result.apiKey.secretHash)
+        assertSecretsNotLogged(output, "s3cr3t", apiKey.secretHash)
+    }
+
+    private fun assertSecretsNotLogged(output: CapturedOutput, secret: String, secretHash: String) {
+        assertFalse(output.all.contains(secret))
+        assertFalse(output.all.contains(secretHash))
     }
 }
