@@ -79,12 +79,16 @@
                         sleepAlert.replaceChildren(div);
                     }
 
+                    let calcSeq = 0;
+
                     async function calculate() {
+                        const seq = ++calcSeq;
                         const mode = sleepMode();
                         const query = new URLSearchParams({[mode]: sleepTime.value});
                         sleepAlert.replaceChildren();
                         const resp = await fetch('/api/sleep?' + query, {headers: {'Accept': 'application/json'}});
                         const data = await resp.json().catch(() => ({}));
+                        if (seq !== calcSeq) return;
                         if (!resp.ok) {
                             showSleepAlert(data.message || 'Request failed', 'warning');
                             return;
