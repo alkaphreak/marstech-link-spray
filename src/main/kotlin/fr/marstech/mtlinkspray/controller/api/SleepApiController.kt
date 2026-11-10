@@ -14,7 +14,7 @@ private val HH_MM: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm")
 
 /**
  * Sleep cycle calculator (MLS-213): exactly one of `wakeAt` or `sleepAt`, as HH:mm.
- * Times are parsed here, not bound by Spring: a binding failure would surface as a 500.
+ * Times are parsed here with a fixed HH:mm pattern, so a malformed value gets a readable 400 message.
  */
 @RestController
 @RequestMapping("/api/sleep")
