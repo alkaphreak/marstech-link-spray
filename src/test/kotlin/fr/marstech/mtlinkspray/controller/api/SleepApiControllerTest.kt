@@ -41,7 +41,7 @@ class SleepApiControllerTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = ["", "wakeAt=07:00&sleepAt=23:00", "wakeAt=7h", "sleepAt=25:00"])
+    @ValueSource(strings = ["", "wakeAt=07:00&sleepAt=23:00", "wakeAt=7h", "sleepAt=25:00", "wakeAt=24:00", "wakeAt=07:00&sleepAt="])
     fun shouldRejectMissingBothOrMalformedTimes(query: String) {
         // Given / When / Then
         mockMvc.perform(get("/api/sleep?$query"))

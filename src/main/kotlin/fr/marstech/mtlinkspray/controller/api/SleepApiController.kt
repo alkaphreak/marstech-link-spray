@@ -9,12 +9,14 @@ import org.springframework.web.bind.annotation.RestController
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
+import java.time.format.ResolverStyle
 
-private val HH_MM: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm")
+private val HH_MM: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm").withResolverStyle(ResolverStyle.STRICT)
 
 /**
  * Sleep cycle calculator (MLS-213): exactly one of `wakeAt` or `sleepAt`, as HH:mm.
- * Times are parsed here, not bound by Spring: a binding failure would surface as a 500.
+ * Times are parsed here with a strict HH:mm pattern (24:00 rejected), so a malformed value gets a readable 400 message.
+ * Exactly one parameter must be present: a blank one still counts as present.
  */
 @RestController
 @RequestMapping("/api/sleep")
@@ -25,10 +27,10 @@ class SleepApiController {
         @RequestParam(name = "wakeAt", required = false) wakeAt: String?,
         @RequestParam(name = "sleepAt", required = false) sleepAt: String?
     ): SleepCycleResponse {
-        require(wakeAt.isNullOrBlank() != sleepAt.isNullOrBlank()) {
+        require((wakeAt == null) != (sleepAt == null)) {
             "Provide exactly one of wakeAt or sleepAt (HH:mm)"
         }
-        return if (!wakeAt.isNullOrBlank()) SleepCycles.bedtimes(parse(wakeAt))
+        return if (wakeAt != null) SleepCycles.bedtimes(parse(wakeAt))
         else SleepCycles.wakeTimes(parse(sleepAt!!))
     }
 
