@@ -200,21 +200,25 @@ The **Deploy to DigitalOcean** button creates an App Platform app from the publi
 (`alkaphreak/marstech-link-spray:latest`) using [`.do/deploy.template.yaml`](.do/deploy.template.yaml), on the
 smallest instance (512 MB). App Platform asks for these values at creation:
 
-| Variables (`LINK_SPRAY_` prefix omitted)           | What to provide                                        |
-|----------------------------------------------------|--------------------------------------------------------|
-| `MONGODB_URI_LINK_SPRAY`                           | MongoDB URI: MongoDB Atlas or DigitalOcean managed (1) |
-| `ADMIN_USERNAME`, `ADMIN_PASSWORD`                 | Credentials for the admin pages                        |
-| `DO_SPACES_ENDPOINT`, `_ACCESS_KEY`, `_SECRET_KEY` | A Spaces bucket and its key, for image storage (2)     |
-| `DO_SPACES_BUCKET`                                 | Your bucket name (the default is the author's)         |
-| `SMTP_HOST`, `SMTP_USER`, `SMTP_PASSWORD`          | An SMTP account for notifications (3)                  |
-| `SENDER`, `RECEIVER`                               | Notification sender and recipient addresses            |
+| Variable                                                 | What to provide                                        |
+|----------------------------------------------------------|--------------------------------------------------------|
+| `MONGODB_URI_LINK_SPRAY`                                 | MongoDB URI: MongoDB Atlas or DigitalOcean managed (1) |
+| `LINK_SPRAY_ADMIN_USERNAME`, `LINK_SPRAY_ADMIN_PASSWORD` | Credentials for the admin pages                        |
 
-(1) App Platform has no MongoDB dev database. (2) `DO_SPACES_REGION` defaults to `tor1`. (3) `SMTP_PORT` defaults
-to 587, `SMTP_AUTH` and `SMTP_STARTTLS` to `true`.
+(1) App Platform has no MongoDB dev database.
 
-Mongo, admin, the Spaces endpoint and keys, and the SMTP user and password have no default: the app does not start
-without them. Values can be changed later in the app's **Settings > Environment Variables**, which redeploys it. The app does not redeploy itself on new releases: trigger a redeploy (with
-"force rebuild") to pull the latest image.
+Image storage and mail notifications are optional: add their variables later in the app's **Settings >
+Environment Variables**, which redeploys it.
+
+| Optional feature (`LINK_SPRAY_` prefix omitted) | Variables                                                                                                  | Without them                |
+|-------------------------------------------------|------------------------------------------------------------------------------------------------------------|-----------------------------|
+| Image storage (DigitalOcean Spaces)             | `DO_SPACES_ENDPOINT`, `_ACCESS_KEY`, `_SECRET_KEY`, `_BUCKET`                                              | Image API answers 503       |
+| Mail notifications (abuse reports)              | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_AUTH`, `SMTP_STARTTLS`, `SENDER`, `RECEIVER` | Reports saved, no mail sent |
+
+The Spaces endpoint and keys go together: an endpoint without keys stops the app at startup. Mail is enabled by
+`SMTP_USER`: an SMTP relay without authentication is not supported. The app logs a warning at startup for each
+disabled feature. It does not redeploy itself on new releases: trigger a
+redeploy (with "force rebuild") to pull the latest image.
 
 ## Configuration
 
@@ -225,9 +229,9 @@ The application can be configured through the `application.properties` file or e
 | `MONGODB_URI_LINK_SPRAY`                 | MongoDB connection URI (prod profile)  | -                    |
 | `LINK_SPRAY_ADMIN_USERNAME`              | Admin Basic-auth user (required)       | -                    |
 | `LINK_SPRAY_ADMIN_PASSWORD`              | Admin Basic-auth password (required)   | -                    |
-| `LINK_SPRAY_DO_SPACES_ENDPOINT`          | DO Spaces endpoint (required)          | -                    |
-| `LINK_SPRAY_DO_SPACES_ACCESS_KEY`        | DO Spaces access key (required)        | -                    |
-| `LINK_SPRAY_DO_SPACES_SECRET_KEY`        | DO Spaces secret key (required)        | -                    |
+| `LINK_SPRAY_DO_SPACES_ENDPOINT`          | DO Spaces endpoint (optional)          | -                    |
+| `LINK_SPRAY_DO_SPACES_ACCESS_KEY`        | DO Spaces access key (optional)        | -                    |
+| `LINK_SPRAY_DO_SPACES_SECRET_KEY`        | DO Spaces secret key (optional)        | -                    |
 | `LINK_SPRAY_DO_SPACES_REGION`            | DO Spaces region                       | `tor1`               |
 | `LINK_SPRAY_DO_SPACES_BUCKET`            | DO Spaces bucket for images            | `mt-mls-img-storage` |
 | `server.port`                            | HTTP server port                       | `8096`               |
@@ -241,10 +245,10 @@ The application can be configured through the `application.properties` file or e
 | `mt.link-spray.random-id.cache.treshold` | Threshold to trigger cache refill      | `10`                 |
 | `LINK_SPRAY_SMTP_HOST`                   | SMTP server host                       | `mailtrap.io`        |
 | `LINK_SPRAY_SMTP_PORT`                   | SMTP server port                       | `2525`               |
-| `LINK_SPRAY_SMTP_USER`                   | SMTP username                          | -                    |
+| `LINK_SPRAY_SMTP_USER`                   | SMTP username (empty: mail disabled)   | -                    |
 | `LINK_SPRAY_SMTP_PASSWORD`               | SMTP password                          | -                    |
-| `LINK_SPRAY_SMTP_AUTH`                   | Enable SMTP authentication             | -                    |
-| `LINK_SPRAY_SMTP_STARTTLS`               | Enable STARTTLS                        | -                    |
+| `LINK_SPRAY_SMTP_AUTH`                   | Enable SMTP authentication             | `false`              |
+| `LINK_SPRAY_SMTP_STARTTLS`               | Enable STARTTLS                        | `false`              |
 | `LINK_SPRAY_SENDER`                      | Notification sender email address      | `sender@localhost`   |
 | `LINK_SPRAY_RECEIVER`                    | Notification receiver email address    | `receiver@localhost` |
 

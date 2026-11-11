@@ -1,6 +1,7 @@
 # "Deploy to DigitalOcean" button template (MLS-93), read by App Platform from this path.
-# Envs without a value are prompted at app creation. Spaces and SMTP are required at startup
-# until MLS-263 makes them optional.
+# Envs without a value are prompted at app creation. Image storage (LINK_SPRAY_DO_SPACES_*) and
+# mail (LINK_SPRAY_SMTP_*, LINK_SPRAY_SENDER/RECEIVER) are optional (MLS-263): add them later in
+# the app's settings.
 spec:
   name: marstech-link-spray
   region: tor
@@ -29,37 +30,3 @@ spec:
         - key: LINK_SPRAY_ADMIN_PASSWORD
           scope: RUN_TIME
           type: SECRET
-        - key: LINK_SPRAY_DO_SPACES_ENDPOINT
-          scope: RUN_TIME
-        - key: LINK_SPRAY_DO_SPACES_REGION
-          scope: RUN_TIME
-          value: tor1
-        - key: LINK_SPRAY_DO_SPACES_BUCKET
-          scope: RUN_TIME
-        - key: LINK_SPRAY_DO_SPACES_ACCESS_KEY
-          scope: RUN_TIME
-          type: SECRET
-        - key: LINK_SPRAY_DO_SPACES_SECRET_KEY
-          scope: RUN_TIME
-          type: SECRET
-        - key: LINK_SPRAY_SMTP_HOST
-          scope: RUN_TIME
-        - key: LINK_SPRAY_SMTP_PORT
-          scope: RUN_TIME
-          value: "587"
-        - key: LINK_SPRAY_SMTP_USER
-          scope: RUN_TIME
-          type: SECRET
-        - key: LINK_SPRAY_SMTP_PASSWORD
-          scope: RUN_TIME
-          type: SECRET
-        - key: LINK_SPRAY_SMTP_AUTH
-          scope: RUN_TIME
-          value: "true"
-        - key: LINK_SPRAY_SMTP_STARTTLS
-          scope: RUN_TIME
-          value: "true"
-        - key: LINK_SPRAY_SENDER
-          scope: RUN_TIME
-        - key: LINK_SPRAY_RECEIVER
-          scope: RUN_TIME
