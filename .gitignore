@@ -65,5 +65,5 @@ replay_pid*
 /.marstech-ignored/
 /.local/
 # Claude Code local files (may hold secrets, MARSTECH-878)
-.claude/settings.local.json
+**/.claude/settings.local.json
 CLAUDE.local.md
