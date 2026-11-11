@@ -7,6 +7,11 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- "Deploy to DigitalOcean" button in the README (with referral code) and its App Platform template
+  `.do/deploy.template.yaml`, built on the Docker Hub image; README section listing the values to provide (MLS-93)
+
 ---
 
 ## [0.10.0] - 2026-11-09
