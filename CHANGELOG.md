@@ -12,6 +12,12 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - "Deploy to DigitalOcean" button in the README (with referral code) and its App Platform template
   `.do/deploy.template.yaml`, built on the Docker Hub image; README section listing the values to provide (MLS-93)
 
+### Changed
+
+- DigitalOcean Spaces and SMTP are optional at startup: without a Spaces endpoint the image API answers 503,
+  without an SMTP user notifications are skipped (abuse reports are still saved); a warning is logged at startup
+  for each. The deploy template now only asks for MongoDB and the admin credentials (MLS-263)
+
 ---
 
 ## [0.10.0] - 2026-11-09

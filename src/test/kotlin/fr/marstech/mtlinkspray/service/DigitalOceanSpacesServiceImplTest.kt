@@ -3,9 +3,11 @@ package fr.marstech.mtlinkspray.service
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.*
 import org.mockito.kotlin.any
+import org.springframework.web.server.ResponseStatusException
 import software.amazon.awssdk.core.ResponseInputStream
 import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.services.s3.S3Client
@@ -79,5 +81,18 @@ class DigitalOceanSpacesServiceImplTest {
         verify(s3Client).deleteObject(requestCaptor.capture())
         assertEquals("mt-mls-img-storage", requestCaptor.value.bucket())
         assertEquals("maeva-app-1/2026/07/image.jpg", requestCaptor.value.key())
+    }
+
+    @Test
+    fun callsShouldAnswer503WhenSpacesIsNotConfigured() {
+        val unconfigured = DigitalOceanSpacesServiceImpl(null, "mt-mls-img-storage")
+
+        listOf(
+            { unconfigured.upload("ns", "a.jpg", "image/jpeg", byteArrayOf(1)) },
+            { unconfigured.download("ns/2026/11/x.jpg") },
+            { unconfigured.delete("ns/2026/11/x.jpg") },
+        ).forEach { call ->
+            assertEquals(503, assertThrows<ResponseStatusException> { call() }.statusCode.value())
+        }
     }
 }
