@@ -21,6 +21,11 @@ simple steps to generate a unique link that will open all the specified URLs.
 [![Docker Image Version](https://img.shields.io/docker/v/alkaphreak/marstech-link-spray/latest?label=Docker%20Hub)](https://hub.docker.com/r/alkaphreak/marstech-link-spray)
 [![Docker Pulls](https://img.shields.io/docker/pulls/alkaphreak/marstech-link-spray)](https://hub.docker.com/r/alkaphreak/marstech-link-spray)
 
+[![Deploy to DigitalOcean](https://www.deploytodo.com/do-btn-blue.svg)](https://cloud.digitalocean.com/apps/new?repo=https://github.com/alkaphreak/marstech-link-spray/tree/main&refcode=be389fc15e1a)
+
+New to DigitalOcean? The button above uses a referral link that gives you free credits. See
+[Deploy your own copy](#deploy-your-own-copy) for what to prepare.
+
 ## Features
 
 - **Link Spray**: Enter multiple URLs and generate a single link to open them all at once.
@@ -188,6 +193,28 @@ See [docs/setup-guide.md](docs/setup-guide.md) for full environment setup instru
     ```
     http://localhost:8096
     ```
+
+## Deploy your own copy
+
+The **Deploy to DigitalOcean** button creates an App Platform app from the published Docker Hub image
+(`alkaphreak/marstech-link-spray:latest`) using [`.do/deploy.template.yaml`](.do/deploy.template.yaml), on the
+smallest instance (512 MB). App Platform asks for these values at creation:
+
+| Variables (`LINK_SPRAY_` prefix omitted)           | What to provide                                        |
+|----------------------------------------------------|--------------------------------------------------------|
+| `MONGODB_URI_LINK_SPRAY`                           | MongoDB URI: MongoDB Atlas or DigitalOcean managed (1) |
+| `ADMIN_USERNAME`, `ADMIN_PASSWORD`                 | Credentials for the admin pages                        |
+| `DO_SPACES_ENDPOINT`, `_ACCESS_KEY`, `_SECRET_KEY` | A Spaces bucket and its key, for image storage (2)     |
+| `DO_SPACES_BUCKET`                                 | Your bucket name (the default is the author's)         |
+| `SMTP_HOST`, `SMTP_USER`, `SMTP_PASSWORD`          | An SMTP account for notifications (3)                  |
+| `SENDER`, `RECEIVER`                               | Notification sender and recipient addresses            |
+
+(1) App Platform has no MongoDB dev database. (2) `DO_SPACES_REGION` defaults to `tor1`. (3) `SMTP_PORT` defaults
+to 587, `SMTP_AUTH` and `SMTP_STARTTLS` to `true`.
+
+Mongo, admin, the Spaces endpoint and keys, and the SMTP user and password have no default: the app does not start
+without them. Values can be changed later in the app's **Settings > Environment Variables**, which redeploys it. The app does not redeploy itself on new releases: trigger a redeploy (with
+"force rebuild") to pull the latest image.
 
 ## Configuration
 
