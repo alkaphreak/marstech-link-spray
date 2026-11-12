@@ -36,6 +36,7 @@ New to DigitalOcean? The button above uses a referral link that gives you free c
 - **Random Number Generator**: Generate random numbers within a configurable range via API.
 - **UUID Generator**: Generate random UUIDs via API.
 - **Random ID Cache**: Pre-generated ID cache for high-throughput short link creation.
+- **Cron Jobs**: Schedule HTTP health pings per API key, with run history and an alert mail after repeated failures.
 - **Mail Notifications**: Email notification support via configurable SMTP settings.
 - **Actuator**: Health check and endpoint mapping exposed via Spring Actuator.
 
@@ -70,6 +71,7 @@ src/main/kotlin/fr/marstech/mtlinkspray/
 ├── conf/           # Configuration classes and event handlers
 ├── controller/
 │   ├── api/        # REST API endpoints
+│   │   ├── CronJobApiController.kt
 │   │   ├── DashboardApiController.kt
 │   │   ├── PasteApiController.kt
 │   │   ├── RandomNumberApiController.kt
@@ -114,7 +116,18 @@ src/main/kotlin/fr/marstech/mtlinkspray/
 | GET    | `/api/uuid`                  | Generate a random UUID              |
 | POST   | `/api/md2pdf`                | Markdown body to PDF (`X-Api-Key`)  |
 | POST   | `/api/pdf2md`                | PDF body to Markdown (`X-Api-Key`)  |
+| POST   | `/api/cron/jobs`             | Create a cron job (201 Created)     |
+| GET    | `/api/cron/jobs`             | List the key's cron jobs            |
+| GET    | `/api/cron/jobs/{id}`        | Get a cron job                      |
+| PUT    | `/api/cron/jobs/{id}`        | Replace a cron job                  |
+| DELETE | `/api/cron/jobs/{id}`        | Delete a cron job and its runs      |
+| GET    | `/api/cron/jobs/{id}/runs`   | Run history, newest first (`limit`) |
 | GET    | `/{shortUrlUid}`             | Redirect to the target URL          |
+
+The `/api/cron/jobs` endpoints need an `X-Api-Key` header: each job belongs to that key's namespace. A job
+calls a public http(s) URL on a Spring cron schedule (6 fields, UTC, at most once a minute) and sends one alert
+mail after `failureThreshold` consecutive failures (MLS-220, ADR 0003). Headers are stored and returned in clear,
+a disabled key pauses its jobs, and a job due during a deploy can run twice: keep job calls idempotent.
 
 ## SDK Version Management
 
@@ -213,7 +226,7 @@ Environment Variables**, which redeploys it.
 | Optional feature (`LINK_SPRAY_` prefix omitted) | Variables                                                                                                  | Without them                |
 |-------------------------------------------------|------------------------------------------------------------------------------------------------------------|-----------------------------|
 | Image storage (DigitalOcean Spaces)             | `DO_SPACES_ENDPOINT`, `_ACCESS_KEY`, `_SECRET_KEY`, `_BUCKET`                                              | Image API answers 503       |
-| Mail notifications (abuse reports)              | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_AUTH`, `SMTP_STARTTLS`, `SENDER`, `RECEIVER` | Reports saved, no mail sent |
+| Mail notifications (abuse reports, cron alerts) | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_AUTH`, `SMTP_STARTTLS`, `SENDER`, `RECEIVER` | Reports saved, no mail sent |
 
 The Spaces endpoint and keys go together: an endpoint without keys stops the app at startup. Mail is enabled by
 `SMTP_USER`: an SMTP relay without authentication is not supported. The app logs a warning at startup for each
