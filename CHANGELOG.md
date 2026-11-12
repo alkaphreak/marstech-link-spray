@@ -7,6 +7,14 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Cron jobs page `/cron`: type an API key (kept in the tab's sessionStorage) to list its jobs with status, failures, last and next run, see a job's last 20 runs, and pause or resume it (MLS-265)
+
+### Changed
+
+- `PUT /api/cron/jobs/{id}` checks the target again only when the URL changes, so a job whose host stopped resolving can still be paused; each run still checks it (MLS-265)
+
 ---
 
 ## [0.11.0] - 2026-11-12

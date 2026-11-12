@@ -36,7 +36,7 @@ New to DigitalOcean? The button above uses a referral link that gives you free c
 - **Random Number Generator**: Generate random numbers within a configurable range via API.
 - **UUID Generator**: Generate random UUIDs via API.
 - **Random ID Cache**: Pre-generated ID cache for high-throughput short link creation.
-- **Cron Jobs**: Schedule HTTP health pings per API key, with run history and an alert mail after repeated failures.
+- **Cron Jobs**: Schedule HTTP health pings per API key, with run history and an alert mail after repeated failures; page `/cron` lists a key's jobs, their runs, and pauses or resumes them.
 - **Mail Notifications**: Email notification support via configurable SMTP settings.
 - **Actuator**: Health check and endpoint mapping exposed via Spring Actuator.
 

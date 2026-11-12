@@ -76,7 +76,7 @@ src/main/kotlin/fr/marstech/mtlinkspray/
 - `Pdf2MdApiController` → `PdfToMarkdownService` — raw PDF body to Markdown (PDFBox), `X-Api-Key` (MLS-196)
 - `OcrApiController` → `OcrServiceImpl` — raw PNG/JPEG body, or a scanned PDF of one page rendered at 300 dpi (MLS-253), to text through a `tesseract` subprocess (apt package in both Dockerfiles), one OCR at a time (503 when busy), anonymous per-IP quota lifted by `X-Api-Key` (429), web page `/ocr` (MLS-252)
 - `ImageCompressionApiController` → `ImageCompressionService` — `POST /api/img/compress`, raw PNG/JPEG body compressed or converted through `cwebp` (WebP) and `caesiumclt` (JPEG/PNG) subprocesses (installed in both Dockerfiles, ADR 0002), sharing the `NativeWorkPermit` with OCR, pixel caps 8 MP WebP / 8 MP JPEG / 3 MP PNG, anonymous per-IP quota lifted by `X-Api-Key` (MLS-108)
-- `CronJobApiController` → `CronJobService` — cron jobs per `X-Api-Key` namespace (MLS-220, ADR 0003): HTTP webhook on a Spring 6-field cron (min 1 min), scheduled in memory on `cronTaskScheduler` and re-registered at `ApplicationReadyEvent`, runs in `cron_runs` (TTL `mt.link-spray.cron.run-retention-days`), one alert mail when consecutive failures reach the threshold; `CronJobValidator` rejects non-public targets (SSRF) at creation and again at each run, redirects are not followed. Single instance only: a second one runs every job twice
+- `CronJobApiController` → `CronJobService` — cron jobs per `X-Api-Key` namespace (MLS-220, ADR 0003): HTTP webhook on a Spring 6-field cron (min 1 min), scheduled in memory on `cronTaskScheduler` and re-registered at `ApplicationReadyEvent`, runs in `cron_runs` (TTL `mt.link-spray.cron.run-retention-days`), one alert mail when consecutive failures reach the threshold; `CronJobValidator` rejects non-public targets (SSRF) at creation, on an update that changes the URL, and again at each run, redirects are not followed. Single instance only: a second one runs every job twice
 - `Sol4McpTools` → `DnsService`, `IpService`, `QrCodeService`, `RandomNumberService` — MCP server on `/mcp`, stateless Streamable HTTP, no session kept (Spring AI, MLS-266, ADR 0004): 6 read-only `@McpTool` methods (uuid, random_number, dns_lookup, dns_reverse, ip_lookup, qr_code as base64 PNG), inputs refused exactly as by the REST API, no authentication, no DNS propagation
 
 **Critical flows**:
@@ -88,6 +88,7 @@ src/main/kotlin/fr/marstech/mtlinkspray/
 - Upload image: `POST /api/images` (header `X-Api-Key: {keyId}.{secret}`) → `ImageApiController` → `ApiKeyServiceImpl.resolve` → `ImageServiceImpl` → `DigitalOceanSpacesServiceImpl` → DO Spaces bucket `mt-mls-img-storage`
 - Download image: `GET /api/images/{id}` → `ImageApiController` streams bytes from DO Spaces (no redirect), enforces visibility/ownership
 - Manage API keys: `GET/POST /admin/api-keys` (HTTP Basic) → `AdminApiKeyViewController` → `ApiKeyServiceImpl` (create/list/enable-disable)
+- Cron page: `GET /cron` → `ViewCronController` (no model); the page's JS calls `/api/cron/jobs` with the key typed in the page (sessionStorage), toggling a job is a `PUT` of the whole job with `isEnabled` flipped, API values rendered with `textContent` only (MLS-265)
 - Fingerprint page: `GET /fingerprint` → `ViewFingerprintController` (User-Agent, Accept-Language from the request) + client-side signals (Canvas, WebGL, audio, Intl, navigator, screen) hashed with `crypto.subtle`; nothing is sent or stored (MLS-254 phase A)
 
 ---
@@ -240,4 +241,4 @@ This file is **living documentation**. Any agent (or human) making changes to th
 
 ---
 
-_Last updated: 2026-10-31 — browser fingerprint page (MLS-254); OCR of scanned PDFs limited to 1 page (MLS-253)_
+_Last updated: 2026-11-12 — cron jobs page `/cron` (MLS-265)_

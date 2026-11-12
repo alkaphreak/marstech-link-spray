@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html data-bs-theme="dark" lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{index.html :: html-head}">
+    <title></title>
+</head>
+<body>
+
+<header th:replace="~{index.html :: body-header}">
+    <!-- nav bar-->
+</header>
+
+<section class="intro-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col">
+                <h3>Cron jobs</h3>
+                <p class="text-body-secondary">The jobs of one API key: status, next run, history, pause and resume.
+                    Create them with the <a href="https://github.com/alkaphreak/marstech-link-spray#api-endpoints">cron API</a>.
+                    Pausing or resuming a job resets its failure count.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="get-started">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col">
+
+                <!-- The key stays in this tab only (sessionStorage), it is sent as X-Api-Key to /api/cron/jobs. -->
+                <form id="cronKeyForm" class="d-flex gap-2 mb-3" autocomplete="off">
+                    <label for="cronApiKey" class="visually-hidden">API key</label>
+                    <input type="password" id="cronApiKey" class="form-control" placeholder="API key" required>
+                    <button class="btn btn-primary" type="submit"><i class="bi bi-arrow-repeat"></i> Load</button>
+                    <button id="cronForgetBtn" class="btn btn-outline-secondary" type="button">Forget</button>
+                </form>
+
+                <div id="cronAlert" role="status" aria-live="polite"></div>
+
+                <div class="table-responsive">
+                    <table class="table align-middle d-none" id="cronJobs">
+                        <thead>
+                        <tr>
+                            <th scope="col">Status</th><th scope="col">Name</th><th scope="col">Schedule (UTC)</th><th scope="col">Target</th>
+                            <th scope="col">Failures</th><th scope="col">Last run</th><th scope="col">Next run</th><th scope="col">Enabled</th>
+                        </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <h5 class="mt-4 d-none" id="cronRunsTitle"></h5>
+                <ul class="list-group" id="cronRuns"></ul>
+
+                <style>
+                    .cron-dot { display: inline-block; width: .6rem; height: .6rem; margin-right: .4rem; background: var(--muted); }
+                    .cron-dot.ok { background: var(--success); }
+                    .cron-dot.failed { background: var(--danger); }
+                    #cronJobs tbody tr { cursor: pointer; }
+                </style>
+
+                <script>
+                    const KEY = 'sol4.cron.apiKey';
+                    const cronKeyForm = document.getElementById('cronKeyForm');
+                    const cronApiKey = document.getElementById('cronApiKey');
+                    const cronAlert = document.getElementById('cronAlert');
+                    const cronJobs = document.getElementById('cronJobs');
+                    const cronRuns = document.getElementById('cronRuns');
+                    const cronRunsTitle = document.getElementById('cronRunsTitle');
+                    let apiKey = ''; // the key last loaded, not the field as edited since
+
+                    // Every API value goes through textContent: job names and URLs come from the key owner.
+                    function el(tag, text, className) {
+                        const e = document.createElement(tag);
+                        if (text != null) e.textContent = text;
+                        if (className) e.className = className;
+                        return e;
+                    }
+
+                    function showAlert(message, type) {
+                        cronAlert.replaceChildren(el('div', message, 'alert alert-' + type));
+                    }
+
+                    function when(instant) {
+                        return instant ? new Date(instant).toLocaleString(undefined, {timeZoneName: 'short'}) : '-';
+                    }
+
+                    async function api(path, options = {}) {
+                        const resp = await fetch('/api/cron/jobs' + path, {
+                            ...options,
+                            headers: {'Accept': 'application/json', 'Content-Type': 'application/json', 'X-Api-Key': apiKey}
+                        });
+                        const data = resp.status === 204 ? null : await resp.json().catch(() => ({}));
+                        if (!resp.ok) throw new Error((data && data.message) || ('Request failed (HTTP ' + resp.status + ')'));
+                        return data;
+                    }
+
+                    function statusCell(job) {
+                        const td = el('td');
+                        const state = !job.isEnabled ? 'paused' : (job.lastStatus || 'never run').toLowerCase();
+                        td.append(el('span', null, 'cron-dot ' + state), el('span', state));
+                        return td;
+                    }
+
+                    function toggle(job, input) {
+                        // PUT replaces the job: re-read it first so an API change made since the page loaded is kept,
+                        // then send it back whole with isEnabled flipped (this also resets its failure count).
+                        const path = '/' + encodeURIComponent(job.id);
+                        input.disabled = true;
+                        api(path).then(({name, schedule, method, url, headers, body, timeoutSeconds, failureThreshold}) => api(path, {
+                            method: 'PUT',
+                            body: JSON.stringify({name, schedule, method, url, headers, body, timeoutSeconds, failureThreshold, isEnabled: input.checked})
+                        })).then(loadJobs).catch(e => {
+                            input.checked = !input.checked;
+                            input.disabled = false;
+                            showAlert(e.message, 'warning');
+                        });
+                    }
+
+                    function jobRow(job) {
+                        const tr = el('tr');
+                        const sw = el('input', null, 'form-check-input');
+                        sw.type = 'checkbox';
+                        sw.setAttribute('role', 'switch');
+                        sw.checked = job.isEnabled;
+                        sw.setAttribute('aria-label', 'Enable ' + job.name);
+                        sw.addEventListener('click', e => e.stopPropagation());
+                        sw.addEventListener('change', () => toggle(job, sw));
+                        const swCell = el('td');
+                        swCell.append(el('div', null, 'form-check form-switch'));
+                        swCell.firstChild.append(sw);
+                        // A button, not only the row click, so the runs are reachable from the keyboard.
+                        const nameBtn = el('button', job.name, 'btn btn-link p-0 text-start');
+                        nameBtn.type = 'button';
+                        nameBtn.addEventListener('click', e => { e.stopPropagation(); loadRuns(job); });
+                        const nameCell = el('td');
+                        nameCell.append(nameBtn);
+                        tr.append(statusCell(job), nameCell, el('td', job.schedule, 'font-monospace'),
+                            el('td', job.method + ' ' + job.url, 'text-break'), el('td', String(job.consecutiveFailures)),
+                            el('td', when(job.lastRunAt)), el('td', when(job.nextRunAt)), swCell);
+                        tr.addEventListener('click', () => loadRuns(job));
+                        return tr;
+                    }
+
+                    function hideRuns() {
+                        runsJobId = null;
+                        cronRuns.replaceChildren();
+                        cronRunsTitle.classList.add('d-none');
+                    }
+
+                    async function loadJobs() {
+                        cronAlert.replaceChildren();
+                        try {
+                            const jobs = await api('');
+                            cronJobs.tBodies[0].replaceChildren(...jobs.map(jobRow));
+                            cronJobs.classList.toggle('d-none', jobs.length === 0);
+                            if (jobs.length === 0) showAlert('No cron job for this key.', 'info');
+                        } catch (e) {
+                            cronJobs.classList.add('d-none');
+                            showAlert(e.message, 'warning');
+                        }
+                    }
+
+                    let runsJobId = null;
+
+                    async function loadRuns(job) {
+                        runsJobId = job.id;
+                        cronRunsTitle.textContent = 'Last runs of ' + job.name;
+                        cronRunsTitle.classList.remove('d-none');
+                        try {
+                            const runs = await api('/' + encodeURIComponent(job.id) + '/runs?limit=20');
+                            if (runsJobId !== job.id) return; // another job was clicked meanwhile
+                            cronRuns.replaceChildren(...(runs.length ? runs.map(r => {
+                                const li = el('li', null, 'list-group-item d-flex justify-content-between gap-2');
+                                const left = el('span');
+                                left.append(el('span', null, 'cron-dot ' + r.status.toLowerCase()), el('span', when(r.startedAt)));
+                                li.append(left, el('span', (r.httpStatus ? 'HTTP ' + r.httpStatus : (r.error || r.status)) + ' - ' + r.durationMs + ' ms', 'text-body-secondary'));
+                                return li;
+                            }) : [el('li', 'No run yet.', 'list-group-item')]));
+                        } catch (e) {
+                            if (runsJobId !== job.id) return;
+                            hideRuns();
+                            showAlert(e.message, 'warning');
+                        }
+                    }
+
+                    cronKeyForm.addEventListener('submit', e => {
+                        e.preventDefault();
+                        apiKey = cronApiKey.value;
+                        try { sessionStorage.setItem(KEY, cronApiKey.value); } catch (_) { /* storage blocked: key kept in the field only */ }
+                        hideRuns(); // the runs shown may belong to the previous key
+                        loadJobs();
+                    });
+
+                    document.getElementById('cronForgetBtn').addEventListener('click', () => {
+                        try { sessionStorage.removeItem(KEY); } catch (_) { /* nothing stored */ }
+                        cronApiKey.value = apiKey = '';
+                        cronJobs.classList.add('d-none');
+                        cronJobs.tBodies[0].replaceChildren();
+                        hideRuns();
+                        cronAlert.replaceChildren();
+                    });
+
+                    try {
+                        const saved = sessionStorage.getItem(KEY);
+                        if (saved) {
+                            cronApiKey.value = apiKey = saved;
+                            loadJobs();
+                        }
+                    } catch (_) { /* storage blocked */ }
+                </script>
+
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer th:replace="~{index.html :: body-footer}">
+    <!-- footer -->
+</footer>
+
+<div class="d-none" th:replace="~{index.html :: footer-div-script}">
+    <!-- footer script -->
+</div>
+</body>
+</html>
