@@ -7,8 +7,15 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+---
+
+## [0.12.0] - 2026-11-12
+
 ### Added
 
+- MCP server on `/mcp` (Spring AI 2.0.2, stateless Streamable HTTP, no authentication): six read-only tools for
+  MCP clients, `uuid`, `random_number`, `dns_lookup`, `dns_reverse`, `ip_lookup` (address required) and `qr_code`
+  (PNG as base64), inputs refused as by the REST API; no DNS propagation tool (MLS-266, ADR 0004)
 - Cron jobs page `/cron`: type an API key (kept in the tab's sessionStorage) to list its jobs with status, failures, last and next run, see a job's last 20 runs, and pause or resume it (MLS-265)
 
 ### Changed
