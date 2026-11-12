@@ -58,6 +58,8 @@
         <maven.build.timestamp.format>yyyyMMdd-HHmmss</maven.build.timestamp.format>
         <kotlin.version>2.4.21</kotlin.version>
         <commonmark.version>0.32.0</commonmark.version>
+        <!-- MLS-264 (Spring AI agent action) aligns on this version -->
+        <spring-ai.version>2.0.2</spring-ai.version>
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
         <!--suppress XmlUnresolvedReference -->
         <sonar.organization>${env.SONAR_ORGANIZATION}</sonar.organization>
@@ -107,6 +109,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+        <!-- MCP server on /mcp (Streamable HTTP), tools in the mcp package (MLS-266, ADR 0004) -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-mcp-server-webmvc</artifactId>
+            <version>${spring-ai.version}</version>
         </dependency>
 
         <!-- QR code encoding (MLS-110); javase only decodes images back in tests -->
