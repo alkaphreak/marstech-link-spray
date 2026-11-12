@@ -11,6 +11,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - "Deploy to DigitalOcean" button in the README (with referral code) and its App Platform template
   `.do/deploy.template.yaml`, built on the Docker Hub image; README section listing the values to provide (MLS-93)
+- Cron jobs API `/api/cron/jobs` (`X-Api-Key`): HTTP health pings of a public URL on a Spring cron schedule
+  (UTC, at least one minute apart), run history kept 30 days, one alert mail after N consecutive failures;
+  in-process scheduler, single instance only (MLS-220, ADR 0003)
 
 ### Changed
 
