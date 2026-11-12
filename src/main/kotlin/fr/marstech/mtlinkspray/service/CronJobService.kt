@@ -15,6 +15,7 @@ import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.context.event.EventListener
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort.Direction.ASC
+import org.springframework.data.domain.Sort.Direction.DESC
 import org.springframework.data.mongodb.core.FindAndModifyOptions
 import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.data.mongodb.core.index.Index
@@ -77,7 +78,7 @@ class CronJobService(
         // Separate tries: a missing index must not stop the jobs from running.
         // ponytail: no retry, and a changed retention conflicts with the existing TTL index (drop it by hand)
         try {
-            mongoTemplate.indexOps(CronRunEntity::class.java).createIndex(Index().on("jobId", ASC))
+            mongoTemplate.indexOps(CronRunEntity::class.java).createIndex(Index().on("jobId", ASC).on("startedAt", DESC))
             mongoTemplate.indexOps(CronJobEntity::class.java).createIndex(Index().on("namespace", ASC))
         } catch (e: RuntimeException) {
             log.error("Cron lookup indexes not created", e)
@@ -124,7 +125,7 @@ class CronJobService(
 
     fun delete(apiKey: String?, id: String) {
         val job = get(apiKey, id)
-        futures.remove(job.id)?.cancel(false)
+        futures.compute(job.id) { _, old -> old?.cancel(false); null }
         jobRepository.deleteById(job.id)
         runRepository.deleteByJobId(job.id)
     }
@@ -142,7 +143,7 @@ class CronJobService(
      * Skipped, without a run record, while the namespace's API key is disabled.
      */
     fun execute(jobId: String) {
-        val job = jobRepository.findById(jobId).orElse(null) ?: return
+        val job = jobRepository.findById(jobId).orElse(null)?.takeIf { it.isEnabled } ?: return
         // A disabled or deleted key stops its jobs, and re-enabling it resumes them.
         if (!apiKeyRepository.findByNamespace(job.namespace).map { it.isEnabled }.orElse(false)) return
         val startedAt = Instant.now()
@@ -152,10 +153,11 @@ class CronJobService(
         // Atomic $inc: an update resetting the counter during the call is not overwritten by a stale value.
         val update = Update().set("lastRunAt", startedAt).set("lastStatus", status)
             .let { if (status == CronRunStatus.OK) it.set("consecutiveFailures", 0) else it.inc("consecutiveFailures", 1) }
-        val failures = mongoTemplate.findAndModify(
+        // Threshold read from the stored job too: a PUT during the call may have changed it.
+        val stored = mongoTemplate.findAndModify(
             Query(where("_id").`is`(job.id)), update, FindAndModifyOptions.options().returnNew(true), CronJobEntity::class.java,
-        )?.consecutiveFailures ?: return
-        if (status == CronRunStatus.FAILED && failures == job.failureThreshold) alert(job, failures, error)
+        ) ?: return
+        if (status == CronRunStatus.FAILED && stored.consecutiveFailures == stored.failureThreshold) alert(stored, stored.consecutiveFailures, error)
     }
 
     /**
@@ -205,15 +207,20 @@ class CronJobService(
         with(request) { httpRequest(method, url, headers, body, timeoutSeconds) }
     }
 
+    // compute() is atomic per key: concurrent PUTs cannot leave an untracked recurring task behind.
     private fun reschedule(job: CronJobEntity) {
-        futures.remove(job.id)?.cancel(false)
-        if (job.isEnabled) schedule(job)
+        futures.compute(job.id) { _, old ->
+            old?.cancel(false)
+            if (job.isEnabled) trigger(job) else null
+        }
     }
 
     private fun schedule(job: CronJobEntity) {
-        scheduler.schedule({ execute(job.id) }, CronTrigger(job.schedule, ZoneOffset.UTC))
-            ?.let { futures[job.id] = it }
+        futures.compute(job.id) { _, old -> old ?: trigger(job) }
     }
+
+    private fun trigger(job: CronJobEntity): ScheduledFuture<*>? =
+        scheduler.schedule({ execute(job.id) }, CronTrigger(job.schedule, ZoneOffset.UTC))
 
     private fun namespaceOf(apiKey: String?) = apiKeyService.resolve(apiKey).namespace
 

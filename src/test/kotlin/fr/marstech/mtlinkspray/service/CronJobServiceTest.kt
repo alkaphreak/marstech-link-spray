@@ -112,6 +112,30 @@ class CronJobServiceTest {
     }
 
     @Test
+    fun shouldAlertOnStoredThresholdWhenChangedDuringRun() {
+        // Given: the job had threshold 3 when the run started, a PUT lowered it to 1
+        whenever(jobRepository.findById("job-1")).thenReturn(Optional.of(job))
+        whenever(mongoTemplate.findAndModify(any<Query>(), any<Update>(), any<FindAndModifyOptions>(), eq(CronJobEntity::class.java)))
+            .thenReturn(job.copy(consecutiveFailures = 1, failureThreshold = 1))
+        givenResponse(500)
+        // When
+        service.execute("job-1")
+        // Then
+        verify(mailSenderService).sendMail(any(), any())
+    }
+
+    @Test
+    fun shouldSkipRunWhenJobDisabledSinceScheduling() {
+        // Given
+        whenever(jobRepository.findById("job-1")).thenReturn(Optional.of(job.copy(isEnabled = false)))
+        // When
+        service.execute("job-1")
+        // Then
+        verify(httpClient, never()).sendAsync(any<HttpRequest>(), any<HttpResponse.BodyHandler<InputStream>>())
+        verify(runRepository, never()).save(any<CronRunEntity>())
+    }
+
+    @Test
     fun shouldNotAlertAgainPastThreshold() {
         // Given
         givenStoredJob(failuresAfterRun = 4)
