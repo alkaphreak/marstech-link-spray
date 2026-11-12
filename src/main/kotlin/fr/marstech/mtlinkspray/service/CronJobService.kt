@@ -118,7 +118,8 @@ class CronJobService(
 
     fun update(apiKey: String?, id: String, request: CronJobRequest): CronJobEntity {
         val existing = get(apiKey, id)
-        validate(request)
+        // Same URL: no DNS check now (each run checks it), so a job whose host stopped resolving can still be paused.
+        validate(request, checkUrl = request.url != existing.url)
         // A changed target starts a fresh failure count.
         return jobRepository.save(request.toEntity(existing).copy(consecutiveFailures = 0)).also(::reschedule)
     }
@@ -199,9 +200,9 @@ class CronJobService(
         log.warn("Cron alert mail not sent for job {}: {}", job.id, e.toString())
     }
 
-    private fun validate(request: CronJobRequest) {
+    private fun validate(request: CronJobRequest, checkUrl: Boolean = true) {
         CronJobValidator.validateSchedule(request.schedule)
-        CronJobValidator.validateUrl(request.url, resolve)
+        if (checkUrl) CronJobValidator.validateUrl(request.url, resolve)
         require(request.headers.all { (k, v) -> k.length <= 256 && v.length <= 4096 }) { "Header name or value too long" }
         // HttpClient rejects restricted headers (Host, Connection...) only when building: fail at 400 now, not at every run.
         with(request) { httpRequest(method, url, headers, body, timeoutSeconds) }

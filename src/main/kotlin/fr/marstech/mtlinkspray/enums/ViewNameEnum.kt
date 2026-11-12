@@ -18,6 +18,7 @@ enum class ViewNameEnum(
     OCR(viewName = "ocr", viewPage = "OCR", orderInMenu = 9),
     FINGERPRINT(viewName = "fingerprint", viewPage = "Fingerprint", orderInMenu = 10),
     SLEEP(viewName = "sleep", viewPage = "Sleep", orderInMenu = 11),
+    CRON(viewName = "cron", viewPage = "Cron", orderInMenu = 12),
     ABUSE(viewName = "abuse", viewPage = "Abuse"),
     PRIVACY(viewName = "privacy", viewPage = "Privacy", orderInMenu = -1, isInMenu = false),
 

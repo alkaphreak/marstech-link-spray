@@ -300,6 +300,28 @@ class CronJobServiceTest {
     }
 
     @Test
+    fun shouldPauseJobWhoseHostNoLongerResolves() {
+        // Given
+        whenever(jobRepository.findByIdAndNamespace("job-1", "ns")).thenReturn(Optional.of(job))
+        service.resolve = { throw java.net.UnknownHostException(it) }
+        // When
+        val updated = service.update("key", "job-1", CronJobRequest(name = job.name, schedule = job.schedule, url = job.url, isEnabled = false))
+        // Then
+        assertEquals(false, updated.isEnabled)
+    }
+
+    @Test
+    fun shouldRejectUpdateToUnresolvableNewUrl() {
+        // Given
+        whenever(jobRepository.findByIdAndNamespace("job-1", "ns")).thenReturn(Optional.of(job))
+        service.resolve = { throw java.net.UnknownHostException(it) }
+        // When / Then
+        assertThrows<IllegalArgumentException> {
+            service.update("key", "job-1", CronJobRequest(name = job.name, schedule = job.schedule, url = "https://other.example.com"))
+        }
+    }
+
+    @Test
     fun shouldDeleteJobAndItsRuns() {
         whenever(jobRepository.findByIdAndNamespace("job-1", "ns")).thenReturn(Optional.of(job))
         service.delete("key", "job-1")

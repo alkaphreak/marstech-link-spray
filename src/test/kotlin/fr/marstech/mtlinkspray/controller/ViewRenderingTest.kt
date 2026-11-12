@@ -62,6 +62,7 @@ internal class ViewRenderingTest {
         "/paste, inputPasteBinTextArea",
         "/random, randomForm",
         "/sleep, sleepForm",
+        "/cron, cronKeyForm",
         "/uuid, uuid-value",
         "/shortener, input-link",
         "/dashboard, input-dashboard-name",
