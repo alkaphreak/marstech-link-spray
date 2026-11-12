@@ -148,14 +148,19 @@
                         cronRunsTitle.classList.add('d-none');
                     }
 
+                    let jobsSeq = 0; // bumped by every load and by Forget: a superseded response is dropped
+
                     async function loadJobs() {
+                        const seq = ++jobsSeq;
                         cronAlert.replaceChildren();
                         try {
                             const jobs = await api('');
+                            if (seq !== jobsSeq) return;
                             cronJobs.tBodies[0].replaceChildren(...jobs.map(jobRow));
                             cronJobs.classList.toggle('d-none', jobs.length === 0);
                             if (jobs.length === 0) showAlert('No cron job for this key.', 'info');
                         } catch (e) {
+                            if (seq !== jobsSeq) return;
                             cronJobs.classList.add('d-none');
                             showAlert(e.message, 'warning');
                         }
@@ -165,6 +170,7 @@
 
                     async function loadRuns(job) {
                         runsJobId = job.id;
+                        cronRuns.replaceChildren(); // not the previous job's runs under this title
                         cronRunsTitle.textContent = 'Last runs of ' + job.name;
                         cronRunsTitle.classList.remove('d-none');
                         try {
@@ -195,6 +201,7 @@
                     document.getElementById('cronForgetBtn').addEventListener('click', () => {
                         try { sessionStorage.removeItem(KEY); } catch (_) { /* nothing stored */ }
                         cronApiKey.value = apiKey = '';
+                        jobsSeq++;
                         cronJobs.classList.add('d-none');
                         cronJobs.tBodies[0].replaceChildren();
                         hideRuns();
