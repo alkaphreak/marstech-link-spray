@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+---
+
+## [0.11.0] - 2026-11-12
+
 ### Added
 
 - "Deploy to DigitalOcean" button in the README (with referral code) and its App Platform template
