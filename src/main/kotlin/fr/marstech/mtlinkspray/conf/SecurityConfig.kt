@@ -38,7 +38,7 @@ class SecurityConfig(
                 it.anyRequest().permitAll()
             }
             .httpBasic { }
-            .headers { it.contentSecurityPolicy { csp -> csp.policyDirectives(CONTENT_SECURITY_POLICY).reportOnly() } }
+            .headers { it.contentSecurityPolicy { csp -> csp.policyDirectives(CONTENT_SECURITY_POLICY) } }
         return http.build()
     }
 
@@ -56,8 +56,8 @@ class SecurityConfig(
 
     companion object {
         /**
-         * Sent as Content-Security-Policy-Report-Only until every view is checked in a browser (MLS-269):
-         * violations only show in the console. Images allow any https origin for dashboard avatars.
+         * Enforced on every response (MLS-269): no inline script or style, so templates keep their code in
+         * static files (TemplateCspComplianceTest). Images allow any https origin for dashboard avatars.
          */
         const val CONTENT_SECURITY_POLICY = "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; " +
             "style-src 'self' https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net; " +

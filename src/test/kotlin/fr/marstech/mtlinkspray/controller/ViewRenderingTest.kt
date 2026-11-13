@@ -76,7 +76,8 @@ internal class ViewRenderingTest {
         mockMvc.perform(get(path))
             .andExpect(status().isOk)
             .andExpect(content().string(containsString("id=\"$elementId\"")))
-            .andExpect(header().string("Content-Security-Policy-Report-Only", SecurityConfig.CONTENT_SECURITY_POLICY))
+            .andExpect(header().string("Content-Security-Policy", SecurityConfig.CONTENT_SECURITY_POLICY))
+            .andExpect(header().doesNotExist("Content-Security-Policy-Report-Only"))
     }
 
     @Test
@@ -94,7 +95,7 @@ internal class ViewRenderingTest {
             .andExpect(content().string(containsString("data-bs-theme=\"dark\"")))
             .andExpect(content().string(containsString("id=\"dashboard-bio\"")))
             .andExpect(content().string(containsString("href=\"https://example.com\"")))
-            .andExpect(header().string("Content-Security-Policy-Report-Only", SecurityConfig.CONTENT_SECURITY_POLICY))
+            .andExpect(header().string("Content-Security-Policy", SecurityConfig.CONTENT_SECURITY_POLICY))
     }
 
     @Test
@@ -103,7 +104,7 @@ internal class ViewRenderingTest {
         mockMvc.perform(get("/admin/api-keys").with(httpBasic(adminUsername, adminPassword)))
             .andExpect(status().isOk)
             .andExpect(content().string(containsString("id=\"input-namespace\"")))
-            .andExpect(header().string("Content-Security-Policy-Report-Only", SecurityConfig.CONTENT_SECURITY_POLICY))
+            .andExpect(header().string("Content-Security-Policy", SecurityConfig.CONTENT_SECURITY_POLICY))
     }
 
     @Test

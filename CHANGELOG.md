@@ -7,6 +7,11 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Security
+
+- `Content-Security-Policy` enforced on every response (was Report-Only in 0.13.0): the browser now blocks any script
+  or style outside `self` and jsDelivr, inline code, plugins and framing (MLS-269)
+
 ---
 
 ## [0.13.0] - 2026-11-13
