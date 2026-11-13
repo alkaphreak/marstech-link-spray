@@ -139,6 +139,11 @@ See `.local/llm/README.md` for complete conventions.
 - **API versioning**: content negotiation (`Accept: application/json;version=N`, 1.0 by default,
   ADR 0001). A breaking change adds a `version = "2"` method next to the v1 one; URLs never change
 - **Spring Security is scoped to `/admin/**` only** (HTTP Basic) — `SecurityConfig` `permitAll()`s everything else. CSRF is enforced on `/admin/**` only: admin forms must use `th:action` so Spring Security injects the token; the public forms (spray, paste, dashboard) carry no token and stay exempt. Any new `@WebMvcTest` must `@Import(SecurityConfig::class)`, otherwise Spring Boot falls back to its default security autoconfig (login form + CSRF) and breaks the test.
+- **No inline script or style in templates** (MLS-269, Content-Security-Policy): a page script goes in
+  `static/assets/js/pages/<view>.js`, CSS in `static/assets/css/sol4.css`, and a behavior that would be an
+  `on*=` handler is a `data-*` attribute handled in `mt-script.js` (`data-copy-input`, `data-copy-key`,
+  `data-reload`, `data-no-submit`, `data-confirm`). Build DOM with `textContent`, never `innerHTML`.
+  `TemplateCspComplianceTest` fails the build otherwise
 - **Request-param validation**: `ValidationConfig` sets `adaptConstraintViolations`, so a `@Validated`
   controller throws `MethodValidationException` (mapped to 400, MLS-244). To reproduce it in a test, use
   `@WebMvcTest` with `@Import(ValidationConfig::class)`: a standalone MockMvc never runs that validation
@@ -241,4 +246,4 @@ This file is **living documentation**. Any agent (or human) making changes to th
 
 ---
 
-_Last updated: 2026-11-12 — cron jobs page `/cron` (MLS-265)_
+_Last updated: 2026-11-13 — no inline script or style in templates (MLS-269)_

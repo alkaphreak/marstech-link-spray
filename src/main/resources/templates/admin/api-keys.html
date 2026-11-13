@@ -34,7 +34,7 @@
                     Copy it now - it will not be shown again:
                     <pre class="mb-2" th:text="${newRawKey}">keyId.secret</pre>
                     <button class="btn btn-primary"
-                            onclick="copyValueToClipboard(this.dataset.key,'liveAlertPlaceholder','API key copied to clipboard')"
+                            data-copy-key
                             th:data-key="${newRawKey}"
                             type="button">
                         <i class="bi bi-clipboard"></i> Copy API key
@@ -106,7 +106,7 @@
                                 </button>
                             </form>
                             <form method="post"
-                                  onsubmit="return confirm('Regenerate this secret? The current key stops working immediately.')"
+                                  data-confirm="Regenerate this secret? The current key stops working immediately."
                                   th:action="@{'/admin/api-keys/' + ${apiKey.id} + '/regenerate'}">
                                 <button class="btn btn-sm btn-outline-danger" type="submit">Regenerate secret</button>
                             </form>
