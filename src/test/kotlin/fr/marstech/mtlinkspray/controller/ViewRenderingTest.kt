@@ -20,6 +20,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.header
+import fr.marstech.mtlinkspray.conf.SecurityConfig
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 /**
@@ -74,6 +76,7 @@ internal class ViewRenderingTest {
         mockMvc.perform(get(path))
             .andExpect(status().isOk)
             .andExpect(content().string(containsString("id=\"$elementId\"")))
+            .andExpect(header().string("Content-Security-Policy-Report-Only", SecurityConfig.CONTENT_SECURITY_POLICY))
     }
 
     @Test
@@ -91,6 +94,7 @@ internal class ViewRenderingTest {
             .andExpect(content().string(containsString("data-bs-theme=\"dark\"")))
             .andExpect(content().string(containsString("id=\"dashboard-bio\"")))
             .andExpect(content().string(containsString("href=\"https://example.com\"")))
+            .andExpect(header().string("Content-Security-Policy-Report-Only", SecurityConfig.CONTENT_SECURITY_POLICY))
     }
 
     @Test
@@ -99,6 +103,7 @@ internal class ViewRenderingTest {
         mockMvc.perform(get("/admin/api-keys").with(httpBasic(adminUsername, adminPassword)))
             .andExpect(status().isOk)
             .andExpect(content().string(containsString("id=\"input-namespace\"")))
+            .andExpect(header().string("Content-Security-Policy-Report-Only", SecurityConfig.CONTENT_SECURITY_POLICY))
     }
 
     @Test

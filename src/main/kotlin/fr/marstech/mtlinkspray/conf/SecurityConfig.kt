@@ -38,6 +38,7 @@ class SecurityConfig(
                 it.anyRequest().permitAll()
             }
             .httpBasic { }
+            .headers { it.contentSecurityPolicy { csp -> csp.policyDirectives(CONTENT_SECURITY_POLICY).reportOnly() } }
         return http.build()
     }
 
@@ -51,5 +52,16 @@ class SecurityConfig(
             .roles("ADMIN")
             .build()
         return InMemoryUserDetailsManager(admin)
+    }
+
+    companion object {
+        /**
+         * Sent as Content-Security-Policy-Report-Only until every view is checked in a browser (MLS-269):
+         * violations only show in the console. Images allow any https origin for dashboard avatars.
+         */
+        const val CONTENT_SECURITY_POLICY = "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; " +
+            "style-src 'self' https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net; " +
+            "img-src 'self' data: https:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; " +
+            "form-action 'self'; object-src 'none'"
     }
 }
