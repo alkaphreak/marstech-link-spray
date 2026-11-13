@@ -39,7 +39,8 @@ src/main/kotlin/fr/marstech/mtlinkspray/
 │   ├── api/        # REST API endpoints (ShortenerApiController, SprayApiController,
 │   │               #   PasteApiController, DashboardApiController, ImageApiController,
 │   │               #   UuidApiController, RandomNumberApiController, SleepApiController, RootApiController,
-│   │               #   Md2PdfApiController, Pdf2MdApiController, OcrApiController, CronJobApiController)
+│   │               #   Md2PdfApiController, Pdf2MdApiController, OcrApiController, CronJobApiController,
+│   │               #   ChecklistApiController)
 │   ├── view/       # Thymeleaf view controllers (incl. AdminApiKeyViewController)
 │   └── commons/    # Shared controller utilities
 ├── dto/            # Request/response DTOs (PasteRequest, PasteResponse, DashboardDto,
@@ -77,6 +78,7 @@ src/main/kotlin/fr/marstech/mtlinkspray/
 - `OcrApiController` → `OcrServiceImpl` — raw PNG/JPEG body, or a scanned PDF of one page rendered at 300 dpi (MLS-253), to text through a `tesseract` subprocess (apt package in both Dockerfiles), one OCR at a time (503 when busy), anonymous per-IP quota lifted by `X-Api-Key` (429), web page `/ocr` (MLS-252)
 - `ImageCompressionApiController` → `ImageCompressionService` — `POST /api/img/compress`, raw PNG/JPEG body compressed or converted through `cwebp` (WebP) and `caesiumclt` (JPEG/PNG) subprocesses (installed in both Dockerfiles, ADR 0002), sharing the `NativeWorkPermit` with OCR, pixel caps 8 MP WebP / 8 MP JPEG / 3 MP PNG, anonymous per-IP quota lifted by `X-Api-Key` (MLS-108)
 - `CronJobApiController` → `CronJobService` — cron jobs per `X-Api-Key` namespace (MLS-220, ADR 0003): HTTP webhook on a Spring 6-field cron (min 1 min), scheduled in memory on `cronTaskScheduler` and re-registered at `ApplicationReadyEvent`, runs in `cron_runs` (TTL `mt.link-spray.cron.run-retention-days`), one alert mail when consecutive failures reach the threshold; `CronJobValidator` rejects non-public targets (SSRF) at creation, on an update that changes the URL, and again at each run, redirects are not followed. Single instance only: a second one runs every job twice
+- `ChecklistApiController` → `ChecklistService` — checklist templates and instances per `X-Api-Key` namespace on `/api/checklists` (MLS-222, ADR 0005): an instance copies its template's items at creation and never resyncs; template replace carries the `version` read (`@Version`, stale -> 409 via `ResponseStatusException`); item status is one atomic `updateFirst` with `arrayFilters`; progress `DONE / (total - SKIPPED)` computed, not stored; limits under `mt.link-spray.checklist.*`
 - `Sol4McpTools` → `DnsService`, `IpService`, `QrCodeService`, `RandomNumberService` — MCP server on `/mcp`, stateless Streamable HTTP, no session kept (Spring AI, MLS-266, ADR 0004): 6 read-only `@McpTool` methods (uuid, random_number, dns_lookup, dns_reverse, ip_lookup, qr_code as base64 PNG), inputs refused exactly as by the REST API, no authentication, no DNS propagation
 
 **Critical flows**:
