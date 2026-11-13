@@ -38,9 +38,9 @@ const appendAlert = (message, type, alertPlaceholder) => {
 // Declarative behaviors, replacing inline on* handlers (blocked by the Content-Security-Policy)
 document.addEventListener('click', event => {
     const copyInput = event.target.closest('[data-copy-input]');
-    if (copyInput) copyFormInputValueToClipboard(copyInput.dataset.copyInput, 'liveAlertPlaceholder');
+    if (copyInput) void copyFormInputValueToClipboard(copyInput.dataset.copyInput, 'liveAlertPlaceholder');
     const copyKey = event.target.closest('[data-copy-key]');
-    if (copyKey) copyValueToClipboard(copyKey.dataset.key, 'liveAlertPlaceholder', 'API key copied to clipboard');
+    if (copyKey) void copyValueToClipboard(copyKey.dataset.key, 'liveAlertPlaceholder', 'API key copied to clipboard');
     if (event.target.closest('[data-reload]')) location.reload();
 });
 

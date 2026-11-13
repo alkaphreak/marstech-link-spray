@@ -70,7 +70,7 @@ function jobRow(job) {
     // A button, not only the row click, so the runs are reachable from the keyboard.
     const nameBtn = el('button', job.name, 'btn btn-link p-0 text-start');
     nameBtn.type = 'button';
-    nameBtn.addEventListener('click', e => { e.stopPropagation(); loadRuns(job); });
+    nameBtn.addEventListener('click', e => { e.stopPropagation(); void loadRuns(job); });
     const nameCell = el('td');
     nameCell.append(nameBtn);
     tr.append(statusCell(job), nameCell, el('td', job.schedule, 'font-monospace'),
@@ -133,7 +133,7 @@ cronKeyForm.addEventListener('submit', e => {
     apiKey = cronApiKey.value;
     try { sessionStorage.setItem(KEY, cronApiKey.value); } catch (_) { /* storage blocked: key kept in the field only */ }
     hideRuns(); // the runs shown may belong to the previous key
-    loadJobs();
+    void loadJobs();
 });
 
 document.getElementById('cronForgetBtn').addEventListener('click', () => {
@@ -150,6 +150,6 @@ try {
     const saved = sessionStorage.getItem(KEY);
     if (saved) {
         cronApiKey.value = apiKey = saved;
-        loadJobs();
+        void loadJobs();
     }
 } catch (_) { /* storage blocked */ }

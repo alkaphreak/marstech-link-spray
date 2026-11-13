@@ -110,7 +110,7 @@ async function downloadZip(format) {
 const onDownload = format => e => {
     if (!isBulk()) return;
     e.preventDefault();
-    downloadZip(format);
+    void downloadZip(format);
 };
 downloadPng.addEventListener('click', onDownload('png'));
 downloadSvg.addEventListener('click', onDownload('svg'));
@@ -129,6 +129,6 @@ document.getElementById('qrForm').addEventListener('change', e => {
     if (!['qrType', 'qrText', 'qrShortenFirst'].includes(e.target.id)) return;
     // A pending debounced refresh() would clear the shortening error shown just after
     clearTimeout(timer);
-    shortenThenRefresh();
+    void shortenThenRefresh();
 });
 refresh();

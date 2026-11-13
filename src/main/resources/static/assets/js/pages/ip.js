@@ -65,7 +65,7 @@ function webrtcAddresses() {
             }
         };
         pc.createDataChannel('probe');
-        pc.createOffer().then(offer => pc.setLocalDescription(offer));
+        void pc.createOffer().then(offer => pc.setLocalDescription(offer));
         setTimeout(done, 5000);
     });
 }
@@ -97,7 +97,7 @@ async function checkWebrtc() {
 
 document.getElementById('ipForm').addEventListener('submit', e => {
     e.preventDefault();
-    lookup(document.getElementById('ipAddress').value.trim());
+    void lookup(document.getElementById('ipAddress').value.trim());
 });
 document.getElementById('ipMine').addEventListener('click', () => lookup(null));
 document.getElementById('webrtcCheck').addEventListener('click', checkWebrtc);

@@ -11,12 +11,12 @@ import java.io.File
 class TemplateCspComplianceTest {
 
     private val forbidden = mapOf(
-        "inline <script> (move it to static/assets/js/pages)" to Regex("""<script(?![^>]*\bsrc=)[^>]*>"""),
-        "inline event handler (use a data-* attribute handled in mt-script.js)" to Regex("""(\s|th:)on[a-z]+\s*=|th:attr="[^"]*\bon[a-z]+\s*="""),
-        "javascript: URL" to Regex("""javascript:""", RegexOption.IGNORE_CASE),
-        "<style> block (move it to static/assets/css)" to Regex("""<style\b"""),
-        "style attribute" to Regex("""(\s|th:)style\s*="""),
-    )
+        "inline <script> (move it to static/assets/js/pages)" to """<script(?![^>]*\bsrc=)[^>]*>""",
+        "inline event handler (use a data-* attribute handled in mt-script.js)" to """(\s|th:)on[a-z]+\s*=|th:attr=["'][^"']*\bon[a-z]+\s*=""",
+        "javascript: URL" to """javascript:""",
+        "<style> block (move it to static/assets/css)" to """<style\b""",
+        "style attribute" to """(\s|th:)style(append)?\s*=|th:attr=["'][^"']*\bstyle\s*=""",
+    ).mapValues { (_, pattern) -> Regex(pattern, RegexOption.IGNORE_CASE) } // HTML names are case-insensitive
 
     @Test
     fun shouldKeepTemplatesFreeOfInlineScriptsAndStyles() {

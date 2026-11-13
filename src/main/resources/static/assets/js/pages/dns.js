@@ -47,6 +47,6 @@ async function run(propagation) {
 
 document.getElementById('dnsForm').addEventListener('submit', e => {
     e.preventDefault();
-    run(false);
+    void run(false);
 });
 document.getElementById('dnsPropagation').addEventListener('click', () => run(true));
