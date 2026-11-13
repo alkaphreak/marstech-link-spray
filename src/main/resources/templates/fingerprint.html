@@ -72,58 +72,7 @@
             </div>
         </div>
     </div>
-    <script type="module">
-        import {collectSignals, fingerprint, sha256} from '/assets/js/fingerprint.js';
-
-        function row(label, value, hash) {
-            const tr = document.createElement('tr');
-            const th = document.createElement('th');
-            th.scope = 'row';
-            th.textContent = label;
-            const valueCell = document.createElement('td');
-            valueCell.className = 'text-break small';
-            valueCell.textContent = value.length > 300 ? value.slice(0, 300) + '... (' + value.length + ' chars)' : value;
-            const hashCell = document.createElement('td');
-            hashCell.className = 'font-monospace';
-            hashCell.textContent = hash.slice(0, 16);
-            tr.append(th, valueCell, hashCell);
-            return tr;
-        }
-
-        async function run() {
-            const signals = await collectSignals();
-            const rows = [];
-            for (const [name, value] of Object.entries(signals)) {
-                rows.push(row(name, value, await sha256(value)));
-            }
-            document.querySelector('#fingerprintTable tbody').replaceChildren(...rows);
-            document.getElementById('fingerprintTable').classList.remove('d-none');
-            const summary = document.getElementById('fingerprintSummary');
-            summary.textContent = 'Your fingerprint: ' + (await fingerprint(signals)).slice(0, 16);
-            document.getElementById('fingerprintCopy').classList.remove('d-none');
-        }
-
-        // Plain-text report (server headers, overall and per-signal hashes) to paste when comparing browsers.
-        async function copy() {
-            const lines = [document.getElementById('fingerprintSummary').textContent];
-            for (const tr of document.querySelectorAll('#serverInfo tbody tr, #fingerprintTable tbody tr')) {
-                const cells = tr.children;
-                lines.push(cells[0].textContent + ': ' + cells[cells.length - 1].textContent.trim());
-            }
-            const button = document.getElementById('fingerprintCopy');
-            try {
-                await navigator.clipboard.writeText(lines.join('\n'));
-                button.innerHTML = '<i class="bi bi-check"></i> Copied';
-            } catch (e) {
-                console.warn('Clipboard write failed', e); // NotAllowedError when clipboard access is denied
-                button.innerHTML = '<i class="bi bi-x"></i> Copy failed';
-            }
-            setTimeout(() => button.innerHTML = '<i class="bi bi-clipboard"></i> Copy', 2000);
-        }
-
-        document.getElementById('fingerprintRun').addEventListener('click', run);
-        document.getElementById('fingerprintCopy').addEventListener('click', copy);
-    </script>
+    <script type="module" th:src="@{/assets/js/pages/fingerprint.js}"></script>
 </section>
 
 <footer th:replace="~{index.html :: body-footer}">

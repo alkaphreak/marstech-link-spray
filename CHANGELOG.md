@@ -7,6 +7,21 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- Page scripts moved out of the templates into `static/assets/js/pages/` and inline event handlers replaced by
+  `data-*` attributes handled in `mt-script.js`, so a Content-Security-Policy can forbid inline scripts; the `/cron` styles moved to `sol4.css` (MLS-269)
+
+### Fixed
+
+- A failed copy to the clipboard shows a red `alert-danger` alert instead of the unstyled `alert-error` (MLS-269)
+
+### Security
+
+- Alerts built with `textContent` instead of `innerHTML`, so a copied value or a server error message can no
+  longer inject markup (MLS-269)
+- Subresource Integrity hash on the Bootstrap Icons stylesheet (MLS-269)
+
 ---
 
 ## [0.12.0] - 2026-11-12

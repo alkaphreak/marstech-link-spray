@@ -125,3 +125,9 @@ section { padding: var(--space-4) 0 var(--space-6); }
 .form-label { font: 500 var(--text-xs)/1.3 var(--font-mono); text-transform: uppercase; letter-spacing: var(--mt-label-tracking); color: var(--fg-2); }
 
 #liveAlertPlaceholder .alert { margin: 10px 0; }
+
+/* /cron job status dots (moved out of cron.html for the Content-Security-Policy, MLS-269) */
+.cron-dot { display: inline-block; width: .6rem; height: .6rem; margin-right: .4rem; background: var(--muted); }
+.cron-dot.ok { background: var(--success); }
+.cron-dot.failed { background: var(--danger); }
+#cronJobs tbody tr { cursor: pointer; }

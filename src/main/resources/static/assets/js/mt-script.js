@@ -15,21 +15,40 @@ const copyValueToClipboard = async (value, liveAlertPlaceholderId, message = `Va
     } catch (error) {
         let message = "Failed to copy to clipboard:";
         console.error(message, error);
-        appendAlert(message, 'error', alertPlaceholder);
+        appendAlert(message, 'danger', alertPlaceholder);
     }
 };
 
 // Append an alert message to the alert placeholder
 const appendAlert = (message, type, alertPlaceholder) => {
-    const wrapper = document.createElement('div');
-    wrapper.innerHTML = [
-        `<div class="alert alert-${type} alert-dismissible" role="alert">`,
-        `   <div>${message}</div>`,
-        '   <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>',
-        '</div>'
-    ].join('');
-    alertPlaceholder.append(wrapper);
-}
+    const alert = document.createElement('div');
+    alert.className = `alert alert-${type} alert-dismissible`;
+    alert.setAttribute('role', 'alert');
+    const text = document.createElement('div');
+    text.textContent = message;
+    const close = document.createElement('button');
+    close.type = 'button';
+    close.className = 'btn-close';
+    close.dataset.bsDismiss = 'alert';
+    close.setAttribute('aria-label', 'Close');
+    alert.append(text, close);
+    alertPlaceholder.append(alert);
+};
+
+// Declarative behaviors, replacing inline on* handlers (blocked by the Content-Security-Policy)
+document.addEventListener('click', event => {
+    const copyInput = event.target.closest('[data-copy-input]');
+    if (copyInput) copyFormInputValueToClipboard(copyInput.dataset.copyInput, 'liveAlertPlaceholder');
+    const copyKey = event.target.closest('[data-copy-key]');
+    if (copyKey) copyValueToClipboard(copyKey.dataset.key, 'liveAlertPlaceholder', 'API key copied to clipboard');
+    if (event.target.closest('[data-reload]')) location.reload();
+});
+
+document.addEventListener('submit', event => {
+    const form = event.target;
+    if (form.matches('[data-no-submit]')) event.preventDefault();
+    if (form.dataset.confirm && !confirm(form.dataset.confirm)) event.preventDefault();
+});
 
 // Auto-open all spray links on page load
 document.addEventListener('DOMContentLoaded', function () {
