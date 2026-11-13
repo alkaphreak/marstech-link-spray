@@ -18,6 +18,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Security
 
+- `Content-Security-Policy-Report-Only` header on every response (`SecurityConfig.CONTENT_SECURITY_POLICY`): reports, without
+  blocking anything yet, any script or style outside `self` and jsDelivr, inline code and framing, in the browser
+  console (MLS-269)
 - Alerts built with `textContent` instead of `innerHTML`, so a copied value or a server error message can no
   longer inject markup (MLS-269)
 - Subresource Integrity hash on the Bootstrap Icons stylesheet (MLS-269)
