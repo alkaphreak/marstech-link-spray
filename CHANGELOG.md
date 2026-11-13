@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+---
+
+## [0.13.0] - 2026-11-13
+
 ### Changed
 
 - Page scripts moved out of the templates into `static/assets/js/pages/` and inline event handlers replaced by
