@@ -122,12 +122,28 @@ src/main/kotlin/fr/marstech/mtlinkspray/
 | PUT    | `/api/cron/jobs/{id}`        | Replace a cron job                  |
 | DELETE | `/api/cron/jobs/{id}`        | Delete a cron job and its runs      |
 | GET    | `/api/cron/jobs/{id}/runs`   | Run history, newest first (`limit`) |
+| POST   | `/api/checklists/templates`  | Create a checklist template         |
+| GET    | `/api/checklists/templates`  | List the key's templates (paged)    |
+| GET    | `/api/checklists/templates/{id}` | Get a template                  |
+| PUT    | `/api/checklists/templates/{id}` | Replace a template (`version`)  |
+| DELETE | `/api/checklists/templates/{id}` | Delete a template               |
+| POST   | `/api/checklists/instances`  | Start a checklist from a template   |
+| GET    | `/api/checklists/instances`  | List instances (paged, filters)     |
+| GET    | `/api/checklists/instances/{id}` | Get an instance and its progress |
+| DELETE | `/api/checklists/instances/{id}` | Delete an instance              |
+| PATCH  | `/api/checklists/instances/{id}/items/{itemId}` | Set an item's status |
 | GET    | `/{shortUrlUid}`             | Redirect to the target URL          |
 
 The `/api/cron/jobs` endpoints need an `X-Api-Key` header: each job belongs to that key's namespace. A job
 calls a public http(s) URL on a Spring cron schedule (6 fields, UTC, at most once a minute) and sends one alert
 mail after `failureThreshold` consecutive failures (MLS-220, ADR 0003). Headers are stored and returned in clear,
 a disabled key pauses its jobs, and a job due during a deploy can run twice: keep job calls idempotent.
+
+The `/api/checklists` endpoints need an `X-Api-Key` header too (MLS-222, ADR 0005). An instance copies its
+template's items when it starts; editing or deleting the template never changes it. Item statuses are `TODO`,
+`DONE` and `SKIPPED`, and `progressPercent` is `DONE / (total - SKIPPED)`. A `PUT` on a template sends the
+`version` it read: a stale one answers 409. Lists take `page` (from 0) and `size` (1-100, default 20), newest
+first; a page shorter than `size` is the last. Limits: 50 templates and 500 instances per key, 200 items per list.
 
 ## SDK Version Management
 

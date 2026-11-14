@@ -7,6 +7,12 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Checklists API on `/api/checklists` (`X-Api-Key`): reusable templates, instances that copy the template's items,
+  per-item status `TODO`/`DONE`/`SKIPPED` and computed progress, optimistic locking on template edits (stale `version`: 409), limits under `mt.link-spray.checklist.*`
+  (50 templates, 500 instances per key, 200 items per list) (MLS-222, ADR 0005)
+
 ---
 
 ## [0.13.1] - 2026-11-13
