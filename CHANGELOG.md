@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+---
+
+## [0.14.0] - 2026-11-14
+
 ### Added
 
 - Checklists API on `/api/checklists` (`X-Api-Key`): reusable templates, instances that copy the template's items,
