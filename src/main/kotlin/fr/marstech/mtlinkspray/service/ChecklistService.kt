@@ -80,12 +80,14 @@ class ChecklistService(
     fun updateTemplate(apiKey: String?, id: String, request: ChecklistTemplateRequest): ChecklistTemplateEntity {
         val version = requireNotNull(request.version) { "version is required to replace a template" }
         val existing = getTemplateIn(namespaceOf(apiKey), id)
+        // Before the item checks: a stale edit naming an item removed since is a conflict, not a bad request.
+        if (version != existing.version) throw conflict(id, version)
         val items = itemsOf(request, existing.items.map { it.itemId }.toSet())
         return try {
             // The version read by the caller, not the stored one: a concurrent edit makes save() fail.
             templateRepository.save(existing.copy(title = request.title, items = items, version = version))
         } catch (_: OptimisticLockingFailureException) {
-            throw ResponseStatusException(HttpStatus.CONFLICT, "Template $id was modified or deleted since version $version")
+            throw conflict(id, version)
         }
     }
 
@@ -145,6 +147,9 @@ class ChecklistService(
             item.itemId?.let { ChecklistTemplateItem(it, item.label, item.note) } ?: ChecklistTemplateItem(label = item.label, note = item.note)
         }
     }
+
+    private fun conflict(id: String, version: Long) =
+        ResponseStatusException(HttpStatus.CONFLICT, "Template $id was modified or deleted since version $version")
 
     private fun getTemplateIn(namespace: String, id: String) =
         templateRepository.findByIdAndNamespace(id, namespace).orElseThrow { NoSuchElementException("Checklist template $id not found") }

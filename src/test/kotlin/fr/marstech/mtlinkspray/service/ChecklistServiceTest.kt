@@ -123,10 +123,31 @@ class ChecklistServiceTest {
     @Test
     fun shouldSaveWithTheVersionTheCallerRead() {
         whenever(templateRepository.findByIdAndNamespace("tpl-1", "ns")).thenReturn(Optional.of(template))
-        service.updateTemplate("key", "tpl-1", request(ChecklistItemRequest(label = "a"), version = 1))
+        service.updateTemplate("key", "tpl-1", request(ChecklistItemRequest(label = "a"), version = 3))
         val captor = argumentCaptor<ChecklistTemplateEntity>()
         verify(templateRepository).save(captor.capture())
-        assertEquals(1L, captor.firstValue.version)
+        assertEquals(3L, captor.firstValue.version)
+    }
+
+    @Test
+    fun shouldAnswerConflictBeforeSavingAStaleVersion() {
+        whenever(templateRepository.findByIdAndNamespace("tpl-1", "ns")).thenReturn(Optional.of(template))
+        val e = assertThrows<ResponseStatusException> {
+            service.updateTemplate("key", "tpl-1", request(ChecklistItemRequest(label = "a"), version = 1))
+        }
+        assertEquals(HttpStatus.CONFLICT, e.statusCode)
+        verify(templateRepository, never()).save(any<ChecklistTemplateEntity>())
+    }
+
+    @Test
+    fun shouldAnswerConflictWhenAStaleEditNamesARemovedItem() {
+        // Given: the caller read version 2, which still had item "gone"; version 3 removed it
+        whenever(templateRepository.findByIdAndNamespace("tpl-1", "ns")).thenReturn(Optional.of(template))
+        // When / Then
+        val e = assertThrows<ResponseStatusException> {
+            service.updateTemplate("key", "tpl-1", request(ChecklistItemRequest("gone", "a"), version = 2))
+        }
+        assertEquals(HttpStatus.CONFLICT, e.statusCode)
     }
 
     @Test
@@ -155,7 +176,7 @@ class ChecklistServiceTest {
         whenever(templateRepository.findByIdAndNamespace("tpl-1", "ns")).thenReturn(Optional.of(template))
         whenever(templateRepository.save(any<ChecklistTemplateEntity>())).thenThrow(OptimisticLockingFailureException("stale"))
         val e = assertThrows<ResponseStatusException> {
-            service.updateTemplate("key", "tpl-1", request(ChecklistItemRequest(label = "a"), version = 2))
+            service.updateTemplate("key", "tpl-1", request(ChecklistItemRequest(label = "a"), version = 3))
         }
         assertEquals(HttpStatus.CONFLICT, e.statusCode)
     }

@@ -19,8 +19,8 @@ data class ChecklistItemRequest(
 
 /**
  * Create or replace a template. On replace, [version] is the one read before the edit:
- * a stale value is refused with 409. 1000 items is a hard parsing ceiling; the configurable
- * limit (default 200) is checked by the service.
+ * a stale value is refused with 409. 1000 items is a fixed validation ceiling, checked once Jackson has
+ * read the body (no request-size limit upstream); the configurable limit (default 200) is checked by the service.
  */
 data class ChecklistTemplateRequest(
     @field:NotBlank @field:Size(max = 200) val title: String,
