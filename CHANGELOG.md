@@ -7,10 +7,21 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+---
+
+## [0.14.1] - 2026-11-16
+
 ### Fixed
 
+- Oxanium 500 loads again: the MarsTech-Skin `fonts.css` header comment closed early on `fonts/*/OFL.txt`,
+  so browsers dropped that `@font-face` rule; `marstech.css` synced with the Skin `.mt-clip` focus fix (MARSTECH-897)
 - `/ip` and `/dns` pages show an error alert when the lookup request fails or the server answers something other than JSON,
   instead of staying silent (MLS-270)
+
+### Dependencies
+
+- commons-lang3 3.21.0 → 3.22.0, jackson-module-kotlin 3.2.4 → 3.3.0, AWS SDK S3 2.57.10 → 2.59.0,
+  openhtmltopdf-pdfbox 1.1.108 → 1.1.113 (Dependabot maven group, #245)
 
 ---
 
