@@ -7,6 +7,11 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- `/ip` and `/dns` pages show an error alert when the lookup request fails or the server answers something other than JSON,
+  instead of staying silent (MLS-270)
+
 ---
 
 ## [0.14.0] - 2026-11-14
