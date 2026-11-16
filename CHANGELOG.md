@@ -20,8 +20,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Dependencies
 
-- commons-lang3 3.21.0 → 3.22.0, jackson-module-kotlin 3.2.4 → 3.3.0, AWS SDK S3 2.57.10 → 2.59.0,
-  openhtmltopdf-pdfbox 1.1.108 → 1.1.113 (Dependabot maven group, #245)
+- commons-lang3 3.21.0 → 3.22.0, AWS SDK S3 2.57.10 → 2.59.0, openhtmltopdf-pdfbox 1.1.108 → 1.1.113
+  (Dependabot maven group, #245)
+- jackson-module-kotlin is now version-managed by the Spring Boot BOM (3.1.7, aligned with jackson-databind)
+  instead of a hand pin that ran ahead of databind (#245 had moved it to 3.3.0)
 
 ---
 
