@@ -26,8 +26,16 @@ function countryText(json) {
 }
 
 async function lookup(ip) {
-    const response = await fetch(ip ? '/api/ip?ip=' + encodeURIComponent(ip) : '/api/ip');
-    const json = await response.json();
+    const alert = document.getElementById('ipAlert');
+    alert.replaceChildren();
+    let response, json;
+    try {
+        response = await fetch(ip ? '/api/ip?ip=' + encodeURIComponent(ip) : '/api/ip');
+        json = await response.json();
+    } catch {
+        appendAlert('Lookup failed: network error or unexpected server response.', 'danger', alert);
+        return;
+    }
     const body = document.querySelector('#ipInfo tbody');
     if (!response.ok) {
         body.replaceChildren(row('Error', json.fieldErrors?.[0]?.message ?? json.message ?? response.statusText));

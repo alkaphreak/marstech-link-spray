@@ -34,8 +34,16 @@ async function run(propagation) {
     const path = propagation ? '/api/dns/propagation' : '/api/dns';
     const url = isIp(name) ? '/api/dns/reverse?ip=' + encodeURIComponent(name)
         : path + '?name=' + encodeURIComponent(name) + '&type=' + type;
-    const response = await fetch(url);
-    const json = await response.json();
+    const alert = document.getElementById('dnsAlert');
+    alert.replaceChildren();
+    let response, json;
+    try {
+        response = await fetch(url);
+        json = await response.json();
+    } catch {
+        appendAlert('Lookup failed: network error or unexpected server response.', 'danger', alert);
+        return;
+    }
     if (!response.ok) {
         show([{resolver: '-', records: [], error: json.fieldErrors?.[0]?.message ?? json.message ?? response.statusText, timeMs: ''}]);
     } else if (json.results) {
