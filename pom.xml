@@ -188,7 +188,7 @@
         <dependency>
             <groupId>tools.jackson.module</groupId>
             <artifactId>jackson-module-kotlin</artifactId>
-            <version>3.3.0</version>
+            <!-- no version: the Spring Boot BOM aligns it with jackson-databind (a pinned module ran ahead of databind) -->
         </dependency>
 
         <dependency>
