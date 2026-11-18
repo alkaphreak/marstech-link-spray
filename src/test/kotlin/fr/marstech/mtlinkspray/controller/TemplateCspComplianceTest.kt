@@ -34,4 +34,18 @@ class TemplateCspComplianceTest {
         assertTrue(templates.isNotEmpty(), "no template found")
         assertTrue(violations.isEmpty(), violations.joinToString("\n"))
     }
+
+    @Test
+    fun shouldGiveEveryPageOneMainLandmarkForTheSkipLink() {
+        // Given: pages that pull in the shared header, whose skip link targets #main (MLS-271)
+        val pages = File("src/main/resources/templates").walkTopDown()
+            .filter { it.extension == "html" && "index.html :: body-header" in it.readText() }.toList()
+
+        // When
+        val violations = pages.filter { Regex("""<main id="main">""").findAll(it.readText()).count() != 1 }.map { it.name }
+
+        // Then
+        assertTrue(pages.isNotEmpty(), "no page found")
+        assertTrue(violations.isEmpty(), "pages without exactly one <main id=\"main\">: $violations")
+    }
 }
