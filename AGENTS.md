@@ -175,8 +175,9 @@ From the project root and using rtk :
 # Build + test
 rtk mvn clean verify -f pom.xml
 
-# Run dev (requires MongoDB on 27017)
-rtk mvn spring-boot:run -f pom.xml
+# Run dev: MongoDB from docker-compose.dev.yml (container marstech-mongodb-dev, port 27019), app on :8096
+docker compose -f docker-compose.dev.yml up -d
+rtk mvn spring-boot:run -f pom.xml -Dspring-boot.run.profiles=dev
 
 # Run tests only
 rtk mvn test -f pom.xml
