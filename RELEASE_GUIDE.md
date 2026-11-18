@@ -93,12 +93,13 @@ mvn clean verify
 # 5. Set up GitHub token
 export JRELEASER_GITHUB_TOKEN="your-github-personal-access-token"
 
-# 6. Optional: Set up Docker Hub credentials (for Docker image push)
-export DOCKER_HUB_USERNAME="your-dockerhub-username"
-export DOCKER_HUB_ACCESS_TOKEN="your-dockerhub-token"
+# 6. Optional: Docker Hub credentials (for Docker image push). The password sits in the macOS
+#    keychain (secrets-env/DOCKER_PASSWORD), loaded for this one command by MySecretsRelease
+#    (Marstech-Configs, MARSTECH-930); JReleaser reads it as JRELEASER_DOCKER_DEFAULT_PASSWORD.
+#    ./dev-ops/jreleaser-run.sh needs it too: MySecretsRelease DOCKER_PASSWORD -- ./dev-ops/jreleaser-run.sh
 
 # 7. Run JReleaser
-mvn jreleaser:full-release
+MySecretsRelease DOCKER_PASSWORD -- sh -c 'JRELEASER_DOCKER_DEFAULT_PASSWORD="$DOCKER_PASSWORD" mvn jreleaser:full-release'
 
 # 8. Push changes and tags
 git push origin main
