@@ -69,6 +69,7 @@ img, svg { vertical-align: middle; }
 ul, ol { margin-top: 0; margin-bottom: 1rem; padding-left: 2rem; }
 small, .small { font-size: 0.875em; }
 code { color: var(--mt-link); overflow-wrap: break-word; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; } /* wraps the one-time API key; a future code block would wrap too, not scroll */
 h4, h5, h6 { margin-top: 0; font-family: var(--font-display); font-weight: 600; letter-spacing: var(--tracking-display); line-height: var(--leading-tight); color: var(--fg); }
 h1 { font-size: 2.5rem; } h2 { font-size: 2rem; } h3 { font-size: 1.75rem; }
 h4 { font-size: 1.5rem; } h5 { font-size: 1.25rem; } h6 { font-size: 1rem; }

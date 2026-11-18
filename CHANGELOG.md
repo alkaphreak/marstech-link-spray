@@ -7,6 +7,12 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- `<pre>` wraps instead of overflowing, so the one-time API key no longer spills out of its alert on mobile (MLS-271)
+- `BootstrapSubsetCoverageTest` now catches breakpoint variants (`m-md-2`, `g-md-3`, `order-md-1`, `offset-*`,
+  `row-cols-*`) and `TemplateCspComplianceTest` rejects `data-bs-theme-*`, matching the 0.15.0 claims (MLS-271)
+
 ---
 
 ## [0.15.2] - 2026-11-18

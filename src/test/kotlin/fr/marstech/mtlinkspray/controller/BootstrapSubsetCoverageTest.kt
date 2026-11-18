@@ -12,17 +12,29 @@ import java.io.File
 class BootstrapSubsetCoverageTest {
 
     private val bootstrapLike = Regex(
-        """^(container|row|g[xy]?-\d|col(-\w+)*|btn(-[\w-]+)?|form-[\w-]+|input-group[\w-]*|d-[\w-]+|""" +
-            """[mp][trblsexy]?-(\d|auto)|navbar[\w-]*|nav-[\w-]+|card[\w-]*|table[\w-]*|alert[\w-]*|text-[\w-]+|""" +
+        """^(container|row|row-cols-[\w-]+|offset-[\w-]+|g[xy]?-(\w+-)?\d|col(-\w+)*|btn(-[\w-]+)?|form-[\w-]+|input-group[\w-]*|d-[\w-]+|""" +
+            """[mp][trblsexy]?-(\w+-)?(\d|auto)|navbar[\w-]*|nav-[\w-]+|card[\w-]*|table[\w-]*|alert[\w-]*|text-[\w-]+|""" +
             """bg-[\w-]+|fw-\w+|fs-\d|lead|display-\d|list-group[\w-]*|align-[\w-]+|justify-[\w-]+|flex-[\w-]+|""" +
-            """gap-\d|[wh]-\d+|rounded[\w-]*|border[\w-]*|shadow[\w-]*|visually-hidden[\w-]*|collapse|fade|show|""" +
+            """gap-(\w+-)?\d|[wh]-\d+|rounded[\w-]*|border[\w-]*|shadow[\w-]*|visually-hidden[\w-]*|collapse|fade|show|""" +
             """spinner-[\w-]+|position-\w+|overflow-\w+|font-monospace|(in)?valid-feedback|is-(in)?valid|""" +
             """was-validated|dropdown[\w-]*|modal[\w-]*|accordion[\w-]*|progress[\w-]*|user-select-\w+|""" +
-            """opacity-\d+|[vh]stack|order-\w+|float-\w+|img-fluid|figure[\w-]*|ratio[\w-]*|small|disabled|active)$"""
+            """opacity-\d+|[vh]stack|order-[\w-]+|float-[\w-]+|img-fluid|figure[\w-]*|ratio[\w-]*|small|disabled|active)$"""
     )
 
     /** Bootstrap-looking names used only as script hooks, never styled. */
     private val hooks = setOf("btn-copy")
+
+    @Test
+    fun shouldRecognizeResponsiveBootstrapVariants() {
+        // Given: breakpoint variants no current template uses yet (Copilot review of #254)
+        val variants = listOf("m-md-2", "mx-lg-auto", "gap-md-3", "g-md-3", "order-md-1", "float-md-end", "offset-md-2", "row-cols-2")
+
+        // When
+        val unmatched = variants.filterNot { bootstrapLike.matches(it) }
+
+        // Then
+        assertTrue(unmatched.isEmpty(), "responsive Bootstrap classes the scanner misses: $unmatched")
+    }
 
     @Test
     fun shouldStyleEveryBootstrapClassStillInUse() {

@@ -15,7 +15,7 @@ class TemplateCspComplianceTest {
         "inline event handler (use a data-* attribute handled in mt-script.js)" to """(\s|th:)on[a-z]+\s*=|th:attr=["'][^"']*\bon[a-z]+\s*=""",
         "javascript: URL" to """javascript:""",
         "<style> block (move it to static/assets/css)" to """<style\b""",
-        "Bootstrap JS data-bs-* attribute (bundle removed in MLS-271, use a mt-script.js handler)" to """\bdata-bs-(?!theme\b)""",
+        "Bootstrap JS data-bs-* attribute (bundle removed in MLS-271, use a mt-script.js handler)" to """\bdata-bs-(?!theme(?![\w-]))""",
         "style attribute" to """(\s|th:)style(append)?\s*=|th:attr=["'][^"']*\bstyle\s*=""",
     ).mapValues { (_, pattern) -> Regex(pattern, RegexOption.IGNORE_CASE) } // HTML names are case-insensitive
 
@@ -33,6 +33,18 @@ class TemplateCspComplianceTest {
         // Then
         assertTrue(templates.isNotEmpty(), "no template found")
         assertTrue(violations.isEmpty(), violations.joinToString("\n"))
+    }
+
+    @Test
+    fun shouldAllowOnlyTheExactDataBsThemeAttribute() {
+        // Given
+        val dataBs = forbidden.entries.single { "data-bs-*" in it.key }.value
+
+        // When
+        val flagged = listOf("data-bs-theme=", "data-bs-theme-value=", "data-bs-toggle=").filter { dataBs.containsMatchIn(it) }
+
+        // Then
+        assertTrue(flagged == listOf("data-bs-theme-value=", "data-bs-toggle="), "unexpected data-bs-* verdicts: $flagged")
     }
 
     @Test
