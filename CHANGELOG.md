@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+---
+
+## [0.15.1] - 2026-11-18
+
 ### Fixed
 
 - Accessibility after the Bootstrap removal (MLS-271): focus ring stays visible in forced-colors mode
