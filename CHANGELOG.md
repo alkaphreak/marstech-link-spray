@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+---
+
+## [0.15.2] - 2026-11-18
+
 ### Fixed
 
 - Unknown short link, paste, dashboard, public page or path (MLS-274): a browser gets the error page
