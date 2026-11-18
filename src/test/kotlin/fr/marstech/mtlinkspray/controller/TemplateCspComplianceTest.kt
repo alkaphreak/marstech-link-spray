@@ -15,6 +15,7 @@ class TemplateCspComplianceTest {
         "inline event handler (use a data-* attribute handled in mt-script.js)" to """(\s|th:)on[a-z]+\s*=|th:attr=["'][^"']*\bon[a-z]+\s*=""",
         "javascript: URL" to """javascript:""",
         "<style> block (move it to static/assets/css)" to """<style\b""",
+        "Bootstrap JS data-bs-* attribute (bundle removed in MLS-271, use a mt-script.js handler)" to """\bdata-bs-(?!theme\b)""",
         "style attribute" to """(\s|th:)style(append)?\s*=|th:attr=["'][^"']*\bstyle\s*=""",
     ).mapValues { (_, pattern) -> Regex(pattern, RegexOption.IGNORE_CASE) } // HTML names are case-insensitive
 

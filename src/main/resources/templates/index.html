@@ -11,8 +11,9 @@
           integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" rel="stylesheet">
 
     <!-- Bootstrap Icons - https://icons.getbootstrap.com/ -->
-    <link crossorigin="anonymous" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
-          integrity="sha384-XGjxtQfXaH2tnPFa9x+ruJTuLE3Aa6LhHSWRr1XeTyhezb4abCG4ccI5AkVDxqC+" rel="stylesheet">
+    <!-- Bootstrap Icons 1.11.3, vendored (MLS-271): same file as the former CDN link (sha384 checked) -->
+    <link href="../static/assets/vendor/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet"
+          th:href="@{'/assets/vendor/bootstrap-icons/bootstrap-icons.min.css'}">
 
     <!-- MarsTech-Skin (https://github.com/alkaphreak/MarsTech-Skin), vendored in static/assets/skin -->
     <link href="../static/assets/skin/fonts.css" rel="stylesheet" th:href="@{'/assets/skin/fonts.css'}">
@@ -45,20 +46,21 @@
     <meta content="#05070a" name="theme-color"/>
 </head>
 <body>
-<header class="navbar-expand-lg" th:fragment="body-header">
+<header th:fragment="body-header">
     <div class="mt-header">
         <div class="container">
             <a class="mt-brand" href="/">sol4<span class="dot">.</span>space</a>
             <button aria-controls="site-menu" aria-expanded="false" aria-label="Toggle navigation"
-                    class="navbar-toggler collapsed ms-auto" data-bs-target="#site-menu" data-bs-toggle="collapse"
-                    type="button">
-                <span class="navbar-toggler-icon"></span>
+                    class="mt-menu-toggle" data-menu-toggle type="button">
+                <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                    <path d="M3 6h18M3 12h18M3 18h18"/>
+                </svg>
             </button>
         </div>
     </div>
-    <!-- Below lg the tools collapse into a vertical menu behind the burger (Bootstrap collapse) -->
-    <nav aria-label="Tools" class="mt-menu collapse navbar-collapse" id="site-menu">
-        <ul class="container navbar-nav">
+    <!-- Below 992px the tools collapse into a vertical menu behind the burger (MarsTech-Skin data-collapsible) -->
+    <nav aria-label="Tools" class="mt-menu" data-collapsible id="site-menu">
+        <ul class="container">
             <li th:each="view : ${T(fr.marstech.mtlinkspray.enums.ViewNameEnum).inMenu()}">
                 <a th:attr="aria-current=${null != viewNameEnum && viewNameEnum.name() == view.name()} ? 'page' : null"
                    th:href="@{'/' + ${view.getViewName()}}"
@@ -111,11 +113,6 @@
 </footer>
 
 <div class="d-none" th:fragment="footer-div-script">
-    <!-- Bootstrap JavaScript Bundle with Popper -->
-    <script crossorigin="anonymous"
-            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-            src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
     <!-- static/assets/js/mt-script.js -->
     <script th:src="@{'/assets/js/mt-script.js'}"></script>
     <!-- static/assets/js/fingerprint.js: fills the hidden "fp" field of data-fingerprint forms (MLS-254) -->
