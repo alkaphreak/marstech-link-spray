@@ -29,7 +29,7 @@ const appendAlert = (message, type, alertPlaceholder) => {
     const close = document.createElement('button');
     close.type = 'button';
     close.className = 'btn-close';
-    close.dataset.bsDismiss = 'alert';
+    close.dataset.dismiss = 'alert';
     close.setAttribute('aria-label', 'Close');
     alert.append(text, close);
     alertPlaceholder.append(alert);
@@ -42,6 +42,12 @@ document.addEventListener('click', event => {
     const copyKey = event.target.closest('[data-copy-key]');
     if (copyKey) void copyValueToClipboard(copyKey.dataset.key, 'liveAlertPlaceholder', 'API key copied to clipboard');
     if (event.target.closest('[data-reload]')) location.reload();
+    if (event.target.closest('[data-dismiss="alert"]')) event.target.closest('.alert')?.remove();
+    const toggle = event.target.closest('[data-menu-toggle]');
+    if (toggle) {
+        const menu = document.getElementById(toggle.getAttribute('aria-controls'));
+        toggle.setAttribute('aria-expanded', String(menu.classList.toggle('is-open')));
+    }
 });
 
 document.addEventListener('submit', event => {

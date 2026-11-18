@@ -59,8 +59,8 @@ class SecurityConfig(
          * Enforced on every response (MLS-269): no inline script or style, so templates keep their code in
          * static files (TemplateCspComplianceTest). Images allow any https origin for dashboard avatars.
          */
-        const val CONTENT_SECURITY_POLICY = "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; " +
-            "style-src 'self' https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net; " +
+        const val CONTENT_SECURITY_POLICY = "default-src 'self'; script-src 'self'; " +
+            "style-src 'self' https://cdn.jsdelivr.net; font-src 'self'; " +
             "img-src 'self' data: https:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; " +
             "form-action 'self'; object-src 'none'"
     }

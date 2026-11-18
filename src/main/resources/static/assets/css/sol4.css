@@ -55,24 +55,9 @@ h1, h2, h3, h4, h5, h6 { margin-bottom: 0.5rem; }
 
 section { padding: var(--space-4) 0 var(--space-6); }
 
-/* Header: brand row, then the Skin's .mt-menu tools menu. Below lg (992px, the Skin breakpoint) the
-   menu collapses behind the burger through Bootstrap collapse (navbar-expand-lg on <header>).
-   ponytail: fixed lg breakpoint, fits the 13 current tools; more tools -> move both to xl */
+/* Header: brand row, then the Skin's .mt-menu tools menu. Below 992px (the Skin breakpoint) the menu
+   collapses behind .mt-menu-toggle (data-collapsible, toggled in mt-script.js). */
 .mt-header .container { display: flex; align-items: center; min-height: 64px; }
-.mt-header {
-    --bs-navbar-color: var(--fg-2);
-    --bs-navbar-toggler-padding-y: 0.25rem;
-    --bs-navbar-toggler-padding-x: 0.75rem;
-    --bs-navbar-toggler-font-size: 1.25rem;
-    --bs-navbar-toggler-border-color: var(--border);
-    --bs-navbar-toggler-border-radius: 0;
-    --bs-navbar-toggler-focus-width: 0.25rem;
-    --bs-navbar-toggler-transition: box-shadow var(--motion-fast) var(--ease-standard);
-    /* Bootstrap's burger icon, stroked in --fg-2 (169, 180, 192) */
-    --bs-navbar-toggler-icon-bg: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28169, 180, 192, 1%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
-}
-.navbar-toggler { min-width: 44px; min-height: 44px; }
-.navbar-toggler:focus { box-shadow: var(--focus-ring); }
 
 /* Footer */
 .mt-foot {
