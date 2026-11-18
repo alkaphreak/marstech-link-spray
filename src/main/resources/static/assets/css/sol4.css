@@ -59,6 +59,20 @@ section { padding: var(--space-4) 0 var(--space-6); }
    collapses behind .mt-menu-toggle (data-collapsible, toggled in mt-script.js). */
 .mt-header .container { display: flex; align-items: center; min-height: 64px; }
 
+/* Homepage (MLS-271, from MarsTech-Skin prototypes/sol4-space.html) */
+.home { padding-block: var(--space-8); }
+.home-head { max-width: 720px; margin-bottom: var(--space-8); }
+.home-head h1 { font-size: clamp(var(--text-3xl), 7vw, var(--text-4xl)); text-transform: uppercase; margin-top: var(--space-3); }
+.home-head p { color: var(--fg-2); margin-top: var(--space-3); max-width: 65ch; }
+.home .actions { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-top: var(--space-6); }
+.home h2.mt-label { margin-bottom: var(--space-3); }
+.tools { display: grid; gap: var(--space-3); grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr)); }
+.tool-card { display: grid; gap: var(--space-2); padding: var(--space-4); background: var(--surface); border: 1px solid var(--border); color: var(--fg); text-decoration: none; transition: border-color var(--motion-fast) var(--ease-standard); }
+.tool-card strong { font: 600 var(--text-base)/1.2 var(--font-display); letter-spacing: var(--tracking-display); text-transform: uppercase; }
+.tool-card span { color: var(--fg-2); font-size: var(--text-sm); }
+@media (hover: hover) { .tool-card:hover { border-color: var(--accent); } }
+.tool-card.is-main { border-color: var(--accent); }
+
 /* Footer */
 .mt-foot {
     margin-top: auto;

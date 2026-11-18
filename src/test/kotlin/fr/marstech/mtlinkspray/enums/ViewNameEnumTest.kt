@@ -46,4 +46,11 @@ class ViewNameEnumTest {
             assertTrue(entry.viewPage.isNotBlank(), "${entry.name}.viewPage should not be blank")
         }
     }
+
+    @Test
+    fun everyMenuEntryHasAHomepageDescription() {
+        ViewNameEnum.inMenu().forEach {
+            assertTrue(it.description.isNotBlank(), "${it.name}.description feeds its homepage card")
+        }
+    }
 }
