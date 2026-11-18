@@ -9,6 +9,25 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.15.0] - 2026-11-18
+
+### Changed
+
+- sol4.space no longer loads Bootstrap (MLS-271): its CSS is replaced by a subset in `sol4.css` that
+  re-implements, on the MarsTech-Skin tokens, only the class names the templates and page scripts still use;
+  the header burger and alert close buttons use small handlers in `mt-script.js` instead of Bootstrap's JS
+- Bootstrap Icons 1.11.3 are served from `static/assets/vendor/` (same file as the former CDN link); the
+  Content-Security-Policy no longer allows any external origin for scripts, styles or fonts
+- Homepage rebuilt on the MarsTech-Skin prototype: hook, two actions and a card per tool with a one-line
+  description (`ViewNameEnum.description`)
+
+### Added
+
+- `BootstrapSubsetCoverageTest` fails when a template or page script uses a Bootstrap-style class with no rule
+  in the static CSS; `TemplateCspComplianceTest` rejects `data-bs-*` attributes other than `data-bs-theme`
+
+---
+
 ## [0.14.1] - 2026-11-16
 
 ### Fixed
