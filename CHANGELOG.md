@@ -7,6 +7,12 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- Accessibility after the Bootstrap removal (MLS-271): focus ring stays visible in forced-colors mode
+  (transparent outline next to the box-shadow ring), "Skip to content" link in the shared header, and a
+  `<main id="main">` landmark on every tool and admin page
+
 ---
 
 ## [0.15.0] - 2026-11-18
