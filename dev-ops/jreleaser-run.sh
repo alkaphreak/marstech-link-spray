@@ -23,16 +23,16 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 # Check prerequisites
-if [[ -z "${GITHUB_TOKEN:-}" ]]; then
-    echo "Error: GITHUB_TOKEN environment variable is not set."
+# JReleaser reads JRELEASER_GITHUB_TOKEN; accept GITHUB_TOKEN as a fallback
+export JRELEASER_GITHUB_TOKEN="${JRELEASER_GITHUB_TOKEN:-${GITHUB_TOKEN:-}}"
+if [[ -z "${JRELEASER_GITHUB_TOKEN}" ]]; then
+    echo "Error: neither JRELEASER_GITHUB_TOKEN nor GITHUB_TOKEN is set."
     exit 1
 fi
 
-if [[ -z "${DOCKER_PASSWORD:-}" ]]; then
-    echo "Warning: DOCKER_PASSWORD environment variable is not set. Docker release might fail if authentication is required."
-fi
+# Docker Hub account that owns the alkaphreak/marstech-link-spray images (jreleaser.yml imageNames)
+export JRELEASER_DOCKER_DEFAULT_USERNAME="${JRELEASER_DOCKER_DEFAULT_USERNAME:-${DOCKER_HUB_USERNAME:-${DOCKER_USERNAME:-alkaphreak}}}"
 
-# Verify required environment variables
 if [[ -z "${DOCKER_PASSWORD:-}" ]]; then
     echo "Error: DOCKER_PASSWORD is not set. Cannot proceed with Docker release."
     exit 1
