@@ -7,6 +7,12 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- Unknown short link, paste, dashboard, public page or path (MLS-274): a browser gets the error page
+  with a 404 instead of raw JSON, and an `Accept: text/html` request a 404 instead of a 500; API
+  clients (`Accept: */*` or `application/json`) keep the JSON 404 body
+
 ---
 
 ## [0.15.1] - 2026-11-18

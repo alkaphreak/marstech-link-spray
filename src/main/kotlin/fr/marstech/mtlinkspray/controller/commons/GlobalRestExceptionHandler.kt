@@ -2,6 +2,7 @@ package fr.marstech.mtlinkspray.controller.commons
 
 import fr.marstech.mtlinkspray.dto.ErrorResponse
 import fr.marstech.mtlinkspray.dto.FieldError
+import fr.marstech.mtlinkspray.enums.ViewNameEnum.ERROR
 import fr.marstech.mtlinkspray.exception.PayloadTooLargeException
 import jakarta.validation.ConstraintViolationException
 import org.springframework.core.Ordered
@@ -9,6 +10,7 @@ import org.springframework.core.annotation.Order
 import org.springframework.dao.DuplicateKeyException
 import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatus.*
+import org.springframework.http.MediaType.TEXT_HTML_VALUE
 import org.springframework.http.ResponseEntity
 import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.validation.BindException
@@ -32,6 +34,7 @@ import org.springframework.web.context.request.WebRequest
 import org.springframework.web.servlet.resource.NoResourceFoundException
 import org.springframework.web.multipart.MaxUploadSizeExceededException
 import org.springframework.web.multipart.MultipartException
+import org.springframework.web.servlet.ModelAndView
 import org.springframework.web.multipart.support.MissingServletRequestPartException
 
 private const val VALIDATION_FAILED = "Validation Failed"
@@ -158,6 +161,14 @@ class GlobalRestExceptionHandler(
         )
         return ResponseEntity(errorResponse, NOT_FOUND)
     }
+
+    // A browser asking for an unknown short link, paste, dashboard or path gets the error page with
+    // a 404, not raw JSON (MLS-274); API clients (Accept */* or application/json) keep the JSON handlers
+    @ExceptionHandler(NoSuchElementException::class, NoResourceFoundException::class, produces = [TEXT_HTML_VALUE])
+    fun handleNotFoundPage(e: Exception): ModelAndView =
+        ModelAndView(ERROR.viewName, NOT_FOUND)
+            .addObject("viewNameEnum", ERROR)
+            .addObject("errorMessage", if (e is NoSuchElementException) e.message else null)
 
     @ExceptionHandler(NoResourceFoundException::class)
     fun handleNoResourceFound(
