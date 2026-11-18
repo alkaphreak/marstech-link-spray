@@ -146,6 +146,12 @@ See `.local/llm/README.md` for complete conventions.
   `on*=` handler is a `data-*` attribute handled in `mt-script.js` (`data-copy-input`, `data-copy-key`,
   `data-reload`, `data-no-submit`, `data-confirm`). Build DOM with `textContent`, never `innerHTML`.
   `TemplateCspComplianceTest` fails the build otherwise
+- **No Bootstrap, no CDN** (MLS-271): the UI is MarsTech-Skin (`static/assets/skin/`, synced from the
+  MarsTech-Skin repo, never edited only here). The Bootstrap class names the markup still uses are
+  re-implemented on the Skin tokens in `sol4.css`; a new such class needs a rule there
+  (`BootstrapSubsetCoverageTest`). Icons are self-hosted in `static/assets/vendor/bootstrap-icons/`. The
+  burger and alert close buttons run from `mt-script.js` (`data-menu-toggle`, `data-dismiss="alert"`).
+  Every page wraps its content in one `<main id="main">`, the skip link's target (`TemplateCspComplianceTest`)
 - **Request-param validation**: `ValidationConfig` sets `adaptConstraintViolations`, so a `@Validated`
   controller throws `MethodValidationException` (mapped to 400, MLS-244). To reproduce it in a test, use
   `@WebMvcTest` with `@Import(ValidationConfig::class)`: a standalone MockMvc never runs that validation
@@ -248,4 +254,4 @@ This file is **living documentation**. Any agent (or human) making changes to th
 
 ---
 
-_Last updated: 2026-11-13 — no inline script or style in templates (MLS-269)_
+_Last updated: 2026-11-18 — no Bootstrap, MarsTech-Skin UI, main landmark (MLS-271)_
