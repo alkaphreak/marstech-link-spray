@@ -52,7 +52,7 @@ New to DigitalOcean? The button above uses a referral link that gives you free c
 | Spring Security Crypto      | (via Boot)     |
 | Spring Boot Actuator        | (via Boot)     |
 | Thymeleaf                   | (via Boot)     |
-| Bootstrap                   | (frontend)     |
+| MarsTech-Skin               | (frontend)     |
 | Maven                       | Build tool     |
 | MongoDB                     | Database       |
 | Docker                      | Dev/test       |

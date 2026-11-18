@@ -60,7 +60,7 @@ class SecurityConfig(
          * static files (TemplateCspComplianceTest). Images allow any https origin for dashboard avatars.
          */
         const val CONTENT_SECURITY_POLICY = "default-src 'self'; script-src 'self'; " +
-            "style-src 'self' https://cdn.jsdelivr.net; font-src 'self'; " +
+            "style-src 'self'; font-src 'self'; " +
             "img-src 'self' data: https:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; " +
             "form-action 'self'; object-src 'none'"
     }
