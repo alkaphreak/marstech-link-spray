@@ -1,43 +1,9 @@
-/* sol4.space: bridge between Bootstrap 5.3 and MarsTech-Skin (MLS-250).
- * Load order: bootstrap.min.css, skin/fonts.css, skin/tokens.css, skin/marstech.css, this file.
- * Bootstrap components read their colors from --bs-* variables: point them at the Skin tokens,
- * so pages keep their Bootstrap markup and get the "Glacier neon" look. Pages need
- * data-bs-theme="dark" on <html> for Bootstrap's dark component palette.
+/* sol4.space styles on top of MarsTech-Skin (tokens.css, marstech.css).
+ * Bootstrap was dropped in MLS-271: the "Bootstrap subset" section below re-implements, on the Skin
+ * tokens, only the Bootstrap class names the templates and page scripts still use, so the markup
+ * did not have to change. New markup uses the Skin classes (.field-label, .input, .btn-secondary...).
+ * BootstrapSubsetCoverageTest fails when a template or script uses a Bootstrap-style class missing here.
  */
-
-:root,
-[data-bs-theme="dark"] {
-    --bs-body-bg: var(--bg);
-    --bs-body-bg-rgb: 5, 7, 10;
-    --bs-body-color: var(--fg);
-    --bs-body-color-rgb: 201, 209, 217;
-    --bs-body-font-family: var(--font-body);
-    --bs-body-font-size: var(--text-base);
-    --bs-body-line-height: var(--leading-body);
-    --bs-font-monospace: var(--font-mono);
-    --bs-heading-color: var(--fg);
-    --bs-emphasis-color: var(--fg);
-    --bs-secondary-color: var(--muted);
-    --bs-tertiary-color: var(--meta);
-    --bs-secondary-bg: var(--surface-warm);
-    --bs-tertiary-bg: var(--surface);
-    --bs-border-color: var(--border);
-    --bs-border-color-translucent: var(--border-soft);
-    --bs-link-color: var(--mt-link);
-    --bs-link-color-rgb: 255, 106, 168;
-    --bs-link-hover-color: var(--mt-link);
-    --bs-link-hover-color-rgb: 255, 106, 168;
-    --bs-code-color: var(--mt-link);
-    --bs-primary: var(--accent);
-    --bs-primary-rgb: 124, 199, 255;
-    --bs-focus-ring-color: rgba(124, 199, 255, 0.35);
-    /* The Skin uses clipped corners, never rounded ones (DESIGN.md) */
-    --bs-border-radius: 0;
-    --bs-border-radius-sm: 0;
-    --bs-border-radius-lg: 0;
-    --bs-border-radius-xl: 0;
-    --bs-border-radius-pill: 0;
-}
 
 /* Page skeleton: footer at the bottom of short pages */
 body {
@@ -84,45 +50,6 @@ section { padding: var(--space-4) 0 var(--space-6); }
 .mt-foot ul { display: flex; flex-wrap: wrap; align-items: center; gap: 0 var(--space-4); margin: 0; padding: 0; list-style: none; }
 .mt-foot a { display: inline-flex; align-items: center; min-height: 44px; }
 
-/* Buttons: marstech.css resets .btn borders; restore Bootstrap's outline variants on the tokens */
-.btn[class*="btn-outline-"] { border-color: var(--bs-btn-border-color); color: var(--bs-btn-color); }
-/* Outline primary looks like the Skin's secondary button: --accent is kept to two uses per screen
-   (active menu entry and the primary button, DESIGN.md) */
-.btn-outline-primary,
-.btn-outline-secondary {
-    --bs-btn-color: var(--fg);
-    --bs-btn-border-color: var(--border);
-    --bs-btn-hover-color: var(--fg);
-    --bs-btn-hover-bg: var(--surface-warm);
-    --bs-btn-hover-border-color: var(--fg-2);
-    --bs-btn-active-color: var(--fg);
-    --bs-btn-active-bg: var(--surface-warm);
-    --bs-btn-active-border-color: var(--fg-2);
-}
-.btn-outline-danger {
-    --bs-btn-color: var(--danger);
-    --bs-btn-border-color: var(--danger);
-    --bs-btn-hover-color: var(--accent-on);
-    --bs-btn-hover-bg: var(--danger);
-    --bs-btn-hover-border-color: var(--danger);
-    --bs-btn-active-color: var(--accent-on);
-    --bs-btn-active-bg: var(--danger);
-    --bs-btn-active-border-color: var(--danger);
-}
-.btn:disabled,
-.btn.disabled { background-color: var(--surface-warm); color: var(--meta); border-color: var(--border); opacity: 1; }
-.btn-primary { --bs-btn-hover-bg: var(--accent-hover); --bs-btn-hover-color: var(--accent-on); }
-
-/* Form fields: Skin look on Bootstrap controls (Bootstrap hardcodes its blue focus color) */
-.form-control,
-.form-select { min-height: 44px; font-family: var(--font-mono); font-size: var(--text-sm); }
-.form-control::placeholder { color: var(--meta); }
-.form-control:focus,
-.form-select:focus,
-.form-check-input:focus { border-color: var(--accent); box-shadow: var(--focus-ring); }
-.form-check-input:checked { background-color: var(--accent); border-color: var(--accent); }
-.form-label { font: 500 var(--text-xs)/1.3 var(--font-mono); text-transform: uppercase; letter-spacing: var(--mt-label-tracking); color: var(--fg-2); }
-
 #liveAlertPlaceholder .alert { margin: 10px 0; }
 
 /* /cron job status dots (moved out of cron.html for the Content-Security-Policy, MLS-269) */
@@ -130,3 +57,113 @@ section { padding: var(--space-4) 0 var(--space-6); }
 .cron-dot.ok { background: var(--success); }
 .cron-dot.failed { background: var(--danger); }
 #cronJobs tbody tr { cursor: pointer; }
+
+/* ---- Bootstrap subset (MLS-271) ---- */
+
+/* Reboot */
+button, input, select, textarea { font: inherit; color: inherit; }
+label { display: inline-block; }
+textarea { resize: vertical; }
+table { border-collapse: collapse; }
+img, svg { vertical-align: middle; }
+ul, ol { margin-top: 0; margin-bottom: 1rem; padding-left: 2rem; }
+small, .small { font-size: 0.875em; }
+code { color: var(--mt-link); overflow-wrap: break-word; }
+h4, h5, h6 { margin-top: 0; font-family: var(--font-display); font-weight: 600; letter-spacing: var(--tracking-display); line-height: var(--leading-tight); color: var(--fg); }
+h1 { font-size: 2.5rem; } h2 { font-size: 2rem; } h3 { font-size: 1.75rem; }
+h4 { font-size: 1.5rem; } h5 { font-size: 1.25rem; } h6 { font-size: 1rem; }
+
+/* Layout */
+.container { width: 100%; max-width: var(--container-max); margin-inline: auto; padding-inline: var(--container-gutter-phone); }
+@media (min-width: 768px) { .container { padding-inline: var(--container-gutter-desktop); } }
+.row { --gutter: 1.5rem; display: flex; flex-wrap: wrap; margin-inline: calc(var(--gutter) / -2); }
+.row > * { flex-shrink: 0; width: 100%; max-width: 100%; padding-inline: calc(var(--gutter) / 2); }
+.row.g-2 { --gutter: 0.5rem; row-gap: 0.5rem; }
+.col { flex: 1 0 0%; }
+@media (min-width: 768px) {
+    .col-md-4 { flex: 0 0 auto; width: 33.333333%; }
+    .col-md-5 { flex: 0 0 auto; width: 41.666667%; }
+    .col-md-6 { flex: 0 0 auto; width: 50%; }
+    .col-md-7 { flex: 0 0 auto; width: 58.333333%; }
+    .col-md-8 { flex: 0 0 auto; width: 66.666667%; }
+}
+
+/* Utilities */
+.d-block { display: block !important; }
+.d-flex { display: flex !important; }
+.d-grid { display: grid !important; }
+.d-none { display: none !important; } /* after the other d-*: "d-block d-none" must hide, as in Bootstrap */
+.align-items-center { align-items: center !important; }
+.align-middle { vertical-align: middle !important; }
+.gap-2 { gap: 0.5rem !important; }
+.justify-content-between { justify-content: space-between !important; }
+.ms-auto { margin-left: auto !important; }
+.mx-auto { margin-inline: auto !important; }
+.mb-2 { margin-bottom: 0.5rem !important; }
+.mb-3 { margin-bottom: 1rem !important; }
+.mb-4 { margin-bottom: 1.5rem !important; }
+.mt-2 { margin-top: 0.5rem !important; }
+.mt-3 { margin-top: 1rem !important; }
+.mt-4 { margin-top: 1.5rem !important; }
+.p-0 { padding: 0 !important; }
+.text-center { text-align: center !important; }
+.text-start { text-align: left !important; }
+.text-break { overflow-wrap: anywhere !important; word-break: break-word !important; }
+.text-body-secondary { color: var(--muted) !important; }
+.font-monospace { font-family: var(--font-mono) !important; }
+.user-select-all { user-select: all !important; }
+.visually-hidden { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; border: 0 !important; }
+.img-fluid { max-width: 100%; height: auto; }
+.rounded-circle { border-radius: 50%; }
+
+/* Forms */
+.form-label { margin-bottom: 0.5rem; font: 500 var(--text-xs)/1.3 var(--font-mono); text-transform: uppercase; letter-spacing: var(--mt-label-tracking); color: var(--fg-2); }
+.form-control, .form-select { display: block; width: 100%; min-height: 44px; padding: 0.375rem 0.75rem; background: var(--bg); color: var(--fg); border: 1px solid var(--border); border-radius: 0; font: var(--text-sm)/1.5 var(--font-mono); transition: border-color var(--motion-fast) var(--ease-standard); }
+.form-control::placeholder { color: var(--meta); }
+.form-control:focus, .form-select:focus, .form-check-input:focus { outline: none; border-color: var(--accent); box-shadow: var(--focus-ring); }
+.form-control:disabled, .form-select:disabled { background: var(--surface-warm); color: var(--meta); }
+.form-control-color { width: 3rem; padding: 0.375rem; cursor: pointer; }
+.form-control-color::-webkit-color-swatch-wrapper { padding: 0; }
+.form-control-color::-webkit-color-swatch { border: 0; }
+.form-control::file-selector-button { margin: -0.375rem 0.75rem -0.375rem -0.75rem; padding: 0.375rem 0.75rem; background: var(--surface-warm); color: var(--fg); border: 0; border-right: 1px solid var(--border); font: inherit; cursor: pointer; }
+.form-control-plaintext { display: block; width: 100%; padding: 0.375rem 0; background: transparent; color: var(--fg); border: 1px solid transparent; font: var(--text-sm)/1.5 var(--font-mono); }
+.form-text { margin-top: var(--space-2); color: var(--muted); font-size: var(--text-sm); }
+.form-check { display: block; min-height: 1.5rem; padding-left: 1.5em; margin-bottom: 0.125rem; }
+.form-check-inline { display: inline-block; margin-right: 1rem; }
+.form-check-input { float: left; width: 1em; height: 1em; margin: 0.25em 0 0 -1.5em; accent-color: var(--accent); }
+.form-check-label { cursor: pointer; }
+.form-switch .form-check-input { cursor: pointer; } /* native checkbox, no Bootstrap pill */
+.is-invalid, .form-control.is-invalid { border-color: var(--danger); }
+.invalid-feedback { display: none; margin-top: var(--space-2); color: var(--danger); font-size: var(--text-sm); }
+.is-invalid ~ .invalid-feedback { display: block; }
+
+/* Buttons (Skin .btn, .btn-primary, .btn-secondary, .btn-danger come from marstech.css) */
+.btn-outline-primary, .btn-outline-secondary { background: transparent; color: var(--fg); border-color: var(--border); }
+@media (hover: hover) { .btn-outline-primary:hover, .btn-outline-secondary:hover { background: var(--surface-warm); border-color: var(--fg-2); } }
+.btn-outline-danger { background: transparent; color: var(--danger); border-color: var(--danger); }
+@media (hover: hover) { .btn-outline-danger:hover { background: var(--danger); color: var(--accent-on); } }
+.btn-sm { padding-inline: var(--space-3); }
+.btn.disabled { background: var(--surface-warm); color: var(--meta); border-color: var(--border); pointer-events: none; } /* <a class="btn disabled"> */
+.btn-link { min-height: 0; padding: 0; background: none; border: 0; color: var(--mt-link); font: inherit; text-transform: none; letter-spacing: normal; text-decoration: underline; cursor: pointer; }
+.btn-close { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 0; background: transparent; border: 0; color: var(--fg-2); cursor: pointer; }
+.btn-close::before { content: "\2715"; font-size: 1rem; }
+@media (hover: hover) { .btn-close:hover { color: var(--fg); } }
+
+/* Alerts */
+.alert { position: relative; margin-bottom: 1rem; padding: var(--space-3) var(--space-4); background: var(--surface); color: var(--fg); border: 1px solid var(--border); }
+.alert-success { border-color: var(--success); color: var(--success); }
+.alert-danger { border-color: var(--danger); color: var(--danger); }
+.alert-warning { border-color: var(--warn); color: var(--warn); }
+.alert-info { border-color: var(--border); color: var(--fg-2); }
+.alert-dismissible { padding-right: 3.5rem; }
+.alert-dismissible .btn-close { position: absolute; top: 0; right: 0; }
+
+/* Badges, tables, lists */
+.text-bg-success { color: var(--success); border-color: currentColor; }
+.text-bg-secondary { color: var(--muted); border-color: currentColor; }
+.table { width: 100%; margin-bottom: 1rem; color: var(--fg); }
+.table > :not(caption) > * > * { padding: 0.5rem; border-bottom: 1px solid var(--border); text-align: left; }
+.table-responsive { overflow-x: auto; }
+.list-group { display: flex; flex-direction: column; margin: 0 0 1rem; padding: 0; list-style: none; }
+.list-group > *, .list-group-item { padding: 0.75rem 1rem; border: 1px solid var(--border); background: var(--surface); }
+.list-group > * + * { border-top: 0; }
