@@ -88,34 +88,6 @@ h4 { font-size: 1.5rem; } h5 { font-size: 1.25rem; } h6 { font-size: 1rem; }
     .col-md-8 { flex: 0 0 auto; width: 66.666667%; }
 }
 
-/* Utilities */
-.d-block { display: block !important; }
-.d-flex { display: flex !important; }
-.d-grid { display: grid !important; }
-.d-none { display: none !important; } /* after the other d-*: "d-block d-none" must hide, as in Bootstrap */
-.align-items-center { align-items: center !important; }
-.align-middle { vertical-align: middle !important; }
-.gap-2 { gap: 0.5rem !important; }
-.justify-content-between { justify-content: space-between !important; }
-.ms-auto { margin-left: auto !important; }
-.mx-auto { margin-inline: auto !important; }
-.mb-2 { margin-bottom: 0.5rem !important; }
-.mb-3 { margin-bottom: 1rem !important; }
-.mb-4 { margin-bottom: 1.5rem !important; }
-.mt-2 { margin-top: 0.5rem !important; }
-.mt-3 { margin-top: 1rem !important; }
-.mt-4 { margin-top: 1.5rem !important; }
-.p-0 { padding: 0 !important; }
-.text-center { text-align: center !important; }
-.text-start { text-align: left !important; }
-.text-break { overflow-wrap: anywhere !important; word-break: break-word !important; }
-.text-body-secondary { color: var(--muted) !important; }
-.font-monospace { font-family: var(--font-mono) !important; }
-.user-select-all { user-select: all !important; }
-.visually-hidden { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; border: 0 !important; }
-.img-fluid { max-width: 100%; height: auto; }
-.rounded-circle { border-radius: 50%; }
-
 /* Forms */
 .form-label { margin-bottom: 0.5rem; font: 500 var(--text-xs)/1.3 var(--font-mono); text-transform: uppercase; letter-spacing: var(--mt-label-tracking); color: var(--fg-2); }
 .form-control, .form-select { display: block; width: 100%; min-height: 44px; padding: 0.375rem 0.75rem; background: var(--bg); color: var(--fg); border: 1px solid var(--border); border-radius: 0; font: var(--text-sm)/1.5 var(--font-mono); transition: border-color var(--motion-fast) var(--ease-standard); }
@@ -167,3 +139,32 @@ h4 { font-size: 1.5rem; } h5 { font-size: 1.25rem; } h6 { font-size: 1rem; }
 .list-group { display: flex; flex-direction: column; margin: 0 0 1rem; padding: 0; list-style: none; }
 .list-group > *, .list-group-item { padding: 0.75rem 1rem; border: 1px solid var(--border); background: var(--surface); }
 .list-group > * + * { border-top: 0; }
+
+/* Utilities: last in the file so that, at equal specificity, they win over the component
+   rules above (Bootstrap used !important for this) */
+.d-block { display: block; }
+.d-flex { display: flex; }
+.d-grid { display: grid; }
+.d-none { display: none; } /* after the other d-*: "d-block d-none" must hide, as in Bootstrap */
+.align-items-center { align-items: center; }
+.align-middle { vertical-align: middle; }
+.gap-2 { gap: 0.5rem; }
+.justify-content-between { justify-content: space-between; }
+.ms-auto { margin-left: auto; }
+.mx-auto { margin-inline: auto; }
+.mb-2 { margin-bottom: 0.5rem; }
+.mb-3 { margin-bottom: 1rem; }
+.mb-4 { margin-bottom: 1.5rem; }
+.mt-2 { margin-top: 0.5rem; }
+.mt-3 { margin-top: 1rem; }
+.mt-4 { margin-top: 1.5rem; }
+.p-0 { padding: 0; }
+.text-center { text-align: center; }
+.text-start { text-align: left; }
+.text-break { overflow-wrap: anywhere; word-break: break-word; }
+.text-body-secondary { color: var(--muted); }
+.font-monospace { font-family: var(--font-mono); }
+.user-select-all { user-select: all; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.img-fluid { max-width: 100%; height: auto; }
+.rounded-circle { border-radius: 50%; }

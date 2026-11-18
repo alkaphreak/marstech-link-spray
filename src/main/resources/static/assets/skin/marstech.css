@@ -46,7 +46,7 @@ code, kbd { font-family: var(--font-mono); font-size: 0.92em; }
 
 /* Tools menu: second header row of mono links. From 992px it is one row; below, it opens as a
    vertical list behind .mt-menu-toggle (burger). Add data-collapsible to .mt-menu and toggle .is-open
-   on it (and aria-expanded on the button), or let a framework collapse handle it (sol4.space: Bootstrap). */
+   on it (and aria-expanded on the button) from the page script (sol4.space: mt-script.js). */
 .mt-menu { border-bottom: 1px solid var(--border-soft); }
 .mt-menu ul { display: flex; flex-direction: column; margin-block: 0; padding-block: var(--space-2); list-style: none; }
 @media (min-width: 992px) { .mt-menu ul { flex-direction: row; flex-wrap: wrap; padding-block: 0; } }
