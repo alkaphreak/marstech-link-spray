@@ -84,7 +84,7 @@ src/main/kotlin/fr/marstech/mtlinkspray/
 **Critical flows**:
 
 - Shorten URL: `GET /api/url-shortener/shorten?url=` (or `POST /api/url-shortener`, 201 Created, MLS-258) → `ShortenerApiController` → `ShortenerServiceImpl` → `LinkItemRepository` (MongoDB)
-- Resolve short code: `GET /{code}` → `RootApiController` → `ShortenerServiceImpl` → redirect
+- Resolve short code: `GET /{code}` → `UrlRedirectController` → `ShortenerServiceImpl` → redirect; the User-Agent is matched in memory by `BotUserAgents` (vendored patterns in `resources/bot-user-agents/`, refresh steps in its README): robots bump `botClickCount`, people `clickCount` and `lastClickedAt` (MLS-273)
 - Create paste: `POST /api/paste` → `PasteApiController` → `PasteServiceImpl` → `PasteRepository`
 - Abuse report: `POST /api/abuse` → `ReportAbuseServiceImpl` → `MailSenderServiceImpl`
 - Upload image: `POST /api/images` (header `X-Api-Key: {keyId}.{secret}`) → `ImageApiController` → `ApiKeyServiceImpl.resolve` → `ImageServiceImpl` → `DigitalOceanSpacesServiceImpl` → DO Spaces bucket `mt-mls-img-storage`
@@ -255,4 +255,4 @@ This file is **living documentation**. Any agent (or human) making changes to th
 
 ---
 
-_Last updated: 2026-11-18 — no Bootstrap, MarsTech-Skin UI, main landmark (MLS-271)_
+_Last updated: 2026-11-18 — robots kept out of the short-link click counter (MLS-273)_
