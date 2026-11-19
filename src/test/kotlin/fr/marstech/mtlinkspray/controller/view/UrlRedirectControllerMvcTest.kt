@@ -8,6 +8,9 @@ import fr.marstech.mtlinkspray.controller.commons.GlobalRestExceptionHandler
 import fr.marstech.mtlinkspray.service.ShortenerService
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
@@ -17,6 +20,7 @@ import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.head
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
@@ -39,8 +43,27 @@ class UrlRedirectControllerMvcTest {
 
     @BeforeEach
     fun setUp() {
-        whenever(shortenerService.getTarget(UNKNOWN_UID))
+        whenever(shortenerService.getTarget(eq(UNKNOWN_UID), anyOrNull()))
             .thenThrow(NoSuchElementException("Short link '$UNKNOWN_UID' does not exist"))
+    }
+
+    // MLS-273: the User-Agent reaches the service, which tells robots from people
+    @Test
+    fun knownShortLinkPassesTheUserAgentToTheService() {
+        whenever(shortenerService.getTarget("abc", "Twitterbot/1.0")).thenReturn("https://www.example.com")
+
+        mockMvc.perform(get("/abc").header("User-Agent", "Twitterbot/1.0"))
+            .andExpect(status().is3xxRedirection)
+        verify(shortenerService).getTarget("abc", "Twitterbot/1.0")
+    }
+
+    @Test
+    fun headRequestCountsAsARobotVisit() {
+        whenever(shortenerService.getTarget("abc", null)).thenReturn("https://www.example.com")
+
+        mockMvc.perform(head("/abc").header("User-Agent", "Mozilla/5.0 Firefox/133.0"))
+            .andExpect(status().is3xxRedirection)
+        verify(shortenerService).getTarget("abc", null)
     }
 
     @Test

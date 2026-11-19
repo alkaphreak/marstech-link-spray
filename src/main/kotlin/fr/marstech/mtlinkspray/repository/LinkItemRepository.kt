@@ -16,4 +16,8 @@ interface LinkItemRepository : MongoRepository<LinkItem, String> {
     // Atomic $inc: a read-modify-write save() would lose concurrent clicks (MLS-261). Returns the matched count.
     @Update("{ '\$inc': { 'clickCount': 1 }, '\$set': { 'lastClickedAt': ?1 } }")
     fun findAndIncrementClickCountById(id: String, clickedAt: LocalDateTime): Long
+
+    // Robots only bump their own counter, never the last-click date shown to the link's author (MLS-273)
+    @Update("{ '\$inc': { 'botClickCount': 1 } }")
+    fun findAndIncrementBotClickCountById(id: String): Long
 }

@@ -24,6 +24,9 @@ import org.springframework.dao.DuplicateKeyException
 import java.time.LocalDateTime
 import java.util.*
 
+private const val BROWSER_UA =
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+
 @ExtendWith(MockitoExtension::class)
 internal class ShortenerServiceTest {
     private val linkItemRepository = mock<LinkItemRepository>()
@@ -122,7 +125,7 @@ internal class ShortenerServiceTest {
         whenever(randomIdGeneratorService.getGeneratedFreeId()).thenReturn(id)
         val shortened = shortenerService.shorten(url, httpServletRequest)
         val uid = shortened!!.substring(shortened.lastIndexOf('/') + 1)
-        val target = shortenerService.getTarget(uid)
+        val target = shortenerService.getTarget(uid, BROWSER_UA)
         Assertions.assertEquals(url, target)
     }
 
@@ -131,7 +134,7 @@ internal class ShortenerServiceTest {
         whenever(linkItemRepository.findById(any())).thenReturn(Optional.empty())
         val exception = Assertions.assertThrows(
             NoSuchElementException::class.java
-        ) { shortenerService.getTarget("nonexistent-uid") }
+        ) { shortenerService.getTarget("nonexistent-uid", BROWSER_UA) }
         Assertions.assertEquals("Short link 'nonexistent-uid' does not exist", exception.message)
     }
 
@@ -183,32 +186,50 @@ internal class ShortenerServiceTest {
         }
         verify(linkItemRepository, times(3)).insert(argThat<LinkItem> { id == "test-id" })
     }
-    private fun storedLink(id: String, clicks: Long = 0, lastClick: LocalDateTime? = null) = LinkItem(
+    private fun storedLink(id: String, clicks: Long = 0, lastClick: LocalDateTime? = null, botClicks: Long = 0) = LinkItem(
         id = id, author = HistoryItem(), target = LinkItemTarget("https://www.example.com"),
-        clickCount = clicks, lastClickedAt = lastClick,
+        clickCount = clicks, lastClickedAt = lastClick, botClickCount = botClicks,
     )
 
     @Test
     fun getTargetShouldCountTheClick() {
         whenever(linkItemRepository.findById("abc")).thenReturn(Optional.of(storedLink("abc")))
 
-        Assertions.assertEquals("https://www.example.com", shortenerService.getTarget("abc"))
+        Assertions.assertEquals("https://www.example.com", shortenerService.getTarget("abc", BROWSER_UA))
         verify(linkItemRepository).findAndIncrementClickCountById(eq("abc"), any())
+    }
+
+    @Test
+    fun getTargetFromRobotShouldCountABotClickOnly() {
+        whenever(linkItemRepository.findById("abc")).thenReturn(Optional.of(storedLink("abc")))
+
+        Assertions.assertEquals("https://www.example.com", shortenerService.getTarget("abc", "Slackbot-LinkExpanding 1.0"))
+        verify(linkItemRepository).findAndIncrementBotClickCountById("abc")
+        verify(linkItemRepository, never()).findAndIncrementClickCountById(any(), any())
+    }
+
+    @Test
+    fun getTargetFromBrowserShouldNotCountABotClick() {
+        whenever(linkItemRepository.findById("abc")).thenReturn(Optional.of(storedLink("abc")))
+
+        shortenerService.getTarget("abc", BROWSER_UA)
+        verify(linkItemRepository, never()).findAndIncrementBotClickCountById(any())
     }
 
     @Test
     fun getTargetOfUnknownLinkShouldThrowWithoutCounting() {
         whenever(linkItemRepository.findById("nope")).thenReturn(Optional.empty())
 
-        Assertions.assertThrows(NoSuchElementException::class.java) { shortenerService.getTarget("nope") }
+        Assertions.assertThrows(NoSuchElementException::class.java) { shortenerService.getTarget("nope", BROWSER_UA) }
         verify(linkItemRepository, never()).findAndIncrementClickCountById(any(), any())
+        verify(linkItemRepository, never()).findAndIncrementBotClickCountById(any())
     }
 
     @Test
     fun getStatsShouldReturnTheStoredCounter() {
         val lastClick = LocalDateTime.of(2026, 11, 9, 12, 0)
-        whenever(linkItemRepository.findById("abc")).thenReturn(Optional.of(storedLink("abc", 42, lastClick)))
+        whenever(linkItemRepository.findById("abc")).thenReturn(Optional.of(storedLink("abc", 42, lastClick, 7)))
 
-        Assertions.assertEquals(LinkStatsResponse(42, lastClick), shortenerService.getStats("abc"))
+        Assertions.assertEquals(LinkStatsResponse(42, lastClick, 7), shortenerService.getStats("abc"))
     }
 }

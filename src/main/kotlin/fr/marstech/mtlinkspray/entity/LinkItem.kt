@@ -18,4 +18,6 @@ data class LinkItem(
     val target: LinkItemTarget,
     val clickCount: Long = 0,
     val lastClickedAt: LocalDateTime? = null,
+    /** Redirects requested by robots, kept out of [clickCount] (MLS-273). */
+    val botClickCount: Long = 0,
 ) : StandardEntity
