@@ -17,6 +17,11 @@ class BotUserAgentsTest {
             "Mozilla/5.0 (X11; Linux x86_64; rv:133.0) Gecko/20100101 Firefox/133.0",
             "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0",
+            "Mozilla/5.0 (iPhone; CPU iPhone OS 18_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/22B83 [FBAN/FBIOS;FBAV/490.0.0.38.109;FBBV/659171230;FBDV/iPhone15,2;FBMD/iPhone;FBSN/iOS;FBSV/18.1;FBSS/3;FBCR/;FBID/phone;FBLC/fr_FR;FBOP/5]",
+            "Mozilla/5.0 (Linux; Android 15; Pixel 9 Build/AP3A.241105.007; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/131.0.6778.81 Mobile Safari/537.36 Instagram 356.0.0.41.101 Android (35/15; 420dpi; 1080x2424; Google/google; Pixel 9; tokay; tokay; fr_CA; 657131320)",
+            "Mozilla/5.0 (iPhone; CPU iPhone OS 18_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 [LinkedInApp]/9.30.1234",
+            "Podcasts/1.1.0 CFNetwork/1568.200.51 Darwin/24.1.0",
+            "Dalvik/2.1.0 (Linux; U; Android 15; Pixel 9 Build/AP3A.241105.007)",
         ]
     )
     fun shouldTreatBrowsersAsPeople(userAgent: String) {
@@ -37,6 +42,10 @@ class BotUserAgentsTest {
             "Mozilla/5.0 (compatible; ChatGPT-User/1.0; +https://openai.com/bot)",
             "Claude-User (claude-code/2.1.308; +https://support.anthropic.com/)",
             "curl/8.7.1",
+            "node",
+            "undici",
+            "Java/21.0.1",
+            "axios/1.7.9",
             "mozilla/5.0 (compatible; chatgpt-user/1.0; +https://openai.com/bot)",
             "python-requests/2.32.3",
         ]
@@ -56,6 +65,14 @@ class BotUserAgentsTest {
         assertTrue(BotUserAgents.isBot(oversized))
         assertFalse(BotUserAgents.isBot("Mozilla/5.0 " + "x".repeat(8 * 1024) + " Twitterbot/1.0"))
         assertTrue(System.nanoTime() - start < 1_000_000_000, "classification of 8 KB headers took over 1 s")
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = ["Twitterbot/1.0"])
+    fun shouldCountEveryVisitAsAClickWhenNoPatternIsLoaded(userAgent: String?) {
+        // Given patterns that failed to load / When classified / Then nothing is a robot, so every visit counts
+        assertFalse(BotUserAgents.isBot(userAgent, emptyList()))
     }
 
     @ParameterizedTest
