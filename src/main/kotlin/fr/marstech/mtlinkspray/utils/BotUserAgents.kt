@@ -26,16 +26,25 @@ object BotUserAgents {
     private val patterns: List<Regex> = runCatching {
         listOf(
             // monperrus patterns spell out their own case ([wW]get)
-            crawlerPatterns().joinToString("|").toRegex(),
+            alternation(crawlerPatterns()).toRegex(),
             // mintlify builds its patterns as case-insensitive RegExps
-            agentPatterns().joinToString("|").toRegex(RegexOption.IGNORE_CASE),
+            alternation(agentPatterns() + httpClientPatterns()).toRegex(RegexOption.IGNORE_CASE),
         )
     }.onFailure { log.error("Bot User-Agent patterns not loaded: robots count as clicks", it) }
         .getOrDefault(emptyList())
 
-    /** A blank User-Agent counts as a robot: every browser sends one. */
-    fun isBot(userAgent: String?): Boolean = userAgent.isNullOrBlank() ||
-            userAgent.take(MAX_USER_AGENT_LENGTH).let { ua -> patterns.any { it.containsMatchIn(ua) } }
+    fun isBot(userAgent: String?): Boolean = isBot(userAgent, patterns)
+
+    /**
+     * A blank User-Agent counts as a robot (every browser sends one), unless no pattern is loaded: then nothing is
+     * a robot, so a loading failure falls back to counting every visit as a click.
+     */
+    internal fun isBot(userAgent: String?, patterns: List<Regex>): Boolean = patterns.isNotEmpty() &&
+            (userAgent.isNullOrBlank() ||
+                    userAgent.take(MAX_USER_AGENT_LENGTH).let { ua -> patterns.any { it.containsMatchIn(ua) } })
+
+    // Each pattern in its own group, as mintlify does, so no top-level construct leaks into its neighbours
+    private fun alternation(patterns: List<String>): String = patterns.joinToString("|") { "(?:$it)" }
 
     private fun crawlerPatterns(): List<String> = read("crawler-user-agents.json").map { it["pattern"] as String }
 
@@ -43,6 +52,12 @@ object BotUserAgents {
         .flatMap { entry -> (entry["userAgents"] as List<*>).map { it as String } }
         // Named groups like (?<version>...) repeat across entries and would clash in one alternation
         .map { it.replace(NAMED_GROUP, "(?:") }
+
+    // Generic HTTP libraries (axios, node, undici, Java...): mintlify adds them to its robot patterns. Native-app
+    // stacks (CFNetwork, Dalvik) are left out: a person tapping a short link in an iOS or Android app is a click
+    private fun httpClientPatterns(): List<String> = read("agent-traffic-http-clients.json")
+        .filterNot { (it["name"] as String).contains("native app") }
+        .map { it["userAgent"] as String }
 
     @Suppress("UNCHECKED_CAST")
     private fun read(file: String): List<Map<String, Any?>> =
