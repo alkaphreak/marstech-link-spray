@@ -38,6 +38,9 @@
                     the API key already identifies the client application.</p>
                 <p>Paste, image and abuse report records also keep the IP address of their author for as long as
                     the record exists.</p>
+                <p>To limit abuse, sol4.space counts per IP address the recent creations, abuse reports and anonymous
+                    OCR or image compression calls. This counter lives only in the server's memory, is never written
+                    anywhere, and is forgotten after at most one hour without a request from that address.</p>
 
                 <h5>Why</h5>
                 <p>Only to fight abuse: to tie illegal content published on the platform to a signature when it is

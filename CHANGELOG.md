@@ -7,6 +7,19 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Per-IP rate limit on the public write routes, API and forms (short links, pastes, dashboards, shortened sprays) and on abuse reports: 429 with `Retry-After` once the budget is spent (MLS-161)
+
+### Security
+
+- The client IP (quotas, rate limit, write signatures, paste and abuse records) is read from App Platform's
+  `do-connecting-ip` header: a forged `X-Forwarded-For` no longer changes it (MLS-161)
+
+### Changed
+
+- The anonymous OCR and image compression quotas refill gradually (token bucket) instead of resetting every IP at the end of a fixed window, and answer with `Retry-After` (MLS-161)
+
 ### Fixed
 
 - `<pre>` wraps instead of overflowing, so the one-time API key no longer spills out of its alert on mobile (MLS-271)

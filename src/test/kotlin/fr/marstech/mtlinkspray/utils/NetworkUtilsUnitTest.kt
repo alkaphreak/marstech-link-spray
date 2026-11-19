@@ -106,4 +106,12 @@ internal class NetworkUtilsUnitTest {
         `when`(mockRequest!!.remoteAddr).thenReturn("10.0.0.7")
         Assertions.assertEquals("10.0.0.7", NetworkUtils.getIpAddress(mockRequest!!))
     }
+
+    @Test
+    fun getIpAddressPrefersAppPlatformHeaderOverSpoofableOnes() {
+        `when`(mockRequest!!.getHeader("do-connecting-ip")).thenReturn("198.51.100.20")
+        `when`(mockRequest!!.getHeader("CF-Connecting-IP")).thenReturn("2001:db8::1")
+        `when`(mockRequest!!.getHeader("X-Forwarded-For")).thenReturn("203.0.113.9, 10.244.0.1")
+        Assertions.assertEquals("198.51.100.20", NetworkUtils.getIpAddress(mockRequest!!))
+    }
 }

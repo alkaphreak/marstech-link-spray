@@ -12,7 +12,7 @@ import org.mockito.Mockito.`when`
 internal class SprayServiceImplTest {
 
     private val shortenerService: ShortenerService = mock(ShortenerService::class.java)
-    private val sprayService: SprayService = SprayServiceImpl(shortenerService)
+    private val sprayService: SprayService = SprayServiceImpl(shortenerService, AnonymousQuota("Write", 1, 0))
     private lateinit var httpServletRequest: HttpServletRequest
 
     @BeforeEach
@@ -87,5 +87,29 @@ internal class SprayServiceImplTest {
 
         // Then
         assertEquals(finalShortUrl, result)
+    }
+
+    @Test
+    fun shortenAndSprayShouldSpendOneTokenPerLinkBeforeShortening() {
+        // Given: 2 URLs cost 3 tokens, and this IP already spent 1 of its 3
+        val quota = AnonymousQuota("Write", 3, 600_000)
+        quota.count("unknown")
+        val limited = SprayServiceImpl(shortenerService, quota)
+
+        // When / Then
+        assertThrows(AnonymousQuota.QuotaExceededException::class.java) {
+            limited.shortenAndSpray(listOf("https://example.com", "https://example.org"), httpServletRequest)
+        }
+        org.mockito.Mockito.verifyNoInteractions(shortenerService)
+    }
+
+    @Test
+    fun shortenAndSprayShouldRejectMoreThanOneHundredUrls() {
+        // When / Then
+        val e = assertThrows(org.springframework.web.server.ResponseStatusException::class.java) {
+            sprayService.shortenAndSpray(List(101) { "https://example.com/$it" }, httpServletRequest)
+        }
+        assertEquals(org.springframework.http.HttpStatus.BAD_REQUEST, e.statusCode)
+        org.mockito.Mockito.verifyNoInteractions(shortenerService)
     }
 }

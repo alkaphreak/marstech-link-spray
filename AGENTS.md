@@ -87,6 +87,7 @@ src/main/kotlin/fr/marstech/mtlinkspray/
 - Resolve short code: `GET /{code}` → `RootApiController` → `ShortenerServiceImpl` → redirect
 - Create paste: `POST /api/paste` → `PasteApiController` → `PasteServiceImpl` → `PasteRepository`
 - Abuse report: `POST /api/abuse` → `ReportAbuseServiceImpl` → `MailSenderServiceImpl`
+- Rate limit (MLS-161, ADR 0006): `RateLimitConfig` registers a `HandlerInterceptor` on the public write routes, API and form (`/api/url-shortener`, `GET`/`HEAD /api/url-shortener/shorten`, `/api/paste`, `/api/dashboard[/*]`, `/shortener`, `/paste`, `/dashboard`: one shared `writeQuota` bean per client) and on `POST /abuse` (own budget, it sends a mail); a shortened spray pays one token per link in `SprayServiceImpl`. `AnonymousQuota` is a Bucket4j token bucket per IPv4 or IPv6 /64 in a bounded Caffeine cache, 429 with `Retry-After` (JSON, or the error page for `Accept: text/html`); limits under `mt.link-spray.rate-limit.*`, a window of 0 disables them (test profile). A new public write route must be added to `RateLimitConfig`
 - Upload image: `POST /api/images` (header `X-Api-Key: {keyId}.{secret}`) → `ImageApiController` → `ApiKeyServiceImpl.resolve` → `ImageServiceImpl` → `DigitalOceanSpacesServiceImpl` → DO Spaces bucket `mt-mls-img-storage`
 - Download image: `GET /api/images/{id}` → `ImageApiController` streams bytes from DO Spaces (no redirect), enforces visibility/ownership
 - Manage API keys: `GET/POST /admin/api-keys` (HTTP Basic) → `AdminApiKeyViewController` → `ApiKeyServiceImpl` (create/list/enable-disable)

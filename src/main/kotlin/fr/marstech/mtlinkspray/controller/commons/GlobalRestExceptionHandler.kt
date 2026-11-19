@@ -4,10 +4,13 @@ import fr.marstech.mtlinkspray.dto.ErrorResponse
 import fr.marstech.mtlinkspray.dto.FieldError
 import fr.marstech.mtlinkspray.enums.ViewNameEnum.ERROR
 import fr.marstech.mtlinkspray.exception.PayloadTooLargeException
+import fr.marstech.mtlinkspray.service.AnonymousQuota
+import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.ConstraintViolationException
 import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
 import org.springframework.dao.DuplicateKeyException
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatus.*
 import org.springframework.http.MediaType.TEXT_HTML_VALUE
@@ -169,6 +172,20 @@ class GlobalRestExceptionHandler(
         ModelAndView(ERROR.viewName, NOT_FOUND)
             .addObject("viewNameEnum", ERROR)
             .addObject("errorMessage", if (e is NoSuchElementException) e.message else null)
+
+    // Same exception twice, as for the 404 pair above: API clients (Accept */* or JSON) keep the JSON
+    // body, a browser posting a form past its rate limit gets the error page; both carry Retry-After (MLS-161)
+    @ExceptionHandler(AnonymousQuota.QuotaExceededException::class)
+    fun handleQuotaExceeded(e: AnonymousQuota.QuotaExceededException, request: WebRequest): ResponseEntity<ErrorResponse> =
+        handleResponseStatus(e, request)
+
+    @ExceptionHandler(AnonymousQuota.QuotaExceededException::class, produces = [TEXT_HTML_VALUE])
+    fun handleQuotaExceededPage(e: AnonymousQuota.QuotaExceededException, response: HttpServletResponse): ModelAndView {
+        response.setHeader(HttpHeaders.RETRY_AFTER, e.retryAfterSeconds.toString())
+        return ModelAndView(ERROR.viewName, TOO_MANY_REQUESTS)
+            .addObject("viewNameEnum", ERROR)
+            .addObject("errorMessage", e.reason)
+    }
 
     @ExceptionHandler(NoResourceFoundException::class)
     fun handleNoResourceFound(
