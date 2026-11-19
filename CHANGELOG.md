@@ -22,6 +22,11 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   (also for a dashboard created without a key, which is read-only), private image read and image delete.
   A missing, malformed or invalid key stays 401, checked first (MLS-279)
 
+### Security
+
+- JSON request bodies are capped at 8 MiB (`mt.link-spray.json.max-body-bytes`) and answered 413 above it,
+  before Jackson, bean validation or the `X-Api-Key` check read them (MLS-272)
+
 ---
 
 ## [0.16.0] - 2026-11-18

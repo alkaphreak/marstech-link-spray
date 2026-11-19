@@ -413,6 +413,8 @@ class GlobalRestExceptionHandler(
         e: HttpMessageNotReadableException,
         request: WebRequest
     ): ResponseEntity<ErrorResponse> {
+        // A chunked JSON body cut by JsonBodySizeLimitFilter mid-parse reaches here wrapped by Jackson (MLS-272)
+        (e.rootCause as? PayloadTooLargeException)?.let { return handlePayloadTooLarge(it, request) }
         val errorResponse = ErrorResponse.from(
             status = BAD_REQUEST.value(),
             error = "Bad Request",
