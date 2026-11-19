@@ -6,6 +6,7 @@ import fr.marstech.mtlinkspray.entity.LinkItem
 import fr.marstech.mtlinkspray.entity.LinkItemTarget
 import fr.marstech.mtlinkspray.repository.LinkItemRepository
 import fr.marstech.mtlinkspray.service.ShortenerService.Companion.getShortenedLink
+import fr.marstech.mtlinkspray.utils.BotUserAgents
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.dao.DuplicateKeyException
 import org.springframework.stereotype.Service
@@ -48,11 +49,15 @@ class ShortenerServiceImpl(
 
     override fun getTarget(
         uid: String,
+        userAgent: String?,
     ): String = findLink(uid).target.targetUrl
-        .also { linkItemRepository.findAndIncrementClickCountById(uid, LocalDateTime.now()) }
+        .also {
+            if (BotUserAgents.isBot(userAgent)) linkItemRepository.findAndIncrementBotClickCountById(uid)
+            else linkItemRepository.findAndIncrementClickCountById(uid, LocalDateTime.now())
+        }
 
     override fun getStats(uid: String): LinkStatsResponse =
-        findLink(uid).let { LinkStatsResponse(it.clickCount, it.lastClickedAt) }
+        findLink(uid).let { LinkStatsResponse(it.clickCount, it.lastClickedAt, it.botClickCount) }
 
     private fun findLink(uid: String): LinkItem = linkItemRepository.findById(uid)
         .orElseThrow { NoSuchElementException("Short link '$uid' does not exist") }

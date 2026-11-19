@@ -124,11 +124,12 @@ class ShortenerApiControllerTest {
     }
     @Test
     fun shouldReturnLinkStats() {
-        whenever(shortenerService.getStats("abc123")).thenReturn(LinkStatsResponse(3, null))
+        whenever(shortenerService.getStats("abc123")).thenReturn(LinkStatsResponse(3, null, 2))
 
         mockMvc.perform(get("/api/url-shortener/abc123/stats"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.clickCount").value(3))
+            .andExpect(jsonPath("$.botClickCount").value(2))
     }
 
     @Test

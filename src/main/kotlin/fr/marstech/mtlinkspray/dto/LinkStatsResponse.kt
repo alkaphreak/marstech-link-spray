@@ -5,4 +5,5 @@ import java.time.LocalDateTime
 data class LinkStatsResponse(
     val clickCount: Long,
     val lastClickedAt: LocalDateTime?,
+    val botClickCount: Long,
 )

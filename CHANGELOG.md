@@ -7,6 +7,13 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- Short-link click counter (MLS-273): link previews (Slack, Discord, X, WhatsApp...), crawlers, AI agents,
+  HTTP libraries and `HEAD` link checks no longer count as clicks. They go to a separate `botClickCount`, returned by
+  `GET /api/url-shortener/{uid}/stats`, and leave the last-click date alone. The User-Agent is matched in memory
+  against vendored MIT pattern lists (monperrus/crawler-user-agents, mintlify/agent-traffic) and never stored
+
 ### Fixed
 
 - `<pre>` wraps instead of overflowing, so the one-time API key no longer spills out of its alert on mobile (MLS-271)
