@@ -7,6 +7,11 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Security
+
+- JSON request bodies are capped at 8 MiB (`mt.link-spray.json.max-body-bytes`) and answered 413 above it,
+  before Jackson, bean validation or the `X-Api-Key` check read them (MLS-272)
+
 ### Fixed
 
 - `<pre>` wraps instead of overflowing, so the one-time API key no longer spills out of its alert on mobile (MLS-271)
