@@ -42,7 +42,7 @@ class OcrServiceImpl(
     @Value("\${mt.link-spray.ocr.max-image-pixels:12000000}") private val maxImagePixels: Long,
 ) : OcrService {
 
-    private val anonymous = AnonymousQuota("OCR", anonymousQuota, anonymousWindowMillis)
+    private val anonymous = AnonymousQuota("Anonymous OCR", anonymousQuota, anonymousWindowMillis)
 
     override fun recognize(rawApiKey: String?, clientIp: String?, image: InputStream, lang: String): OcrResult {
         // A "+" left unencoded in the query string arrives as a space

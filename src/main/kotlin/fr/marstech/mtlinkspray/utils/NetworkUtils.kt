@@ -64,10 +64,15 @@ object NetworkUtils {
     const val IP_LITERAL =
         "^((25[0-5]|2[0-4]\\d|1?\\d?\\d)\\.){3}(25[0-5]|2[0-4]\\d|1?\\d?\\d)$|^[0-9A-Fa-f.]*:[0-9A-Fa-f:.]*$"
 
-    /** Cloudflare sets CF-Connecting-IP to the client address; the first X-Forwarded-For entry is the fallback. */
+    /**
+     * App Platform sets do-connecting-ip to the client address and keeps a client-sent X-Forwarded-For
+     * as is (verified 2026-11-18, MLS-161), so it comes first. CF-Connecting-IP, then the first
+     * X-Forwarded-For entry and remoteAddr only serve outside App Platform (dev, tests).
+     */
     @JvmStatic
     fun getIpAddress(request: HttpServletRequest): String? =
-        request.getHeader("CF-Connecting-IP")?.trim()
+        request.getHeader("do-connecting-ip")?.trim()?.takeIf { it.isNotEmpty() }
+            ?: request.getHeader("CF-Connecting-IP")?.trim()
             ?: request.getHeader("X-Forwarded-For")?.split(",")?.firstOrNull()?.trim()
             ?: request.remoteAddr
 

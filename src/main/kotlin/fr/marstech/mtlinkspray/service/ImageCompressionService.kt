@@ -46,7 +46,7 @@ class ImageCompressionService(
     @Value("\${mt.link-spray.img.anonymous-window-ms:3600000}") anonymousWindowMillis: Long,
 ) {
 
-    private val anonymous = AnonymousQuota("image compression", anonymousQuota, anonymousWindowMillis)
+    private val anonymous = AnonymousQuota("Anonymous image compression", anonymousQuota, anonymousWindowMillis)
 
     fun compress(
         rawApiKey: String?, clientIp: String?, image: InputStream, format: ImageFormat, quality: Int, maxDimension: Int?,

@@ -116,6 +116,16 @@
             <artifactId>spring-ai-starter-mcp-server-webmvc</artifactId>
             <version>${spring-ai.version}</version>
         </dependency>
+        <!-- In-memory rate limiting: one token bucket per client IP, kept in a bounded Caffeine cache (MLS-161, ADR 0006) -->
+        <dependency>
+            <groupId>com.bucket4j</groupId>
+            <artifactId>bucket4j_jdk17-core</artifactId>
+            <version>8.22.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+        </dependency>
 
         <!-- QR code encoding (MLS-110); javase only decodes images back in tests -->
         <dependency>
