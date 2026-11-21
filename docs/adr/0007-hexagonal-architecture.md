@@ -81,7 +81,9 @@ Spray stays with the shortener because it creates short links through the shorte
 - `adapter/out/web/`: `ReservedPaths` (reads `RequestMappingHandlerMapping`) behind
   `ReservedPathsPort`.
 - `config/`: security, CSP, rate-limit and S3 configuration, `@ConfigurationProperties`.
-- `utils/` is split: `ImageTypes` goes to `nativetools`, `NetworkUtils` to `adapter/in/web`,
+- `utils/` is split: `ImageTypes` (magic-byte detection, used by `image`, `nativetools` and the
+  image controller) becomes an `ImageType` enum with its pure `detect(bytes)` in
+  `domain/shared`, upload validation still excluding SVG; `NetworkUtils` goes to `adapter/in/web`,
   `BotUserAgents` to `shortener` with its list loaded by an adapter (no `ClassPathResource` in
   the domain), `SleepCycles` to `devtools` with its result types (no `dto` import).
 - Domain classes that still use Spring today get a destination for that dependency:
@@ -109,6 +111,11 @@ in a version that reads Java 25 bytecode)
   qualified name. `DashboardEntity.items` is a `MutableList<DashboardItem>` (an interface), so
   each stored item holds `_class: "fr.marstech.mtlinkspray.entity.DashboardLink"`; without the
   alias, existing dashboards stop loading after the move.
+- An alias resolves only for a type the mapping context already knows. `DashboardLink` is not a
+  `@Document`, so Boot's entity scan does not register it and its alias would not resolve on a
+  cold start. Concrete types stored under a polymorphic field are therefore registered at
+  startup (explicit `MongoManagedTypes` / initial entity set) in the first PR, and an E2E case
+  reads an old dashboard in a fresh context before any write.
 - Domain models carry the `version` field. The checklist adapter keeps `@Version` and translates
   `OptimisticLockingFailureException` into a domain `Conflict`, which the handler maps to 409.
 - Atomic updates (`updateFirst` with `arrayFilters` for checklist items, `findAndModify` for
@@ -142,8 +149,9 @@ is opened, and left unchanged by both migration PRs:
 **Migration** in two pull requests, each merged with `--squash` (the repository requires signed
 commits and linear history, so a rebase merge, which GitHub does not sign, cannot be used):
 
-1. Pure move: packages and imports only, behaviour and tests unchanged. Thymeleaf `T(...)`
-   references are updated with it. Its squash commit goes into `.git-blame-ignore-revs`.
+1. Pure move: packages and imports only, behaviour and tests unchanged, with two exceptions
+   that keep stored documents readable: the `@TypeAlias` annotations and the startup
+   registration of polymorphic types. Thymeleaf `T(...)` references are updated with it. Its squash commit goes into `.git-blame-ignore-revs`.
 2. Refactors: ports, domain types, domain errors, `ClientContext`, `@ConfigurationProperties`,
    removal of the interface + Impl pairs, of the dead `MtLinkSprayCollection*` code and of the
    duplicated `namespaceOf()`. The ArchUnit rules land in this PR and must pass.
