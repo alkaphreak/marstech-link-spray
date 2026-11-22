@@ -72,6 +72,18 @@
         <sonar.coverage.exclusions>src/main/resources/static/**/*.js</sonar.coverage.exclusions>
     </properties>
 
+    <dependencyManagement>
+        <dependencies>
+            <!-- kotlin-maven-plugin (declared as a dependency) brings commons-io 2.11, which wins over
+                 the 2.20 that flapdoodle's commons-compress needs to unpack MongoDB (MLS-277) -->
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>2.20.0</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -237,12 +249,21 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
-        <!-- Embedded MongoDB for tests -->
-        <!-- https://mvnrepository.com/artifact/de.flapdoodle.embed/de.flapdoodle.embed.mongo -->
+        <!-- Embedded MongoDB for the E2E suite (MLS-277), Spring Boot 4 integration -->
+        <!-- https://mvnrepository.com/artifact/de.flapdoodle.embed/de.flapdoodle.embed.mongo.spring4x -->
         <dependency>
             <groupId>de.flapdoodle.embed</groupId>
-            <artifactId>de.flapdoodle.embed.mongo</artifactId>
-            <version>5.0.0</version>
+            <artifactId>de.flapdoodle.embed.mongo.spring4x</artifactId>
+            <version>4.33.0</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Architecture rules: E2E isolation (MLS-277), hexagonal boundaries (ADR 0007) -->
+        <!-- https://mvnrepository.com/artifact/com.tngtech.archunit/archunit-junit5 -->
+        <dependency>
+            <groupId>com.tngtech.archunit</groupId>
+            <artifactId>archunit-junit5</artifactId>
+            <version>1.5.1</version>
             <scope>test</scope>
         </dependency>
 

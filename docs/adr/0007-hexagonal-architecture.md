@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 date: 2026-11-21
 ticket: https://marstech.myjetbrains.com/youtrack/issue/MLS-276
 ---
@@ -145,6 +145,9 @@ is opened, and left unchanged by both migration PRs:
   checklist version, 429 from the ADR 0006 quotas, `X-Api-Key` namespaces, TTL indexes, admin
   pages behind HTTP Basic.
 - Runs in `mvn verify` and in the CI workflow.
+- The `mt.link-spray.*` property names the suite sets (`e2e` profile, quota overrides) are part
+  of the contract: the `@ConfigurationProperties` of the second PR keep them, otherwise the suite
+  would silently fall back to defaults (real object storage, installed binaries).
 
 **Migration** in two pull requests, each merged with `--squash` (the repository requires signed
 commits and linear history, so a rebase merge, which GitHub does not sign, cannot be used):

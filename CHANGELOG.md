@@ -7,8 +7,17 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- End-to-end regression suite (`fr.marstech.e2e`): black-box HTTP tests against the running app and an
+  embedded MongoDB, covering every public route, quotas, admin key lifecycle, MCP and legacy `_class`
+  documents, isolated from production code by an ArchUnit rule (MLS-277)
+- ADR 0007, hexagonal packages enforced by ArchUnit, accepted (MLS-276)
+
 ### Changed
 
+- Tests run against an embedded MongoDB 8.0.5 (flapdoodle `spring4x` 4.33.0, replacing the unused
+  `de.flapdoodle.embed.mongo` 5.0.0); `commons-io` pinned to 2.20.0 (MLS-277)
 - A valid API key that does not own the resource now gets 403 Forbidden instead of 401: dashboard update
   (also for a dashboard created without a key, which is read-only), private image read and image delete.
   A missing, malformed or invalid key stays 401, checked first (MLS-279)

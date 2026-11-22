@@ -1,0 +1,4 @@
+#!/bin/sh
+# E2E stand-in for tesseract (MLS-277): drains the image from stdin, prints a fixed text
+cat > /dev/null
+echo "E2E OCR TEXT"

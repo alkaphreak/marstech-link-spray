@@ -11,10 +11,10 @@
 - **Language**: Kotlin 2.4, Java 25 (Eclipse Temurin)
 - **Framework**: Spring Boot 4.1, Spring WebMVC, Spring Security 7 (HTTP Basic, admin routes only)
 - **Build**: Maven (`pom.xml`)
-- **DB**: MongoDB (primary) — dev `localhost:27017`, none in tests, prod `$MONGODB_URI_LINK_SPRAY`
+- **DB**: MongoDB (primary) — dev `localhost:27017`, tests an embedded MongoDB 8.0.5 started by flapdoodle `spring4x` for every full-context test (`de.flapdoodle.mongodb.embedded.version` in the `test` profile), prod `$MONGODB_URI_LINK_SPRAY`
 - **Object storage**: Digital Ocean Spaces (S3-compatible, AWS SDK v2) — image storage (MLS-203)
-- **Testing**: JUnit 5 + Mockito-Kotlin + MockMvc + jqwik (property-based) — profile `test`, no MongoDB running: a full-context
-  test must `@MockitoBean` any service that reaches a repository. A `@WebMvcTest` that renders a view
+- **Testing**: JUnit 5 + Mockito-Kotlin + MockMvc + jqwik (property-based) — profile `test`, with the embedded MongoDB above
+  (the older full-context tests still `@MockitoBean` their repository-backed services). A `@WebMvcTest` that renders a view
   needs `RootApiController` in `controllers` (the layout reads its version); a new view goes into
   `ViewRenderingTest`'s `@CsvSource`
 - **Releases**: JReleaser (`jreleaser.yml`) on `main` only
@@ -135,6 +135,15 @@ See `.local/llm/README.md` for complete conventions.
   validators, generators), in a `*PropertyTest` class next to the unit test. Always pin
   `@Property(seed = ...)` so runs are deterministic; defaults live in
   `src/test/resources/junit-platform.properties`
+- **E2E regression suite** (MLS-277, ADR 0007 prerequisite): `src/test/kotlin/fr/marstech/e2e/`, black-box HTTP
+  against a RANDOM_PORT app and the embedded MongoDB, profile `e2e` alone: `src/test/resources/application-e2e.properties`
+  holds every value it relies on, not `application-test.properties` (FakeS3 in-memory object storage, stand-in
+  scripts in `src/test/resources/e2e-bin/` for tesseract/cwebp/caesiumclt, test DB-IP files). It imports no production class except `MtLinkSprayApplication` (`ArchitectureE2eTest`), so a
+  refactor cannot rewrite it: a change that breaks it is a behaviour change, not a test to adapt. API keys are
+  created through the admin page (`E2eTest.Admin`). `MongoCompatibilityE2eTest` reads documents stored with
+  today's `_class` values on a cold context; `QuotaE2eTest` runs with small buckets in its own context.
+  A new public route gets a success and an error case there. Field injection in `E2eTest` (port,
+  `MongoTemplate`) is the one exception to constructor injection, to keep subclasses free of constructors
 - **DTOs for all API responses** — never return raw entities from controllers
 - **Schema-first**: data classes with validation annotations are the contract, not comments
 - **ADRs**: architecture decisions live in `docs/adr/` (MADR; create it from the Marstech-Configs
