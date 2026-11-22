@@ -1,0 +1,7 @@
+#!/bin/sh
+# E2E stand-in for cwebp (MLS-277): writes a fixed marker file to the path after -o
+while [ $# -gt 0 ]; do
+  if [ "$1" = "-o" ]; then printf 'E2E-WEBP' > "$2"; exit 0; fi
+  shift
+done
+exit 1

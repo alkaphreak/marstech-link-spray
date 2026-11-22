@@ -1,0 +1,8 @@
+#!/bin/sh
+# E2E stand-in for caesiumclt (MLS-277): copies the input (last argument) into the -o directory
+out=""; input=""
+while [ $# -gt 0 ]; do
+  if [ "$1" = "-o" ]; then out="$2"; shift; else input="$1"; fi
+  shift
+done
+mkdir -p "$out" && cp "$input" "$out/"
