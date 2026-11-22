@@ -1,5 +1,8 @@
 package fr.marstech.mtlinkspray.service
 
+import org.junit.jupiter.params.provider.ValueSource
+import org.junit.jupiter.params.provider.NullSource
+import org.junit.jupiter.params.ParameterizedTest
 import fr.marstech.mtlinkspray.dto.DashboardDto
 import fr.marstech.mtlinkspray.entity.ApiKeyEntity
 import fr.marstech.mtlinkspray.entity.DashboardEntity
@@ -228,5 +231,18 @@ class DashboardServiceTest {
         givenStored(apiKeyId = null)
         // When / Then
         assertEquals(FORBIDDEN, assertThrows<ResponseStatusException> { dashboardService.updateDashboard("d1", DashboardDto(id = "d1"), "owner-raw") }.statusCode)
+        verify(dashboardRepository, never()).save(any<DashboardEntity>())
+    }
+
+    @ParameterizedTest
+    @NullSource
+    @ValueSource(strings = ["malformed", "unknown.secret"])
+    fun shouldCheckCredentialsBeforeReadOnlyOnAnonymousDashboard(rawApiKey: String?) {
+        // Given: credentials are checked first, a bad key is 401 even on a read-only dashboard
+        givenStored(apiKeyId = null)
+        whenever(apiKeyService.resolve(rawApiKey)).thenAnswer { throw IllegalAccessException("Invalid API key") }
+        // When / Then
+        assertThrows<IllegalAccessException> { dashboardService.updateDashboard("d1", DashboardDto(id = "d1"), rawApiKey) }
+        verify(dashboardRepository, never()).save(any<DashboardEntity>())
     }
 }
