@@ -13,6 +13,6 @@ interface DashboardService {
     /** Public page lookup; throws [NoSuchElementException] if unknown or disabled. */
     fun getDashboardBySlug(slug: String): DashboardDto
 
-    /** Throws [IllegalAccessException] unless [rawApiKey] is the key that created the dashboard. */
+    /** Throws [IllegalAccessException] for a missing or invalid key, 403 [org.springframework.web.server.ResponseStatusException] unless [rawApiKey] is the key that created the dashboard. */
     fun updateDashboard(id: String, dashboardDto: DashboardDto, rawApiKey: String?): DashboardDto
 }

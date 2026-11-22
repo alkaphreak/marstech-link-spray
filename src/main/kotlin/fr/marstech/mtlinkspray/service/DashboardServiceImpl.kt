@@ -1,5 +1,7 @@
 package fr.marstech.mtlinkspray.service
 
+import org.springframework.web.server.ResponseStatusException
+import org.springframework.http.HttpStatus.FORBIDDEN
 import fr.marstech.mtlinkspray.dto.DashboardDto
 import fr.marstech.mtlinkspray.entity.DashboardEntity
 import fr.marstech.mtlinkspray.entity.HistoryItem
@@ -100,8 +102,10 @@ class DashboardServiceImpl(
 
     override fun updateDashboard(id: String, dashboardDto: DashboardDto, rawApiKey: String?): DashboardDto {
         val entity = findById(id)
-        val ownerId = entity.apiKeyId ?: throw IllegalAccessException("Dashboard created without an API key is read-only")
-        if (apiKeyService.resolve(rawApiKey).id != ownerId) throw IllegalAccessException("Not authorized to edit this dashboard")
+        // Credentials first: a missing or invalid key is 401 everywhere, 403 is only for a valid key
+        val caller = apiKeyService.resolve(rawApiKey)
+        if (entity.apiKeyId == null) throw ResponseStatusException(FORBIDDEN, "Dashboard created without an API key is read-only")
+        if (caller.id != entity.apiKeyId) throw ResponseStatusException(FORBIDDEN, "Not authorized to edit this dashboard")
         checkSlugFree(dashboardDto.slug, id)
         return dashboardRepository.save(
             entity.copy(

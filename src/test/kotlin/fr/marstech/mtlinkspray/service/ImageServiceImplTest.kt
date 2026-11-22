@@ -8,6 +8,8 @@ import jakarta.servlet.http.HttpServletRequest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.springframework.http.HttpStatus.FORBIDDEN
+import org.springframework.web.server.ResponseStatusException
 import org.mockito.Mockito.*
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
@@ -191,9 +193,9 @@ class ImageServiceImplTest {
         `when`(imageRepository.findById("img-1")).thenReturn(Optional.of(image))
         `when`(apiKeyService.resolve("key123.secret")).thenReturn(apiKey)
 
-        assertThrows<IllegalAccessException> {
+        assertEquals(FORBIDDEN, assertThrows<ResponseStatusException> {
             imageService.getImage("img-1", "key123.secret")
-        }
+        }.statusCode)
     }
 
     @Test
@@ -226,9 +228,9 @@ class ImageServiceImplTest {
         `when`(imageRepository.findById("img-1")).thenReturn(Optional.of(image))
         `when`(apiKeyService.resolve("key123.secret")).thenReturn(apiKey)
 
-        assertThrows<IllegalAccessException> {
+        assertEquals(FORBIDDEN, assertThrows<ResponseStatusException> {
             imageService.deleteImage("img-1", "key123.secret")
-        }
+        }.statusCode)
         verify(imageStorageService, never()).delete(any())
         verify(imageRepository, never()).deleteById(any())
     }

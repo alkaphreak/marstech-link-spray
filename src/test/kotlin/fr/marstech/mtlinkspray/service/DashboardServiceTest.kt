@@ -1,5 +1,8 @@
 package fr.marstech.mtlinkspray.service
 
+import org.junit.jupiter.params.provider.ValueSource
+import org.junit.jupiter.params.provider.NullSource
+import org.junit.jupiter.params.ParameterizedTest
 import fr.marstech.mtlinkspray.dto.DashboardDto
 import fr.marstech.mtlinkspray.entity.ApiKeyEntity
 import fr.marstech.mtlinkspray.entity.DashboardEntity
@@ -12,6 +15,8 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.springframework.http.HttpStatus.FORBIDDEN
+import org.springframework.web.server.ResponseStatusException
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.mock
@@ -216,7 +221,7 @@ class DashboardServiceTest {
         // Given
         givenStored(apiKeyId = "owner")
         // When / Then
-        assertThrows<IllegalAccessException> { dashboardService.updateDashboard("d1", DashboardDto(id = "d1"), "other-raw") }
+        assertEquals(FORBIDDEN, assertThrows<ResponseStatusException> { dashboardService.updateDashboard("d1", DashboardDto(id = "d1"), "other-raw") }.statusCode)
         verify(dashboardRepository, never()).save(any<DashboardEntity>())
     }
 
@@ -225,6 +230,19 @@ class DashboardServiceTest {
         // Given
         givenStored(apiKeyId = null)
         // When / Then
-        assertThrows<IllegalAccessException> { dashboardService.updateDashboard("d1", DashboardDto(id = "d1"), "owner-raw") }
+        assertEquals(FORBIDDEN, assertThrows<ResponseStatusException> { dashboardService.updateDashboard("d1", DashboardDto(id = "d1"), "owner-raw") }.statusCode)
+        verify(dashboardRepository, never()).save(any<DashboardEntity>())
+    }
+
+    @ParameterizedTest
+    @NullSource
+    @ValueSource(strings = ["malformed", "unknown.secret"])
+    fun shouldCheckCredentialsBeforeReadOnlyOnAnonymousDashboard(rawApiKey: String?) {
+        // Given: credentials are checked first, a bad key is 401 even on a read-only dashboard
+        givenStored(apiKeyId = null)
+        whenever(apiKeyService.resolve(rawApiKey)).thenAnswer { throw IllegalAccessException("Invalid API key") }
+        // When / Then
+        assertThrows<IllegalAccessException> { dashboardService.updateDashboard("d1", DashboardDto(id = "d1"), rawApiKey) }
+        verify(dashboardRepository, never()).save(any<DashboardEntity>())
     }
 }

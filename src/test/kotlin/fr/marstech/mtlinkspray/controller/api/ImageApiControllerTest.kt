@@ -1,5 +1,7 @@
 package fr.marstech.mtlinkspray.controller.api
 
+import org.springframework.web.server.ResponseStatusException
+import org.springframework.http.HttpStatus.FORBIDDEN
 import fr.marstech.mtlinkspray.MtLinkSprayApplication
 import fr.marstech.mtlinkspray.conf.SecurityConfig
 import fr.marstech.mtlinkspray.controller.commons.GlobalRestExceptionHandler
@@ -168,7 +170,7 @@ class ImageApiControllerTest {
 
     @Test
     fun shouldReturnUnauthorizedForPrivateImageWithoutApiKey() {
-        org.mockito.kotlin.doAnswer { throw IllegalAccessException("Not authorized to access this image") }
+        org.mockito.kotlin.doAnswer { throw IllegalAccessException("Missing API key") }
             .`when`(imageService).downloadImage("img-1", null)
 
         get("/api/images/img-1")
@@ -197,14 +199,14 @@ class ImageApiControllerTest {
     }
 
     @Test
-    fun shouldReturnUnauthorizedWhenDeletingImageNotOwned() {
-        org.mockito.kotlin.doAnswer { throw IllegalAccessException("Not authorized to delete this image") }
+    fun shouldReturnForbiddenWhenDeletingImageNotOwned() {
+        org.mockito.kotlin.doAnswer { throw ResponseStatusException(FORBIDDEN, "Not authorized to delete this image") }
             .`when`(imageService).deleteImage("img-1", "key123.secret")
 
         delete("/api/images/img-1")
             .header("X-Api-Key", "key123.secret")
             .let(mockMvc::perform)
-            .andExpect(status().isUnauthorized)
-            .andExpect(jsonPath("$.status").value(401))
+            .andExpect(status().isForbidden)
+            .andExpect(jsonPath("$.status").value(403))
     }
 }
