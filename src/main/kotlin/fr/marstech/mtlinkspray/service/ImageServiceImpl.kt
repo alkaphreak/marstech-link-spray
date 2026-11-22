@@ -1,5 +1,7 @@
 package fr.marstech.mtlinkspray.service
 
+import org.springframework.web.server.ResponseStatusException
+import org.springframework.http.HttpStatus.FORBIDDEN
 import fr.marstech.mtlinkspray.entity.HistoryItem
 import fr.marstech.mtlinkspray.entity.ImageEntity
 import fr.marstech.mtlinkspray.repository.ImageRepository
@@ -68,7 +70,7 @@ class ImageServiceImpl(
     override fun deleteImage(id: String, rawApiKey: String?) {
         val apiKey = apiKeyService.resolve(rawApiKey)
         val image = findImage(id)
-        if (image.apiKeyId != apiKey.id) throw IllegalAccessException("Not authorized to delete this image")
+        if (image.apiKeyId != apiKey.id) throw ResponseStatusException(FORBIDDEN, "Not authorized to delete this image")
 
         imageStorageService.delete(image.s3Key)
         imageRepository.deleteById(id)
@@ -89,6 +91,6 @@ class ImageServiceImpl(
     private fun checkAccess(image: ImageEntity, rawApiKey: String?) {
         if (!image.isPrivate) return
         val apiKey = apiKeyService.resolve(rawApiKey)
-        if (image.apiKeyId != apiKey.id) throw IllegalAccessException("Not authorized to access this image")
+        if (image.apiKeyId != apiKey.id) throw ResponseStatusException(FORBIDDEN, "Not authorized to access this image")
     }
 }

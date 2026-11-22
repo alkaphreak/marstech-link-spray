@@ -7,6 +7,12 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- A valid API key that does not own the resource now gets 403 Forbidden instead of 401: dashboard update
+  (also for a dashboard created without a key, which is read-only), private image read and image delete.
+  A missing, malformed or invalid key stays 401, checked first (MLS-279)
+
 ---
 
 ## [0.16.0] - 2026-11-18

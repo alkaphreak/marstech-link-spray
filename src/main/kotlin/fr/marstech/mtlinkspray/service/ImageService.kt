@@ -21,7 +21,7 @@ interface ImageService {
     /**
      * Retrieves the metadata for [id], enforcing visibility rules: public images are always
      * readable, private images require a valid [rawApiKey] matching the owning app.
-     * Throws [NoSuchElementException] if not found, [IllegalAccessException] if access is denied.
+     * Throws [NoSuchElementException] if not found, [IllegalAccessException] for a missing or invalid key, 403 [org.springframework.web.server.ResponseStatusException] for another app's private image.
      */
     fun getImage(id: String, rawApiKey: String?): ImageEntity
 
