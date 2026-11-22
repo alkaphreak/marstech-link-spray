@@ -64,13 +64,18 @@ internal class DevToolsE2eTest : E2eTest() {
         val response = get("/api/dns?name=example.com&type=A")
         assertEquals(200, response.statusCode(), response.body())
         assertEquals("example.com", response.json()["name"].asString().trimEnd('.'))
+        assertTrue(response.json()["records"].size() > 0, response.body())
         assertEquals(400, get("/api/dns?name=example.com&type=BOGUS").statusCode())
-        assertEquals(200, get("/api/dns/reverse?ip=1.1.1.1").statusCode())
+        val reverse = get("/api/dns/reverse?ip=1.1.1.1")
+        assertEquals(200, reverse.statusCode())
+        assertTrue(reverse.json()["records"].size() > 0, reverse.body())
         assertEquals(400, get("/api/dns/reverse?ip=nope").statusCode())
 
         val propagation = get("/api/dns/propagation?name=example.com&type=A")
         assertEquals(200, propagation.statusCode(), propagation.body())
         assertEquals(4, propagation.json()["results"].size())
+        assertTrue(propagation.json()["complete"].asBoolean(), propagation.body())
+        for (i in 0 until 4) assertTrue(propagation.json()["results"][i]["records"].size() > 0, propagation.body())
         assertEquals(400, get("/api/dns/propagation?name=example.com&type=BOGUS").statusCode())
     }
 

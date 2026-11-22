@@ -65,7 +65,9 @@ internal class ChecklistE2eTest : E2eTest() {
 
         // Editing the template never alters a running instance
         val version = get("/api/checklists/templates/$templateId", auth).json()["version"].asLong()
-        sendJson("PUT", "/api/checklists/templates/$templateId", """{"title":"Other","items":[{"label":"x"}],"version":$version}""", auth)
+        val replaced = sendJson("PUT", "/api/checklists/templates/$templateId", """{"title":"Other","items":[{"label":"x"}],"version":$version}""", auth)
+        assertEquals(200, replaced.statusCode(), replaced.body())
+        assertEquals(1, get("/api/checklists/templates/$templateId", auth).json()["items"].size())
         assertEquals(3, get("/api/checklists/instances/$id", auth).json()["items"].size())
 
         val listed = get("/api/checklists/instances?templateId=$templateId&context=v1.0.0", auth)

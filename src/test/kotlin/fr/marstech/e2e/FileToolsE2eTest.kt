@@ -94,6 +94,8 @@ internal class FileToolsE2eTest : E2eTest() {
             HttpRequest.BodyPublishers.ofByteArray(png()), auth + ("Content-Type" to "image/png"))
         assertEquals(200, same.statusCode())
         assertEquals("image/png", same.headers().firstValue("Content-Type").orElse(null))
+        // false would mean the encoder failed and the original came back
+        assertEquals("true", same.headers().firstValue("X-Image-Compressed").orElse(null))
 
         assertEquals(400, postRaw("/api/img/compress?quality=101", png(), "image/png", auth).statusCode())
         assertEquals(400, postRaw("/api/img/compress", "not an image".toByteArray(), "image/png", auth).statusCode())
