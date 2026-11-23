@@ -2,6 +2,7 @@ package fr.marstech.mtlinkspray.adapter.outbound.ratelimit
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
 import fr.marstech.mtlinkspray.adapter.inbound.web.common.NetworkUtils.IP_LITERAL
+import fr.marstech.mtlinkspray.domain.shared.QuotaPort
 import io.github.bucket4j.Bucket
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus.BAD_REQUEST
@@ -21,7 +22,7 @@ class AnonymousQuota(
     private val quota: Int,
     windowMillis: Long,
     private val hint: String = "retry later or send an X-Api-Key",
-) {
+) : QuotaPort {
 
     private val window = Duration.ofMillis(windowMillis)
 
@@ -32,7 +33,7 @@ class AnonymousQuota(
         .build()
 
     /** Spends [tokens] for [clientIp], or throws a 429 with Retry-After when its bucket holds fewer. */
-    fun count(clientIp: String, tokens: Long = 1) {
+    override fun count(clientIp: String, tokens: Long) {
         if (window.isZero || window.isNegative) return
         // Never fits, whatever the wait: a 429 would send the client into pointless retries
         if (tokens > quota) throw ResponseStatusException(BAD_REQUEST, "$name request of $tokens exceeds the quota of $quota")
