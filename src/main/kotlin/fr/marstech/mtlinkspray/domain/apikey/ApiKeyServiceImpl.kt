@@ -1,29 +1,28 @@
 package fr.marstech.mtlinkspray.domain.apikey
-import fr.marstech.mtlinkspray.adapter.inbound.web.apikey.ApiKeyCreationResult
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.apikey.ApiKeyEntity
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.apikey.ApiKeyRepository
+import fr.marstech.mtlinkspray.domain.shared.ApiCaller
+import fr.marstech.mtlinkspray.domain.shared.ApiKeyResolver
+import fr.marstech.mtlinkspray.domain.shared.PasswordHasher
 import org.slf4j.LoggerFactory
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
 import java.security.SecureRandom
 import java.util.*
 
 /**
- * Validates API keys against the stored BCrypt hashes, and provisions new keys for the admin
+ * Validates API keys against the stored secret hashes, and provisions new keys for the admin
  * page (`/admin/api-keys`). Per MLS-203 decision, key creation is admin-only, never self-service.
  *
  * Raw API keys have the form `{keyId}.{secret}` allowing an indexed O(1) lookup by [keyId]
- * before verifying the secret against its BCrypt hash.
+ * before verifying the secret against its hash.
  */
 @Service
 class ApiKeyServiceImpl(
-    private val apiKeyRepository: ApiKeyRepository
-) : ApiKeyService {
+    private val apiKeyStore: ApiKeyStore,
+    private val passwordHasher: PasswordHasher,
+) : ApiKeyService, ApiKeyResolver {
 
-    private val passwordEncoder = BCryptPasswordEncoder()
     private val secureRandom = SecureRandom()
 
-    override fun resolve(rawApiKey: String?): ApiKeyEntity {
+    override fun resolve(rawApiKey: String?): ApiCaller {
         if (rawApiKey.isNullOrBlank()) throw IllegalAccessException("Missing API key")
 
         val (keyId, secret) = rawApiKey.split(".", limit = 2)
@@ -31,30 +30,32 @@ class ApiKeyServiceImpl(
             ?.let { it[0] to it[1] }
             ?: throw IllegalAccessException("Malformed API key")
 
-        val apiKey = apiKeyRepository.findByKeyId(keyId)
-            .orElseThrow { IllegalAccessException("Invalid API key") }
+        val apiKey = apiKeyStore.findByKeyId(keyId) ?: throw IllegalAccessException("Invalid API key")
 
-        if (!apiKey.isEnabled || !passwordEncoder.matches(secret, apiKey.secretHash)) {
+        if (!apiKey.isEnabled || !passwordHasher.matches(secret, apiKey.secretHash)) {
             throw IllegalAccessException("Invalid API key")
         }
 
-        return apiKey
+        return ApiCaller(apiKeyId = apiKey.id, namespace = apiKey.namespace)
     }
+
+    override fun isNamespaceEnabled(namespace: String): Boolean =
+        apiKeyStore.findByNamespace(namespace)?.isEnabled ?: false
 
     override fun createApiKey(name: String, namespace: String): ApiKeyCreationResult {
         if (name.isBlank()) throw IllegalArgumentException("Name cannot be blank")
         if (namespace.isBlank()) throw IllegalArgumentException("Namespace cannot be blank")
-        if (apiKeyRepository.findByNamespace(namespace).isPresent) {
+        if (apiKeyStore.findByNamespace(namespace) != null) {
             throw IllegalArgumentException("Namespace '$namespace' is already in use")
         }
 
         val keyId = generateKeyId()
         val secret = generateSecret()
-        val apiKey = apiKeyRepository.save(
-            ApiKeyEntity(
+        val apiKey = apiKeyStore.save(
+            ApiKey(
                 name = name,
                 keyId = keyId,
-                secretHash = passwordEncoder.encode(secret)!!,
+                secretHash = passwordHasher.hash(secret),
                 namespace = namespace,
             )
         )
@@ -62,20 +63,20 @@ class ApiKeyServiceImpl(
         return ApiKeyCreationResult(apiKey = apiKey, rawKey = "$keyId.$secret")
     }
 
-    override fun listApiKeys(): List<ApiKeyEntity> = apiKeyRepository.findAll()
+    override fun listApiKeys(): List<ApiKey> = apiKeyStore.findAll()
 
-    override fun setEnabled(id: String, isEnabled: Boolean): ApiKeyEntity {
-        if (apiKeyRepository.findAndSetIsEnabledById(id, isEnabled) == 0L) throw notFound(id)
-        val apiKey = apiKeyRepository.findById(id).orElseThrow { notFound(id) }
+    override fun setEnabled(id: String, isEnabled: Boolean): ApiKey {
+        if (!apiKeyStore.updateEnabled(id, isEnabled)) throw notFound(id)
+        val apiKey = apiKeyStore.findById(id) ?: throw notFound(id)
         log.info("API key enabled set: id={}, keyId={}, namespace={}, enabled={}", id, apiKey.keyId, apiKey.namespace.forLog(), isEnabled)
         return apiKey
     }
 
     override fun regenerateSecret(id: String): ApiKeyCreationResult {
-        val apiKey = apiKeyRepository.findById(id).orElseThrow { notFound(id) }
+        val apiKey = apiKeyStore.findById(id) ?: throw notFound(id)
         val secret = generateSecret()
-        val secretHash = passwordEncoder.encode(secret)!!
-        if (apiKeyRepository.findAndSetSecretHashById(id, secretHash) == 0L) throw notFound(id)
+        val secretHash = passwordHasher.hash(secret)
+        if (!apiKeyStore.updateSecretHash(id, secretHash)) throw notFound(id)
         log.info("API key secret regenerated: id={}, keyId={}, namespace={}", id, apiKey.keyId, apiKey.namespace.forLog())
         return ApiKeyCreationResult(apiKey = apiKey.copy(secretHash = secretHash), rawKey = "${apiKey.keyId}.$secret")
     }

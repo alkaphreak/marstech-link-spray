@@ -1,5 +1,5 @@
 package fr.marstech.mtlinkspray.domain.document
-import fr.marstech.mtlinkspray.domain.apikey.ApiKeyService
+import fr.marstech.mtlinkspray.domain.shared.ApiKeyResolver
 import fr.marstech.mtlinkspray.domain.shared.PayloadTooLargeException
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.pdmodel.PDPage
@@ -17,11 +17,11 @@ import kotlin.test.assertEquals
 
 class PdfToMarkdownServiceImplTest {
 
-    private val apiKeyService: ApiKeyService = mock()
-    private val service = PdfToMarkdownServiceImpl(apiKeyService, maxInputBytes = 1024 * 1024, maxPages = 5)
+    private val apiKeyResolver: ApiKeyResolver = mock()
+    private val service = PdfToMarkdownServiceImpl(apiKeyResolver, maxInputBytes = 1024 * 1024, maxPages = 5)
 
     // md2pdf renders the fixtures, so the round trip covers both directions with real fonts
-    private val markdownToPdf = MarkdownToPdfServiceImpl(apiKeyService, maxInputBytes = 1024 * 1024)
+    private val markdownToPdf = MarkdownToPdfServiceImpl(apiKeyResolver, maxInputBytes = 1024 * 1024)
 
     private fun pdfOf(markdown: String) = markdownToPdf.render("key.secret", markdown.byteInputStream())
 
@@ -104,7 +104,7 @@ class PdfToMarkdownServiceImplTest {
     @Test
     fun shouldRejectInvalidApiKeyBeforeReadingBody() {
         // Given
-        doThrow(IllegalAccessException("Invalid API key")).whenever(apiKeyService).resolve(any())
+        doThrow(IllegalAccessException("Invalid API key")).whenever(apiKeyResolver).resolve(any())
 
         // When / Then
         assertThrows<IllegalAccessException> { service.convert("bad", "not read".byteInputStream()) }
@@ -128,7 +128,7 @@ class PdfToMarkdownServiceImplTest {
     @Test
     fun shouldRejectPdfOverMaxSize() {
         // Given
-        val smallLimit = PdfToMarkdownServiceImpl(apiKeyService, maxInputBytes = 100, maxPages = 5)
+        val smallLimit = PdfToMarkdownServiceImpl(apiKeyResolver, maxInputBytes = 100, maxPages = 5)
 
         // When / Then
         assertThrows<PayloadTooLargeException> { smallLimit.convert("key.secret", ByteArray(101).inputStream()) }

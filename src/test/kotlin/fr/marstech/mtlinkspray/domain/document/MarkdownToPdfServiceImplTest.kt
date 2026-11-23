@@ -1,5 +1,5 @@
 package fr.marstech.mtlinkspray.domain.document
-import fr.marstech.mtlinkspray.domain.apikey.ApiKeyService
+import fr.marstech.mtlinkspray.domain.shared.ApiKeyResolver
 import com.sun.net.httpserver.HttpServer
 import fr.marstech.mtlinkspray.domain.shared.PayloadTooLargeException
 import org.apache.pdfbox.Loader
@@ -18,8 +18,8 @@ import kotlin.test.assertEquals
 
 class MarkdownToPdfServiceImplTest {
 
-    private val apiKeyService: ApiKeyService = mock()
-    private val service = MarkdownToPdfServiceImpl(apiKeyService, maxInputBytes = 1024)
+    private val apiKeyResolver: ApiKeyResolver = mock()
+    private val service = MarkdownToPdfServiceImpl(apiKeyResolver, maxInputBytes = 1024)
 
     private fun renderText(markdown: String): String =
         Loader.loadPDF(service.render("key.secret", markdown.byteInputStream())).use { PDFTextStripper().getText(it) }
@@ -115,7 +115,7 @@ class MarkdownToPdfServiceImplTest {
     @Test
     fun shouldCheckApiKeyBeforeReadingBody() {
         // Given
-        doThrow(IllegalAccessException("Invalid API key")).whenever(apiKeyService).resolve(any())
+        doThrow(IllegalAccessException("Invalid API key")).whenever(apiKeyResolver).resolve(any())
         val body = object : InputStream() {
             override fun read(): Int = throw AssertionError("body must not be read with an invalid key")
         }

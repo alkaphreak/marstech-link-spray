@@ -1,5 +1,5 @@
 package fr.marstech.mtlinkspray.domain.document
-import fr.marstech.mtlinkspray.domain.apikey.ApiKeyService
+import fr.marstech.mtlinkspray.domain.shared.ApiKeyResolver
 import com.openhtmltopdf.outputdevice.helper.BaseRendererBuilder.FontStyle
 import com.openhtmltopdf.outputdevice.helper.ExternalResourceControlPriority
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder
@@ -30,7 +30,7 @@ import kotlin.text.Charsets.UTF_8
  */
 @Service
 class MarkdownToPdfServiceImpl(
-    private val apiKeyService: ApiKeyService,
+    private val apiKeyResolver: ApiKeyResolver,
     @Value("\${mt.link-spray.md2pdf.max-input-bytes:1048576}") private val maxInputBytes: Int,
 ) : MarkdownToPdfService {
 
@@ -50,7 +50,7 @@ class MarkdownToPdfServiceImpl(
     private val css = ClassPathResource("md2pdf/default.css").getContentAsString(UTF_8)
 
     override fun render(rawApiKey: String?, markdown: InputStream): ByteArray {
-        apiKeyService.resolve(rawApiKey)
+        apiKeyResolver.resolve(rawApiKey)
 
         // ponytail: the size cap is the only bound on render time and page count; add an
         // executor timeout if callers ever stop being our own API-keyed apps

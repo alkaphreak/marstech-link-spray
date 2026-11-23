@@ -1,5 +1,6 @@
 package fr.marstech.mtlinkspray.adapter.outbound.mongo.apikey
 
+import fr.marstech.mtlinkspray.domain.apikey.ApiKey
 import org.springframework.data.annotation.TypeAlias
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.index.Indexed
@@ -7,14 +8,7 @@ import org.springframework.data.mongodb.core.mapping.Document
 import java.time.LocalDateTime
 import java.util.*
 
-/**
- * Represents a client application ("app") authorized to store images through the image storage
- * service (MLS-203). MLS itself is treated as an app like any other.
- *
- * The API key handed out to clients has the form `{keyId}.{secret}`: [keyId] is a public,
- * non-secret identifier used for fast lookup, while only the BCrypt hash of the secret part
- * ([secretHash]) is persisted - the raw secret is never stored.
- */
+/** Stored form of [ApiKey]. */
 @Document(collection = "api_keys")
 @TypeAlias("fr.marstech.mtlinkspray.entity.ApiKeyEntity")
 data class ApiKeyEntity(
@@ -25,4 +19,12 @@ data class ApiKeyEntity(
     @Indexed(unique = true) val namespace: String,
     val creationDate: LocalDateTime = LocalDateTime.now(),
     var isEnabled: Boolean = true,
-)
+) {
+    fun toDomain() = ApiKey(id, name, keyId, secretHash, namespace, creationDate, isEnabled)
+
+    companion object {
+        fun of(apiKey: ApiKey) = with(apiKey) {
+            ApiKeyEntity(id, name, keyId, secretHash, namespace, creationDate, isEnabled)
+        }
+    }
+}

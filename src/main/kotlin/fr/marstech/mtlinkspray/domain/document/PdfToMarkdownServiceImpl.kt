@@ -1,5 +1,5 @@
 package fr.marstech.mtlinkspray.domain.document
-import fr.marstech.mtlinkspray.domain.apikey.ApiKeyService
+import fr.marstech.mtlinkspray.domain.shared.ApiKeyResolver
 import fr.marstech.mtlinkspray.domain.shared.PayloadTooLargeException
 import org.apache.pdfbox.Loader
 import org.apache.pdfbox.pdmodel.PDDocument
@@ -30,13 +30,13 @@ internal fun loadPdf(bytes: ByteArray): PDDocument = try {
  */
 @Service
 class PdfToMarkdownServiceImpl(
-    private val apiKeyService: ApiKeyService,
+    private val apiKeyResolver: ApiKeyResolver,
     @Value("\${mt.link-spray.pdf2md.max-input-bytes:10485760}") private val maxInputBytes: Int,
     @Value("\${mt.link-spray.pdf2md.max-pages:200}") private val maxPages: Int,
 ) : PdfToMarkdownService {
 
     override fun convert(rawApiKey: String?, pdf: InputStream): String {
-        apiKeyService.resolve(rawApiKey)
+        apiKeyResolver.resolve(rawApiKey)
         val bytes = pdf.readNBytes(maxInputBytes + 1)
         if (bytes.size > maxInputBytes) {
             throw PayloadTooLargeException("PDF exceeds the maximum allowed size of $maxInputBytes bytes")

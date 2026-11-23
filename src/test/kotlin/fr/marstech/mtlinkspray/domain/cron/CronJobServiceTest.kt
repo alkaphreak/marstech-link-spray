@@ -1,12 +1,11 @@
 package fr.marstech.mtlinkspray.domain.cron
-import fr.marstech.mtlinkspray.domain.apikey.ApiKeyService
+import fr.marstech.mtlinkspray.domain.shared.ApiKeyResolver
 import fr.marstech.mtlinkspray.domain.shared.MailSenderService
 import fr.marstech.mtlinkspray.adapter.inbound.web.cron.CronJobRequest
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.apikey.ApiKeyEntity
+import fr.marstech.mtlinkspray.domain.shared.ApiCaller
 import fr.marstech.mtlinkspray.adapter.outbound.mongo.cron.CronJobEntity
 import fr.marstech.mtlinkspray.adapter.outbound.mongo.cron.CronRunEntity
 import fr.marstech.mtlinkspray.adapter.outbound.mongo.cron.CronRunStatus
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.apikey.ApiKeyRepository
 import fr.marstech.mtlinkspray.adapter.outbound.mongo.cron.CronJobRepository
 import fr.marstech.mtlinkspray.adapter.outbound.mongo.cron.CronRunRepository
 import org.junit.jupiter.api.AfterEach
@@ -40,8 +39,7 @@ class CronJobServiceTest {
 
     private val jobRepository: CronJobRepository = mock()
     private val runRepository: CronRunRepository = mock()
-    private val apiKeyService: ApiKeyService = mock()
-    private val apiKeyRepository: ApiKeyRepository = mock()
+    private val apiKeyResolver: ApiKeyResolver = mock()
     private val mailSenderService: MailSenderService = mock()
     private val httpClient: HttpClient = mock()
     private val mongoTemplate: MongoTemplate = mock()
@@ -52,14 +50,14 @@ class CronJobServiceTest {
         url = "https://example.com/health", timeoutSeconds = 1, failureThreshold = 3,
     )
 
-    private val key = ApiKeyEntity(name = "app", keyId = "k", secretHash = "h", namespace = "ns")
+    private val key = ApiCaller(apiKeyId = "key-1", namespace = "ns")
 
     @BeforeEach
     fun setUp() {
-        service = CronJobService(jobRepository, runRepository, apiKeyService, apiKeyRepository, mailSenderService, httpClient, mongoTemplate, 2, 30)
+        service = CronJobService(jobRepository, runRepository, apiKeyResolver, mailSenderService, httpClient, mongoTemplate, 2, 30)
         service.resolve = { arrayOf(InetAddress.getByName("93.184.215.14")) }
-        whenever(apiKeyService.resolve("key")).thenReturn(key)
-        whenever(apiKeyRepository.findByNamespace("ns")).thenReturn(Optional.of(key))
+        whenever(apiKeyResolver.resolve("key")).thenReturn(key)
+        whenever(apiKeyResolver.isNamespaceEnabled("ns")).thenReturn(true)
         whenever(jobRepository.save(any<CronJobEntity>())).thenAnswer { it.arguments[0] }
     }
 
@@ -239,7 +237,7 @@ class CronJobServiceTest {
     fun shouldSkipRunWhenApiKeyDisabled() {
         // Given
         givenStoredJob(failuresAfterRun = 0)
-        whenever(apiKeyRepository.findByNamespace("ns")).thenReturn(Optional.of(key.copy(isEnabled = false)))
+        whenever(apiKeyResolver.isNamespaceEnabled("ns")).thenReturn(false)
         // When
         service.execute("job-1")
         // Then

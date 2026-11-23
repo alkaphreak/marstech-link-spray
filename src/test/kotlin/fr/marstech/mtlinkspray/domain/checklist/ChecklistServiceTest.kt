@@ -1,10 +1,10 @@
 package fr.marstech.mtlinkspray.domain.checklist
-import fr.marstech.mtlinkspray.domain.apikey.ApiKeyService
+import fr.marstech.mtlinkspray.domain.shared.ApiKeyResolver
 import com.mongodb.client.result.UpdateResult
 import fr.marstech.mtlinkspray.adapter.inbound.web.checklist.ChecklistInstanceRequest
 import fr.marstech.mtlinkspray.adapter.inbound.web.checklist.ChecklistItemRequest
 import fr.marstech.mtlinkspray.adapter.inbound.web.checklist.ChecklistTemplateRequest
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.apikey.ApiKeyEntity
+import fr.marstech.mtlinkspray.domain.shared.ApiCaller
 import fr.marstech.mtlinkspray.adapter.outbound.mongo.checklist.ChecklistInstanceEntity
 import fr.marstech.mtlinkspray.adapter.outbound.mongo.checklist.ChecklistInstanceItem
 import fr.marstech.mtlinkspray.adapter.outbound.mongo.checklist.ChecklistItemStatus
@@ -38,11 +38,11 @@ class ChecklistServiceTest {
 
     private val templateRepository: ChecklistTemplateRepository = mock()
     private val instanceRepository: ChecklistInstanceRepository = mock()
-    private val apiKeyService: ApiKeyService = mock()
+    private val apiKeyResolver: ApiKeyResolver = mock()
     private val mongoTemplate: MongoTemplate = mock()
     private lateinit var service: ChecklistService
 
-    private val key = ApiKeyEntity(name = "app", keyId = "k", secretHash = "h", namespace = "ns")
+    private val key = ApiCaller(apiKeyId = "key-1", namespace = "ns")
     private val template = ChecklistTemplateEntity(
         id = "tpl-1", namespace = "ns", title = "Trip",
         items = listOf(ChecklistTemplateItem("i1", "Passport"), ChecklistTemplateItem("i2", "Charger", "USB-C")),
@@ -55,8 +55,8 @@ class ChecklistServiceTest {
 
     @BeforeEach
     fun setUp() {
-        service = ChecklistService(templateRepository, instanceRepository, apiKeyService, mongoTemplate, 2, 2, 3)
-        whenever(apiKeyService.resolve("key")).thenReturn(key)
+        service = ChecklistService(templateRepository, instanceRepository, apiKeyResolver, mongoTemplate, 2, 2, 3)
+        whenever(apiKeyResolver.resolve("key")).thenReturn(key)
         whenever(templateRepository.save(any<ChecklistTemplateEntity>())).thenAnswer { it.arguments[0] }
         whenever(instanceRepository.save(any<ChecklistInstanceEntity>())).thenAnswer { it.arguments[0] }
     }

@@ -1,5 +1,5 @@
 package fr.marstech.mtlinkspray.domain.nativetools
-import fr.marstech.mtlinkspray.domain.apikey.ApiKeyService
+import fr.marstech.mtlinkspray.domain.shared.ApiKeyResolver
 import fr.marstech.mtlinkspray.domain.shared.PayloadTooLargeException
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.pdmodel.PDPage
@@ -35,7 +35,7 @@ class OcrServiceImplTest {
     @TempDir
     lateinit var dir: Path
 
-    private val apiKeyService: ApiKeyService = mock()
+    private val apiKeyResolver: ApiKeyResolver = mock()
 
     private fun pngOf(width: Int, height: Int): ByteArray = ByteArrayOutputStream().also {
         ImageIO.write(BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY), "png", it)
@@ -61,7 +61,7 @@ class OcrServiceImplTest {
         maxPdfPixels: Long = 20_000_000,
         maxImagePixels: Long = 12_000_000,
     ) = OcrServiceImpl(
-        apiKeyService, NativeWorkPermit(), command, maxInputBytes, timeoutSeconds, anonymousQuota, anonymousWindowMillis, maxPdfPages, maxPdfPixels,
+        apiKeyResolver, NativeWorkPermit(), command, maxInputBytes, timeoutSeconds, anonymousQuota, anonymousWindowMillis, maxPdfPages, maxPdfPixels,
         maxImagePixels,
     )
 
@@ -301,13 +301,13 @@ class OcrServiceImplTest {
         repeat(3) { service.recognize("key.secret", "203.0.113.7", png.inputStream(), "eng") }
 
         // Then
-        verify(apiKeyService, times(3)).resolve("key.secret")
+        verify(apiKeyResolver, times(3)).resolve("key.secret")
     }
 
     @Test
     fun shouldRejectInvalidApiKeyBeforeReadingImage() {
         // Given
-        doThrow(IllegalAccessException("Invalid API key")).whenever(apiKeyService).resolve("bad")
+        doThrow(IllegalAccessException("Invalid API key")).whenever(apiKeyResolver).resolve("bad")
         val image = png.inputStream()
 
         // When / Then
@@ -357,7 +357,7 @@ class OcrServiceImplTest {
         // Then
         assertEquals(HttpStatus.SERVICE_UNAVAILABLE, e.statusCode)
         first.get()
-        verify(apiKeyService, never()).resolve(org.mockito.kotlin.any())
+        verify(apiKeyResolver, never()).resolve(org.mockito.kotlin.any())
     }
 
     @Test

@@ -1,5 +1,5 @@
 package fr.marstech.mtlinkspray.domain.dashboard
-import fr.marstech.mtlinkspray.domain.apikey.ApiKeyService
+import fr.marstech.mtlinkspray.domain.shared.ApiKeyResolver
 import org.springframework.web.server.ResponseStatusException
 import org.springframework.http.HttpStatus.FORBIDDEN
 import fr.marstech.mtlinkspray.adapter.inbound.web.dashboard.DashboardDto
@@ -20,7 +20,7 @@ import java.time.Duration
 @Service
 class DashboardServiceImpl(
     private val dashboardRepository: DashboardRepository,
-    private val apiKeyService: ApiKeyService,
+    private val apiKeyResolver: ApiKeyResolver,
     private val mongoTemplate: MongoTemplate,
 ) : DashboardService {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -72,7 +72,7 @@ class DashboardServiceImpl(
         }
 
     override fun createDashboard(dashboardDto: DashboardDto, rawApiKey: String?): DashboardDto {
-        val apiKeyId = rawApiKey?.let { apiKeyService.resolve(it).id }
+        val apiKeyId = rawApiKey?.let { apiKeyResolver.resolve(it).apiKeyId }
         checkSlugFree(dashboardDto.slug, dashboardDto.id)
         // The id comes from the client: insert, not save, so an existing id fails with DuplicateKeyException instead of being overwritten
         return dashboardRepository.insert(
@@ -103,9 +103,9 @@ class DashboardServiceImpl(
     override fun updateDashboard(id: String, dashboardDto: DashboardDto, rawApiKey: String?): DashboardDto {
         val entity = findById(id)
         // Credentials first: a missing or invalid key is 401 everywhere, 403 is only for a valid key
-        val caller = apiKeyService.resolve(rawApiKey)
+        val caller = apiKeyResolver.resolve(rawApiKey)
         if (entity.apiKeyId == null) throw ResponseStatusException(FORBIDDEN, "Dashboard created without an API key is read-only")
-        if (caller.id != entity.apiKeyId) throw ResponseStatusException(FORBIDDEN, "Not authorized to edit this dashboard")
+        if (caller.apiKeyId != entity.apiKeyId) throw ResponseStatusException(FORBIDDEN, "Not authorized to edit this dashboard")
         checkSlugFree(dashboardDto.slug, id)
         return dashboardRepository.save(
             entity.copy(

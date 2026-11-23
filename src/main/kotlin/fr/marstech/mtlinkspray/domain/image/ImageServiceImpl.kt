@@ -1,5 +1,5 @@
 package fr.marstech.mtlinkspray.domain.image
-import fr.marstech.mtlinkspray.domain.apikey.ApiKeyService
+import fr.marstech.mtlinkspray.domain.shared.ApiKeyResolver
 import org.springframework.web.server.ResponseStatusException
 import org.springframework.http.HttpStatus.FORBIDDEN
 import fr.marstech.mtlinkspray.adapter.outbound.mongo.shared.HistoryItem
@@ -16,7 +16,7 @@ import java.io.InputStream
 @Service
 class ImageServiceImpl(
     private val imageRepository: ImageRepository,
-    private val apiKeyService: ApiKeyService,
+    private val apiKeyResolver: ApiKeyResolver,
     private val imageStorageService: ImageStorageService,
     @Value("\${mt.link-spray.storage.max-file-size-bytes:26214400}") private val maxFileSizeBytes: Long,
 ) : ImageService {
@@ -27,7 +27,7 @@ class ImageServiceImpl(
         isPrivate: Boolean,
         httpServletRequest: HttpServletRequest,
     ): ImageEntity {
-        val apiKey = apiKeyService.resolve(rawApiKey)
+        val apiKey = apiKeyResolver.resolve(rawApiKey)
 
         if (file.isEmpty) throw IllegalArgumentException("Uploaded file is empty")
         if (file.size > maxFileSizeBytes) {
@@ -45,7 +45,7 @@ class ImageServiceImpl(
 
         return imageRepository.save(
             ImageEntity(
-                apiKeyId = apiKey.id,
+                apiKeyId = apiKey.apiKeyId,
                 s3Key = storageKey,
                 originalFilename = filename,
                 contentType = contentType,
@@ -68,17 +68,17 @@ class ImageServiceImpl(
     }
 
     override fun deleteImage(id: String, rawApiKey: String?) {
-        val apiKey = apiKeyService.resolve(rawApiKey)
+        val apiKey = apiKeyResolver.resolve(rawApiKey)
         val image = findImage(id)
-        if (image.apiKeyId != apiKey.id) throw ResponseStatusException(FORBIDDEN, "Not authorized to delete this image")
+        if (image.apiKeyId != apiKey.apiKeyId) throw ResponseStatusException(FORBIDDEN, "Not authorized to delete this image")
 
         imageStorageService.delete(image.s3Key)
         imageRepository.deleteById(id)
     }
 
     override fun listImages(rawApiKey: String?): List<ImageEntity> {
-        val apiKey = apiKeyService.resolve(rawApiKey)
-        return imageRepository.findByApiKeyId(apiKey.id)
+        val apiKey = apiKeyResolver.resolve(rawApiKey)
+        return imageRepository.findByApiKeyId(apiKey.apiKeyId)
     }
 
     private fun findImage(id: String): ImageEntity =
@@ -90,7 +90,7 @@ class ImageServiceImpl(
      */
     private fun checkAccess(image: ImageEntity, rawApiKey: String?) {
         if (!image.isPrivate) return
-        val apiKey = apiKeyService.resolve(rawApiKey)
-        if (image.apiKeyId != apiKey.id) throw ResponseStatusException(FORBIDDEN, "Not authorized to access this image")
+        val apiKey = apiKeyResolver.resolve(rawApiKey)
+        if (image.apiKeyId != apiKey.apiKeyId) throw ResponseStatusException(FORBIDDEN, "Not authorized to access this image")
     }
 }

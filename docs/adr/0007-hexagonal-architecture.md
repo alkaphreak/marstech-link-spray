@@ -44,7 +44,7 @@ MLS-275 will decide. An extracted service takes its `domain/<feature>` package a
 | `document`    | MarkdownToPdf, PdfToMarkdown                                                     |
 | `checklist`   | Checklist                                                                        |
 | `cron`        | CronJob, `CronJobValidator`                                                      |
-| `apikey`      | ApiKey (creation, regeneration, hashing behind `PasswordHasherPort`)             |
+| `apikey`      | ApiKey (creation, regeneration, storage behind `ApiKeyStore`)                    |
 | `abuse`       | ReportAbuse                                                                      |
 | `signature`   | WriteSignature                                                                   |
 | `devtools`    | Dns, Ip, QrCode, RandomNumber, `SleepCycles`, uuid                               |
@@ -55,8 +55,10 @@ requests add the domain models they map to.
 
 **`domain/shared/`** holds only interfaces, value types and exceptions, checked by ArchUnit:
 
-- `Namespace` and `ApiKeyResolver` (implemented by the `apikey` domain), so other domains never
-  see API key storage.
+- `ApiKeyResolver` and its `ApiCaller` (key id and namespace), implemented by the `apikey` domain,
+  so other domains never see API key storage.
+- `PasswordHasher`, implemented with BCrypt in `adapter/outbound/security`: shared because
+  `paste` hashes passwords too (it moves onto it in its own pull request).
 - `ClientContext` (IP or IPv6 /64, base URL, user agent), built by the web adapter, replacing
   `HttpServletRequest` in service signatures.
 - `Page<T>` replacing Spring Data's `Page`, `PageRequest` and `Sort`.
@@ -170,6 +172,9 @@ commits and linear history, so a rebase merge, which GitHub does not sign, canno
    commits the shrunk store. A shared type of `domain/shared` lands with its first user, not ahead
    of it. The last pull request removes the freeze once the store is empty, and the rules must then
    pass unfrozen.
+   The `apikey` pull request folds the planned `Namespace` into `ApiCaller`, since callers need the
+   key id as well, and puts the password hasher in `domain/shared` rather than `apikey`, since
+   `paste` will use it too.
 
 Before the release of each PR, a smoke run against the dev MongoDB (port 27019) with
 existing data checks that documents with the old `_class` values still load, that a stale

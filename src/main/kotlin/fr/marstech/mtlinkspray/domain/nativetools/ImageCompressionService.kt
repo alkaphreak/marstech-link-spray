@@ -1,6 +1,6 @@
 package fr.marstech.mtlinkspray.domain.nativetools
 import fr.marstech.mtlinkspray.adapter.outbound.ratelimit.AnonymousQuota
-import fr.marstech.mtlinkspray.domain.apikey.ApiKeyService
+import fr.marstech.mtlinkspray.domain.shared.ApiKeyResolver
 import fr.marstech.mtlinkspray.domain.shared.PayloadTooLargeException
 import fr.marstech.mtlinkspray.domain.shared.ImageTypes
 import org.springframework.beans.factory.annotation.Value
@@ -34,7 +34,7 @@ class CompressedImage(val bytes: ByteArray, val mediaType: String, val compresse
  */
 @Service
 class ImageCompressionService(
-    private val apiKeyService: ApiKeyService,
+    private val apiKeyResolver: ApiKeyResolver,
     private val permit: NativeWorkPermit,
     @Value("\${mt.link-spray.img.cwebp-command:cwebp}") private val cwebp: String,
     @Value("\${mt.link-spray.img.caesium-command:caesiumclt}") private val caesium: String,
@@ -54,7 +54,7 @@ class ImageCompressionService(
     ): CompressedImage {
         require(quality in 0..100) { "quality must be between 0 and 100" }
         require(maxDimension == null || maxDimension > 0) { "maxDimension must be positive" }
-        if (rawApiKey == null) anonymous.count(clientIp ?: "unknown") else apiKeyService.resolve(rawApiKey)
+        if (rawApiKey == null) anonymous.count(clientIp ?: "unknown") else apiKeyResolver.resolve(rawApiKey)
 
         val bytes = image.readNBytes(maxInputBytes + 1)
         if (bytes.size > maxInputBytes) {

@@ -1,11 +1,10 @@
 package fr.marstech.mtlinkspray.domain.cron
-import fr.marstech.mtlinkspray.domain.apikey.ApiKeyService
+import fr.marstech.mtlinkspray.domain.shared.ApiKeyResolver
 import fr.marstech.mtlinkspray.domain.shared.MailSenderService
 import fr.marstech.mtlinkspray.adapter.inbound.web.cron.CronJobRequest
 import fr.marstech.mtlinkspray.adapter.outbound.mongo.cron.CronJobEntity
 import fr.marstech.mtlinkspray.adapter.outbound.mongo.cron.CronRunEntity
 import fr.marstech.mtlinkspray.adapter.outbound.mongo.cron.CronRunStatus
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.apikey.ApiKeyRepository
 import fr.marstech.mtlinkspray.adapter.outbound.mongo.cron.CronJobRepository
 import fr.marstech.mtlinkspray.adapter.outbound.mongo.cron.CronRunRepository
 import jakarta.annotation.PreDestroy
@@ -50,8 +49,7 @@ import java.util.concurrent.TimeoutException
 class CronJobService(
     private val jobRepository: CronJobRepository,
     private val runRepository: CronRunRepository,
-    private val apiKeyService: ApiKeyService,
-    private val apiKeyRepository: ApiKeyRepository,
+    private val apiKeyResolver: ApiKeyResolver,
     private val mailSenderService: MailSenderService,
     private val cronHttpClient: HttpClient,
     private val mongoTemplate: MongoTemplate,
@@ -146,7 +144,7 @@ class CronJobService(
     fun execute(jobId: String) {
         val job = jobRepository.findById(jobId).orElse(null)?.takeIf { it.isEnabled } ?: return
         // A disabled or deleted key stops its jobs, and re-enabling it resumes them.
-        if (!apiKeyRepository.findByNamespace(job.namespace).map { it.isEnabled }.orElse(false)) return
+        if (!apiKeyResolver.isNamespaceEnabled(job.namespace)) return
         val startedAt = Instant.now()
         val (httpStatus, error) = call(job)
         val status = if (error == null) CronRunStatus.OK else CronRunStatus.FAILED
@@ -223,7 +221,7 @@ class CronJobService(
     private fun trigger(job: CronJobEntity): ScheduledFuture<*>? =
         scheduler.schedule({ execute(job.id) }, CronTrigger(job.schedule, ZoneOffset.UTC))
 
-    private fun namespaceOf(apiKey: String?) = apiKeyService.resolve(apiKey).namespace
+    private fun namespaceOf(apiKey: String?) = apiKeyResolver.resolve(apiKey).namespace
 
     private fun CronJobRequest.toEntity(base: CronJobEntity) = base.copy(
         name = name, schedule = schedule, method = method, url = url, headers = headers, body = body,
