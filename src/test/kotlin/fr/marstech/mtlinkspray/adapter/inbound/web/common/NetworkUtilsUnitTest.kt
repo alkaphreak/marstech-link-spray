@@ -113,4 +113,16 @@ internal class NetworkUtilsUnitTest {
         `when`(mockRequest!!.getHeader("X-Forwarded-For")).thenReturn("203.0.113.9, 10.244.0.1")
         Assertions.assertEquals("198.51.100.20", NetworkUtils.getIpAddress(mockRequest!!))
     }
+
+    @Test
+    fun clientContextShouldCarryIpAndUserAgent() {
+        val request = org.springframework.mock.web.MockHttpServletRequest().apply {
+            remoteAddr = "203.0.113.7"
+            addHeader("User-Agent", "Mozilla/5.0 test")
+        }
+        Assertions.assertEquals(
+            fr.marstech.mtlinkspray.domain.shared.ClientContext(ipAddress = "203.0.113.7", userAgent = "Mozilla/5.0 test"),
+            NetworkUtils.clientContext(request),
+        )
+    }
 }

@@ -59,7 +59,7 @@ requests add the domain models they map to.
   so other domains never see API key storage.
 - `PasswordHasher`, implemented with BCrypt in `adapter/outbound/security`: shared because
   `paste` hashes passwords too.
-- `ClientContext` (IP address today; IPv6 /64, base URL and user agent join with their first user,
+- `ClientContext` (IP address and user agent today; IPv6 /64 and base URL join with their first user,
   see the step 2 amendment), built by the web adapter, replacing
   `HttpServletRequest` in service signatures.
 - `Page<T>` replacing Spring Data's `Page`, `PageRequest` and `Sort`.
@@ -176,7 +176,9 @@ commits and linear history, so a rebase merge, which GitHub does not sign, canno
    The `apikey` pull request folds the planned `Namespace` into `ApiCaller`, since callers need the
    key id as well, and puts the password hasher in `domain/shared` rather than `apikey`, since
    `paste` will use it too. The `paste` pull request introduces `ClientContext` with the IP address
-   only; the base URL and user agent join it with their first user.
+   only, the `signature` one adds the user agent; the IPv6 /64 and the base URL join it with their
+   first user. The
+   write-signature TTL index (creation with retry at startup) moves to the Mongo adapter.
 
 Before the release of each PR, a smoke run against the dev MongoDB (port 27019) with
 existing data checks that documents with the old `_class` values still load, that a stale

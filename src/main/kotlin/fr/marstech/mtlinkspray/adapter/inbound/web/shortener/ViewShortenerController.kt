@@ -1,6 +1,7 @@
 package fr.marstech.mtlinkspray.adapter.inbound.web.shortener
 import fr.marstech.mtlinkspray.adapter.inbound.web.common.ThymeleafViewControllerInterface
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.signature.WriteSignatureEntity.ResourceType
+import fr.marstech.mtlinkspray.adapter.inbound.web.common.NetworkUtils.clientContext
+import fr.marstech.mtlinkspray.domain.signature.ResourceType
 import fr.marstech.mtlinkspray.adapter.inbound.web.common.ViewNameEnum.SHORTENER
 import fr.marstech.mtlinkspray.domain.shortener.ShortenerService
 import fr.marstech.mtlinkspray.domain.signature.WriteSignatureService
@@ -33,7 +34,7 @@ class ViewShortenerController(
         httpServletRequest: HttpServletRequest
     ): ModelAndView {
         val shortenedLink = shortenerService.shorten(inputLink, httpServletRequest)
-        writeSignatureService.record(ResourceType.SHORT_LINK, shortenedLink, fp, httpServletRequest)
+        writeSignatureService.record(ResourceType.SHORT_LINK, shortenedLink, fp, clientContext(httpServletRequest))
         return getModelAndView()
             .addObject("inputLink", inputLink)
             .addObject("shortenedLink", shortenedLink)

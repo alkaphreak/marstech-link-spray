@@ -46,7 +46,7 @@ class ViewShortenerControllerMvcTest {
 
         // Then
         verify(writeSignatureService).record(
-            org.mockito.kotlin.eq(fr.marstech.mtlinkspray.adapter.outbound.mongo.signature.WriteSignatureEntity.ResourceType.SHORT_LINK),
+            org.mockito.kotlin.eq(fr.marstech.mtlinkspray.domain.signature.ResourceType.SHORT_LINK),
             org.mockito.kotlin.eq("https://short.ly/abc123"),
             org.mockito.kotlin.eq("ab".repeat(32)),
             any(),

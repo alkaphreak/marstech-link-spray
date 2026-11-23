@@ -1,6 +1,7 @@
 package fr.marstech.mtlinkspray.adapter.inbound.web.shortener
 import fr.marstech.mtlinkspray.adapter.inbound.web.common.ThymeleafViewControllerInterface
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.signature.WriteSignatureEntity.ResourceType
+import fr.marstech.mtlinkspray.adapter.inbound.web.common.NetworkUtils.clientContext
+import fr.marstech.mtlinkspray.domain.signature.ResourceType
 import fr.marstech.mtlinkspray.adapter.inbound.web.common.ViewNameEnum.SPRAY
 import fr.marstech.mtlinkspray.domain.shortener.SprayService
 import fr.marstech.mtlinkspray.domain.signature.WriteSignatureService
@@ -44,9 +45,9 @@ class ViewSprayController(
     ): ModelAndView {
         val linkList = getLinkList(inputLinkList)
         val shortenedSprayUrl = sprayService.shortenAndSpray(linkList, httpServletRequest) { child ->
-            writeSignatureService.record(ResourceType.SHORT_LINK, child, fp, httpServletRequest)
+            writeSignatureService.record(ResourceType.SHORT_LINK, child, fp, clientContext(httpServletRequest))
         }
-        writeSignatureService.record(ResourceType.SPRAY, shortenedSprayUrl, fp, httpServletRequest)
+        writeSignatureService.record(ResourceType.SPRAY, shortenedSprayUrl, fp, clientContext(httpServletRequest))
         return getModelAndView()
             .addObject("linkList", linkList)
             .addObject("linkListText", getLinkListText(linkList))
