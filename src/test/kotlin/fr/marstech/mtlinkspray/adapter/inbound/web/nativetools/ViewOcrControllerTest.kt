@@ -1,0 +1,17 @@
+package fr.marstech.mtlinkspray.adapter.inbound.web.nativetools
+import fr.marstech.mtlinkspray.adapter.inbound.web.common.ViewNameEnum
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
+
+class ViewOcrControllerTest {
+
+    @Test
+    fun shouldRenderOcrView() {
+        // When
+        val result = ViewOcrController().home()
+
+        // Then
+        assertEquals(ViewNameEnum.OCR.viewName, result.viewName)
+        assertEquals(ViewNameEnum.OCR, result.model["viewNameEnum"])
+    }
+}

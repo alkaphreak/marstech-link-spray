@@ -1,4 +1,4 @@
-<!--/*@thymesVar id="apiKeys" type="java.util.List<fr.marstech.mtlinkspray.entity.ApiKeyEntity>"*/-->
+<!--/*@thymesVar id="apiKeys" type="java.util.List<fr.marstech.mtlinkspray.adapter.outbound.mongo.apikey.ApiKeyEntity>"*/-->
 <!--/*@thymesVar id="newRawKey" type="java.lang.String"*/-->
 <!--/*@thymesVar id="newKeyName" type="java.lang.String"*/-->
 <!DOCTYPE html>
@@ -24,7 +24,7 @@
     </div>
 </section>
 
-<section class="content-section" th:with="view=${T(fr.marstech.mtlinkspray.enums.ViewNameEnum).ADMIN_API_KEYS}">
+<section class="content-section" th:with="view=${T(fr.marstech.mtlinkspray.adapter.inbound.web.common.ViewNameEnum).ADMIN_API_KEYS}">
     <div class="container">
 
         <!-- One-time display of a newly created raw API key -->

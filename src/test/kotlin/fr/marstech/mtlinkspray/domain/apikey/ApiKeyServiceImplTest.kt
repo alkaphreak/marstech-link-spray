@@ -1,0 +1,286 @@
+package fr.marstech.mtlinkspray.domain.apikey
+import fr.marstech.mtlinkspray.adapter.outbound.mongo.apikey.ApiKeyEntity
+import fr.marstech.mtlinkspray.adapter.outbound.mongo.apikey.ApiKeyRepository
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNotEquals
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.extension.ExtendWith
+import org.mockito.ArgumentCaptor
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.never
+import org.mockito.Mockito.verify
+import org.mockito.kotlin.eq
+import org.springframework.boot.test.system.CapturedOutput
+import org.springframework.boot.test.system.OutputCaptureExtension
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
+import java.util.*
+
+@ExtendWith(OutputCaptureExtension::class)
+class ApiKeyServiceImplTest {
+
+    private val apiKeyRepository = mock(ApiKeyRepository::class.java)
+    private val apiKeyService = ApiKeyServiceImpl(apiKeyRepository)
+    private val passwordEncoder = BCryptPasswordEncoder()
+
+    private fun givenApiKey(
+        keyId: String = "key123",
+        secret: String = "s3cr3t",
+        namespace: String = "maeva-app-1",
+        isEnabled: Boolean = true,
+    ): ApiKeyEntity = ApiKeyEntity(
+        id = "id1",
+        name = "Maeva App",
+        keyId = keyId,
+        secretHash = passwordEncoder.encode(secret)!!,
+        namespace = namespace,
+        isEnabled = isEnabled,
+    )
+
+    @Test
+    fun resolveShouldReturnApiKeyWhenRawKeyIsValid() {
+        val apiKey = givenApiKey()
+        `when`(apiKeyRepository.findByKeyId("key123")).thenReturn(Optional.of(apiKey))
+
+        val result = apiKeyService.resolve("key123.s3cr3t")
+
+        assertEquals(apiKey, result)
+    }
+
+    @Test
+    fun resolveShouldThrowWhenRawKeyIsNull() {
+        assertThrows<IllegalAccessException> {
+            apiKeyService.resolve(null)
+        }
+    }
+
+    @Test
+    fun resolveShouldThrowWhenRawKeyIsBlank() {
+        assertThrows<IllegalAccessException> {
+            apiKeyService.resolve("   ")
+        }
+    }
+
+    @Test
+    fun resolveShouldThrowWhenRawKeyIsMalformed() {
+        assertThrows<IllegalAccessException> {
+            apiKeyService.resolve("no-dot-separator")
+        }
+    }
+
+    @Test
+    fun resolveShouldThrowWhenKeyIdIsUnknown() {
+        `when`(apiKeyRepository.findByKeyId("unknown")).thenReturn(Optional.empty())
+
+        assertThrows<IllegalAccessException> {
+            apiKeyService.resolve("unknown.s3cr3t")
+        }
+    }
+
+    @Test
+    fun resolveShouldThrowWhenSecretIsWrong() {
+        val apiKey = givenApiKey()
+        `when`(apiKeyRepository.findByKeyId("key123")).thenReturn(Optional.of(apiKey))
+
+        assertThrows<IllegalAccessException> {
+            apiKeyService.resolve("key123.wrongSecret")
+        }
+    }
+
+    @Test
+    fun resolveShouldThrowWhenApiKeyIsDisabled() {
+        val apiKey = givenApiKey(isEnabled = false)
+        `when`(apiKeyRepository.findByKeyId("key123")).thenReturn(Optional.of(apiKey))
+
+        assertThrows<IllegalAccessException> {
+            apiKeyService.resolve("key123.s3cr3t")
+        }
+    }
+
+    @Test
+    fun createApiKeyShouldPersistAndReturnRawKey() {
+        `when`(apiKeyRepository.findByNamespace("maeva-app-1")).thenReturn(Optional.empty())
+        val captor = ArgumentCaptor.forClass(ApiKeyEntity::class.java)
+        `when`(apiKeyRepository.save(captor.capture())).thenAnswer { it.arguments[0] }
+
+        val result = apiKeyService.createApiKey("Maeva App", "maeva-app-1")
+
+        val saved = captor.value
+        assertEquals("Maeva App", saved.name)
+        assertEquals("maeva-app-1", saved.namespace)
+        assertTrue(saved.isEnabled)
+        assertEquals(saved, result.apiKey)
+
+        val (keyId, secret) = result.rawKey.split(".", limit = 2)
+        assertEquals(saved.keyId, keyId)
+        assertTrue(passwordEncoder.matches(secret, saved.secretHash))
+    }
+
+    @Test
+    fun createApiKeyShouldGenerateDistinctKeysOnEachCall() {
+        `when`(apiKeyRepository.findByNamespace(org.mockito.kotlin.any())).thenReturn(Optional.empty())
+        `when`(apiKeyRepository.save(org.mockito.kotlin.any())).thenAnswer { it.arguments[0] }
+
+        val first = apiKeyService.createApiKey("App1", "ns1")
+        val second = apiKeyService.createApiKey("App2", "ns2")
+
+        assertNotEquals(first.rawKey, second.rawKey)
+        assertNotEquals(first.apiKey.keyId, second.apiKey.keyId)
+    }
+
+    @Test
+    fun createApiKeyShouldThrowWhenNameIsBlank() {
+        assertThrows<IllegalArgumentException> {
+            apiKeyService.createApiKey("   ", "maeva-app-1")
+        }
+    }
+
+    @Test
+    fun createApiKeyShouldThrowWhenNamespaceIsBlank() {
+        assertThrows<IllegalArgumentException> {
+            apiKeyService.createApiKey("Maeva App", "   ")
+        }
+    }
+
+    @Test
+    fun createApiKeyShouldThrowWhenNamespaceAlreadyExists() {
+        `when`(apiKeyRepository.findByNamespace("maeva-app-1")).thenReturn(Optional.of(givenApiKey()))
+
+        assertThrows<IllegalArgumentException> {
+            apiKeyService.createApiKey("Maeva App", "maeva-app-1")
+        }
+    }
+
+    @Test
+    fun listApiKeysShouldReturnAllApiKeys() {
+        val apiKeys = listOf(givenApiKey(), givenApiKey(keyId = "key456", namespace = "app2"))
+        `when`(apiKeyRepository.findAll()).thenReturn(apiKeys)
+
+        val result = apiKeyService.listApiKeys()
+
+        assertEquals(apiKeys, result)
+    }
+
+    @Test
+    fun setEnabledShouldUpdateOnlyTheEnabledField() {
+        // Given
+        `when`(apiKeyRepository.findAndSetIsEnabledById("id1", false)).thenReturn(1L)
+        `when`(apiKeyRepository.findById("id1")).thenReturn(Optional.of(givenApiKey(isEnabled = false)))
+
+        // When
+        val result = apiKeyService.setEnabled("id1", false)
+
+        // Then
+        assertFalse(result.isEnabled)
+        verify(apiKeyRepository).findAndSetIsEnabledById("id1", false)
+        verify(apiKeyRepository, never()).save(org.mockito.kotlin.any())
+    }
+
+    @Test
+    fun setEnabledShouldThrowWhenApiKeyNotFound() {
+        `when`(apiKeyRepository.findAndSetIsEnabledById("unknown", false)).thenReturn(0L)
+
+        assertThrows<NoSuchElementException> {
+            apiKeyService.setEnabled("unknown", false)
+        }
+    }
+
+    @Test
+    fun regenerateSecretShouldKeepKeyIdAndReplaceSecret() {
+        // Given
+        val apiKey = givenApiKey()
+        `when`(apiKeyRepository.findById("id1")).thenReturn(Optional.of(apiKey))
+        `when`(apiKeyRepository.findAndSetSecretHashById(eq("id1"), org.mockito.kotlin.any())).thenReturn(1L)
+
+        // When
+        val result = apiKeyService.regenerateSecret("id1")
+
+        // Then
+        val (keyId, secret) = result.rawKey.split(".", limit = 2)
+        assertEquals("key123", keyId)
+        assertEquals(apiKey.namespace, result.apiKey.namespace)
+        `when`(apiKeyRepository.findByKeyId("key123")).thenReturn(Optional.of(result.apiKey))
+        assertEquals(result.apiKey, apiKeyService.resolve("key123.$secret"))
+        assertThrows<IllegalAccessException> { apiKeyService.resolve("key123.s3cr3t") }
+        verify(apiKeyRepository).findAndSetSecretHashById("id1", result.apiKey.secretHash)
+        verify(apiKeyRepository, never()).save(org.mockito.kotlin.any())
+    }
+
+    @Test
+    fun regenerateSecretShouldThrowWhenApiKeyNotFound() {
+        `when`(apiKeyRepository.findById("unknown")).thenReturn(Optional.empty())
+
+        assertThrows<NoSuchElementException> {
+            apiKeyService.regenerateSecret("unknown")
+        }
+    }
+
+    @Test
+    fun createApiKeyShouldLogKeyIdAndNamespaceWithoutSecretOrHash(output: CapturedOutput) {
+        // Given
+        `when`(apiKeyRepository.findByNamespace("maeva-app-1")).thenReturn(Optional.empty())
+        `when`(apiKeyRepository.save(org.mockito.kotlin.any())).thenAnswer { (it.arguments[0] as ApiKeyEntity).copy(id = "id1") }
+
+        // When
+        val result = apiKeyService.createApiKey("Maeva App", "maeva-app-1")
+
+        // Then
+        val (keyId, secret) = result.rawKey.split(".", limit = 2)
+        assertTrue(output.out.contains("API key created: id=id1, keyId=$keyId, namespace=maeva-app-1, name=Maeva App"))
+        assertSecretsNotLogged(output, secret, result.apiKey.secretHash)
+    }
+
+    @Test
+    fun setEnabledShouldLogKeyIdNamespaceAndState(output: CapturedOutput) {
+        // Given
+        val apiKey = givenApiKey(isEnabled = false)
+        `when`(apiKeyRepository.findAndSetIsEnabledById("id1", false)).thenReturn(1L)
+        `when`(apiKeyRepository.findById("id1")).thenReturn(Optional.of(apiKey))
+
+        // When
+        apiKeyService.setEnabled("id1", false)
+
+        // Then
+        assertTrue(output.out.contains("API key enabled set: id=id1, keyId=key123, namespace=maeva-app-1, enabled=false"))
+        assertSecretsNotLogged(output, "s3cr3t", apiKey.secretHash)
+    }
+
+    @Test
+    fun regenerateSecretShouldLogKeyIdAndNamespaceWithoutSecretOrHash(output: CapturedOutput) {
+        // Given
+        val apiKey = givenApiKey()
+        `when`(apiKeyRepository.findById("id1")).thenReturn(Optional.of(apiKey))
+        `when`(apiKeyRepository.findAndSetSecretHashById(eq("id1"), org.mockito.kotlin.any())).thenReturn(1L)
+
+        // When
+        val result = apiKeyService.regenerateSecret("id1")
+
+        // Then
+        val secret = result.rawKey.substringAfter(".")
+        assertTrue(output.out.contains("API key secret regenerated: id=id1, keyId=key123, namespace=maeva-app-1"))
+        assertSecretsNotLogged(output, secret, result.apiKey.secretHash)
+        assertSecretsNotLogged(output, "s3cr3t", apiKey.secretHash)
+    }
+
+    @Test
+    fun createApiKeyShouldEscapeLineBreaksInLoggedValues(output: CapturedOutput) {
+        // Given
+        `when`(apiKeyRepository.findByNamespace(org.mockito.kotlin.any())).thenReturn(Optional.empty())
+        `when`(apiKeyRepository.save(org.mockito.kotlin.any())).thenAnswer { it.arguments[0] }
+
+        // When
+        apiKeyService.createApiKey("App\nAPI key created: id=forged", "ns\r\nx")
+
+        // Then
+        assertTrue(output.out.contains("namespace=ns\\r\\nx, name=App\\nAPI key created: id=forged"))
+        assertFalse(output.out.lines().any { it.startsWith("API key created: id=forged") })
+    }
+
+    private fun assertSecretsNotLogged(output: CapturedOutput, secret: String, secretHash: String) {
+        assertFalse(output.all.contains(secret))
+        assertFalse(output.all.contains(secretHash))
+    }
+}

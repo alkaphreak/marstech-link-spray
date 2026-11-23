@@ -49,7 +49,9 @@ MLS-275 will decide. An extracted service takes its `domain/<feature>` package a
 | `signature`   | WriteSignature                                                                   |
 | `devtools`    | Dns, Ip, QrCode, RandomNumber, `SleepCycles`, uuid                               |
 
-Spray stays with the shortener because it creates short links through the shortener service.
+Spray stays with the shortener because it creates short links through the shortener service. The class lists name today's classes: in the first PR the Mongo documents among them (`LinkItem`,
+`DashboardItem`, `DashboardLink`) stay in `adapter/outbound/mongo/<domain>`, and the second PR adds the
+domain models they map to.
 
 **`domain/shared/`** holds only interfaces, value types and exceptions, checked by ArchUnit:
 
@@ -62,28 +64,29 @@ Spray stays with the shortener because it creates short links through the shorte
 - Domain errors: `NotFound`, `Conflict`, `QuotaExceeded`, `PayloadTooLarge`, `Busy` (the native
   work permit), `InvalidInput`.
 
-**Adapters**
+**Adapters** (`inbound`/`outbound` rather than `in`/`out`: `in` is a Kotlin keyword, so a package
+named `in` would need backticks in every declaration and import)
 
-- `adapter/in/web/<domain>/`: REST and Thymeleaf controllers, DTOs, DTO constraint annotations
+- `adapter/inbound/web/<domain>/`: REST and Thymeleaf controllers, DTOs, DTO constraint annotations
   (`NotEmptyNotBlank`, `ValidUrl`, `ValidUrlList`), `ViewNameEnum`, `CommonConfs`, the single
   `X-Api-Key` constant, both exception handlers. A view controller calls a domain service, never
   another controller. Admin views render DTOs, not documents.
-- `adapter/in/mcp/`: MCP tools.
-- `adapter/out/mongo/<domain>/`: `@Document` classes with their current collection names and a
+- `adapter/inbound/mcp/`: MCP tools.
+- `adapter/outbound/mongo/<domain>/`: `@Document` classes with their current collection names and a
   `@TypeAlias`, Spring Data repositories, port implementations, index and TTL creation at
   startup, mapping between documents and domain types.
-- `adapter/out/scheduler/`: `ThreadPoolTaskScheduler`, cron trigger, Spring `CronExpression`
+- `adapter/outbound/scheduler/`: `ThreadPoolTaskScheduler`, cron trigger, Spring `CronExpression`
   parsing (the 6-field behaviour of MLS-220), job re-registration at startup, behind
   `CronSchedulerPort`.
-- `adapter/out/http/`: the cron webhook client.
-- `adapter/out/{s3,dns,mail,geoip,native,ratelimit,security}/`: DigitalOcean Spaces, JNDI DNS,
+- `adapter/outbound/http/`: the cron webhook client.
+- `adapter/outbound/{s3,dns,mail,geoip,native,ratelimit,security}/`: DigitalOcean Spaces, JNDI DNS,
   SMTP, MaxMind, tesseract/cwebp/caesiumclt subprocesses, Bucket4j, BCrypt.
-- `adapter/out/web/`: `ReservedPaths` (reads `RequestMappingHandlerMapping`) behind
+- `adapter/outbound/web/`: `ReservedPaths` (reads `RequestMappingHandlerMapping`) behind
   `ReservedPathsPort`.
 - `config/`: security, CSP, rate-limit and S3 configuration, `@ConfigurationProperties`.
 - `utils/` is split: `ImageTypes` (magic-byte detection, used by `image`, `nativetools` and the
   image controller) becomes an `ImageType` enum with its pure `detect(bytes)` in
-  `domain/shared`, upload validation still excluding SVG; `NetworkUtils` goes to `adapter/in/web`,
+  `domain/shared`, upload validation still excluding SVG; `NetworkUtils` goes to `adapter/inbound/web`,
   `BotUserAgents` to `shortener` with its list loaded by an adapter (no `ClassPathResource` in
   the domain), `SleepCycles` to `devtools` with its result types (no `dto` import).
 - Domain classes that still use Spring today get a destination for that dependency:
@@ -98,7 +101,7 @@ in a version that reads Java 25 bytecode)
 
 - `domain..` depends on no Spring class except `org.springframework.stereotype.Service`, and
   not on `com.mongodb..`, `jakarta.servlet..` or `..adapter..`.
-- `..adapter.in..` does not depend on `..adapter.out..`.
+- `..adapter.inbound..` does not depend on `..adapter.outbound..`.
 - A `domain.<name>` package does not depend on another `domain.<name>` package, except
   `domain.shared`.
 - `domain.shared` contains only interfaces, data classes, enums and exceptions.

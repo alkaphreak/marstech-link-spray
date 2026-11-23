@@ -1,5 +1,4 @@
 package fr.marstech.mtlinkspray.config
-
 import jakarta.mail.Session
 import jakarta.mail.internet.MimeMessage
 import org.mockito.Mockito

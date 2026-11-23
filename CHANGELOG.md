@@ -16,6 +16,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- Code reorganised into hexagonal packages (ADR 0007, MLS-276 step 1): `domain/<feature>`, `adapter/inbound`,
+  `adapter/outbound`, `config`. Packages and imports only; stored documents keep loading through a
+  `@TypeAlias` holding each class's previous name, and `MongoConfig` registers the polymorphic dashboard item
 - Tests run against an embedded MongoDB 8.0.5 (flapdoodle `spring4x` 4.33.0, replacing the unused
   `de.flapdoodle.embed.mongo` 5.0.0); `commons-io` pinned to 2.20.0 (MLS-277)
 - A valid API key that does not own the resource now gets 403 Forbidden instead of 401: dashboard update

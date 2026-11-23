@@ -38,23 +38,8 @@ rtk mvn package -DskipTests -f pom.xml
 
 ## Project Layout
 
-```
-src/main/kotlin/fr/marstech/mtlinkspray/
-├── conf/           # Spring configuration classes
-├── controller/
-│   ├── api/        # REST controllers (@RestController)
-│   ├── view/       # Thymeleaf view controllers
-│   └── commons/    # Shared controller utilities
-├── dto/            # Request/response DTOs (never return entities from controllers)
-├── entity/         # MongoDB @Document classes
-├── enums/          # Enumerations
-├── exception/      # Custom exceptions + @ControllerAdvice
-├── objects/        # Constants / singleton objects
-├── repository/     # Spring Data MongoDB repositories
-├── service/        # Interfaces + Impl pairs
-├── utils/          # Pure utility functions
-└── validation/     # Custom JSR-380 validators
-```
+Hexagonal packages (ADR 0007): `domain/<feature>`, `adapter/inbound/{web,mcp}`, `adapter/outbound/{mongo,...}`,
+`config`. The package tree with what each holds is the **Codebase Map** in `AGENTS.md` (single source).
 
 ---
 
@@ -62,7 +47,7 @@ src/main/kotlin/fr/marstech/mtlinkspray/
 
 - **Kotlin only** — no Java files in `src/main/kotlin/`
 - **Constructor injection** — never `@Autowired` on fields
-- **DTOs for all API I/O** — never expose `entity/` classes from controllers
+- **DTOs for all API I/O** — never expose Mongo documents (`adapter/outbound/mongo`) from controllers
 - **camelCase test method names** — no backtick-quoted names (e.g. `shouldReturnOkWhenUrlExists()`)
 - **Given-When-Then** structure inside every test
 - **`val` over `var`** — prefer immutability
