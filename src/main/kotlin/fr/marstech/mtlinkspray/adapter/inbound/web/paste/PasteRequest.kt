@@ -1,5 +1,6 @@
 package fr.marstech.mtlinkspray.adapter.inbound.web.paste
 import fr.marstech.mtlinkspray.domain.paste.ExpirationEnum
+import fr.marstech.mtlinkspray.domain.paste.PasteDraft
 import fr.marstech.mtlinkspray.domain.paste.PastebinTextLanguageEnum
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
@@ -22,4 +23,13 @@ data class PasteRequest(
     val expiration: String = ExpirationEnum.NEVER.expiration,
 
     val isPrivate: Boolean = false,
-)
+) {
+    fun toDraft() = PasteDraft(
+        title = title,
+        content = content,
+        language = language,
+        password = password,
+        expiration = expiration,
+        isPrivate = isPrivate,
+    )
+}

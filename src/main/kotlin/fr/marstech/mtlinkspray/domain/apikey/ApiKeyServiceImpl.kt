@@ -45,9 +45,7 @@ class ApiKeyServiceImpl(
     override fun createApiKey(name: String, namespace: String): ApiKeyCreationResult {
         if (name.isBlank()) throw IllegalArgumentException("Name cannot be blank")
         if (namespace.isBlank()) throw IllegalArgumentException("Namespace cannot be blank")
-        if (apiKeyStore.findByNamespace(namespace) != null) {
-            throw IllegalArgumentException("Namespace '$namespace' is already in use")
-        }
+        require(apiKeyStore.findByNamespace(namespace) == null) { "Namespace '$namespace' is already in use" }
 
         val keyId = generateKeyId()
         val secret = generateSecret()

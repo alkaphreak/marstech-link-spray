@@ -40,7 +40,8 @@ src/main/kotlin/fr/marstech/mtlinkspray/
 │                   #   document (md2pdf, pdf2md), checklist, cron (+ CronJobValidator), apikey,
 │                   #   abuse, signature, devtools (DNS, IP, QR, random number, sleep cycles)
 ├── domain/shared/   # PayloadTooLargeException, ImageTypes, MailSenderService, ApiKeyResolver +
-│                   #   ApiCaller (other domains' only view of API keys), PasswordHasher
+│                   #   ApiCaller (other domains' only view of API keys), PasswordHasher,
+│                   #   ClientContext (caller IP, built by NetworkUtils.clientContext)
 ├── adapter/inbound/
 │   ├── web/<name>/  # REST + Thymeleaf controllers and their DTOs, per domain
 │   ├── web/common/  # Exception handlers, ViewNameEnum, CommonConfs, NetworkUtils, URL validators,
@@ -48,7 +49,7 @@ src/main/kotlin/fr/marstech/mtlinkspray/
 │   └── mcp/         # MCP server tools on /mcp (Sol4McpTools, MLS-266, ADR 0004)
 ├── adapter/outbound/
 │   ├── mongo/<name>/ # @Document classes (with @TypeAlias = pre-move class name), repositories and
-│   │               #   port implementations (MongoApiKeyStore)
+│   │               #   port implementations (MongoApiKeyStore, MongoPasteStore)
 │   ├── security/    # BCryptPasswordHasher
 │   ├── s3/ dns/ mail/ ratelimit/ scheduler/ web/  # DigitalOcean Spaces, JNDI DNS, SMTP, Bucket4j
 │   │               #   AnonymousQuota, CronConfig, ReservedPaths
@@ -61,7 +62,7 @@ src/main/kotlin/fr/marstech/mtlinkspray/
 - `MtLinkSprayApplication.kt` — Spring Boot main
 - `ShortenerApiController` → `ShortenerService` → `LinkItemRepository` (core URL shortener flow)
 - `SprayApiController` → `SprayService` — multi-URL spray
-- `PasteApiController` → `PasteService` → `PasteRepository` — paste CRUD
+- `PasteApiController` → `PasteService` → `PasteStore` (`MongoPasteStore` → `PasteRepository`) — paste CRUD
 - `DashboardApiController` → `DashboardService` — collection management
 - `ImageApiController` → `ImageService` → `ImageStorageService` (`DigitalOceanSpacesServiceImpl`) — image storage (MLS-203)
 - `AdminApiKeyViewController` → `ApiKeyService` → `ApiKeyStore` (`MongoApiKeyStore` → `ApiKeyRepository`) — admin page to create/list/enable-disable per-app API keys (`/admin/api-keys`, HTTP Basic protected)
@@ -77,7 +78,7 @@ src/main/kotlin/fr/marstech/mtlinkspray/
 
 - Shorten URL: `GET /api/url-shortener/shorten?url=` (or `POST /api/url-shortener`, 201 Created, MLS-258) → `ShortenerApiController` → `ShortenerServiceImpl` → `LinkItemRepository` (MongoDB)
 - Resolve short code: `GET /{code}` → `UrlRedirectController` → `ShortenerServiceImpl` → redirect; the User-Agent is matched in memory by `BotUserAgents` (vendored patterns in `resources/bot-user-agents/`, refresh steps in its README): robots bump `botClickCount`, people `clickCount` and `lastClickedAt` (MLS-273)
-- Create paste: `POST /api/paste` → `PasteApiController` → `PasteServiceImpl` → `PasteRepository`
+- Create paste: `POST /api/paste` → `PasteApiController` (`PasteRequest.toDraft()`, `ClientContext`) → `PasteServiceImpl` → `PasteStore`
 - Abuse report: `POST /api/abuse` → `ReportAbuseServiceImpl` → `MailSenderServiceImpl`
 - Rate limit (MLS-161, ADR 0006): `RateLimitConfig` registers a `HandlerInterceptor` on the public write routes, API and form (`/api/url-shortener`, `GET`/`HEAD /api/url-shortener/shorten`, `/api/paste`, `/api/dashboard[/*]`, `/shortener`, `/paste`, `/dashboard`: one shared `writeQuota` bean per client) and on `POST /abuse` (own budget, it sends a mail); a shortened spray pays one token per link in `SprayServiceImpl`. `AnonymousQuota` is a Bucket4j token bucket per IPv4 or IPv6 /64 in a bounded Caffeine cache, 429 with `Retry-After` (JSON, or the error page for `Accept: text/html`); limits under `mt.link-spray.rate-limit.*`, a window of 0 disables them (test profile). A new public write route must be added to `RateLimitConfig`
 - Upload image: `POST /api/images` (header `X-Api-Key: {keyId}.{secret}`) → `ImageApiController` → `ImageServiceImpl` (key checked through `ApiKeyResolver`) → `DigitalOceanSpacesServiceImpl` → DO Spaces bucket `mt-mls-img-storage`
@@ -264,4 +265,4 @@ This file is **living documentation**. Any agent (or human) making changes to th
 
 ---
 
-_Last updated: 2026-11-23 — apikey domain on ports, ApiKeyResolver in domain/shared (MLS-276)_
+_Last updated: 2026-11-23 — apikey and paste domains on ports (MLS-276)_

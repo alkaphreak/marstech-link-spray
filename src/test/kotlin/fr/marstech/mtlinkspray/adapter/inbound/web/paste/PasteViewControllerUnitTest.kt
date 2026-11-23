@@ -1,6 +1,5 @@
 package fr.marstech.mtlinkspray.adapter.inbound.web.paste
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.shared.HistoryItem
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.paste.PasteEntity
+import fr.marstech.mtlinkspray.domain.paste.Paste
 import fr.marstech.mtlinkspray.adapter.inbound.web.common.ViewNameEnum
 import fr.marstech.mtlinkspray.domain.paste.PasteService
 import jakarta.servlet.http.HttpServletRequest
@@ -65,13 +64,13 @@ class PasteViewControllerUnitTest {
     fun getViewPasteReturnsPasteViewWhenNotPasswordProtected() {
         val pasteId = "abc123"
         val content = "Hello World"
-        val entity = PasteEntity(
-            id = pasteId, content = content, author = HistoryItem("user1")
+        val paste = Paste(
+            id = pasteId, content = content
         )
-        val response = PasteResponse.fromEntity(entity)
+        val response = PasteResponse.from(paste)
 
         `when`(pasteService.isPasswordProtected("xyz")).thenReturn(false)
-        `when`(pasteService.getPaste("xyz", null)).thenReturn(entity)
+        `when`(pasteService.getPaste("xyz", null)).thenReturn(paste)
 
         mockMvc.perform(get("/paste/xyz")).andExpect(status().isOk).andExpect(model().attribute("isProtected", false))
             .andExpect(model().attribute("paste", response)).andExpect(model().attribute("create", false))

@@ -1,68 +1,56 @@
 package fr.marstech.mtlinkspray.domain.paste
-import fr.marstech.mtlinkspray.adapter.inbound.web.paste.PasteRequest
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.shared.HistoryItem
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.paste.PasteEntity
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.paste.PasteRepository
-import fr.marstech.mtlinkspray.adapter.inbound.web.common.NetworkUtils
-import jakarta.servlet.http.HttpServletRequest
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
+import fr.marstech.mtlinkspray.domain.shared.ClientContext
+import fr.marstech.mtlinkspray.domain.shared.PasswordHasher
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime.now
 import java.util.*
 
 @Service
 class PasteServiceImpl(
-    private val pasteRepository: PasteRepository
+    private val pasteStore: PasteStore,
+    private val passwordHasher: PasswordHasher,
 ) : PasteService {
 
-    private val passwordEncoder = BCryptPasswordEncoder()
-
-    override fun createPaste(
-        request: PasteRequest,
-        httpServletRequest: HttpServletRequest
-    ): String =
-        pasteRepository.save(
-            PasteEntity(
+    override fun createPaste(draft: PasteDraft, client: ClientContext): String =
+        pasteStore.create(
+            Paste(
                 id = UUID.randomUUID().toString(),
-                title = request.title,
-                content = request.content,
-                language = PastebinTextLanguageEnum.fromNameOrDefault(request.language),
-                passwordHash = request.password?.let { hashPassword(it) },
-                expiresAt = ExpirationEnum.fromExpirationOrError(request.expiration).let {
+                title = draft.title,
+                content = draft.content,
+                language = PastebinTextLanguageEnum.fromNameOrDefault(draft.language),
+                passwordHash = draft.password?.let { hashPassword(it) },
+                expiresAt = ExpirationEnum.fromExpirationOrError(draft.expiration).let {
                     now().plus(it.temporalAmount)
                 },
-                isPrivate = request.isPrivate,
-                isPasswordProtected = !request.password.isNullOrBlank(),
-                author = HistoryItem(
-                    ipAddress = NetworkUtils.getIpAddress(httpServletRequest),
-                    action = "CREATE_PASTE"
-                ),
+                isPrivate = draft.isPrivate,
+                isPasswordProtected = !draft.password.isNullOrBlank(),
+                authorIpAddress = client.ipAddress,
             )
         ).id
 
     override fun isPasswordProtected(id: String): Boolean = getPaste(id).isPasswordProtected
 
-    override fun getPaste(id: String, password: String?): PasteEntity = getPaste(id).also {
+    override fun getPaste(id: String, password: String?): Paste = getPaste(id).also {
         if (!checkPassword(password, it)) throw IllegalAccessException("Invalid password")
     }
 
-    private fun getPaste(id: String): PasteEntity =
-        pasteRepository.findById(id).orElseThrow { NoSuchElementException("Paste not found") }
+    private fun getPaste(id: String): Paste =
+        pasteStore.findById(id) ?: throw NoSuchElementException("Paste not found")
 
     override fun deletePaste(id: String) {
-        pasteRepository.deleteById(id)
+        pasteStore.deleteById(id)
     }
 
-    fun hashPassword(password: String): String = passwordEncoder.encode(password)!!
+    fun hashPassword(password: String): String = passwordHasher.hash(password)
 
     private fun checkPassword(password: String, passwordHash: String): Boolean =
-        passwordEncoder.matches(password, passwordHash)
+        passwordHasher.matches(password, passwordHash)
 
-    private fun checkPassword(password: String?, pasteEntity: PasteEntity): Boolean = when {
-        pasteEntity.isPasswordProtected -> when {
-            pasteEntity.passwordHash.isNullOrBlank() -> true
+    private fun checkPassword(password: String?, paste: Paste): Boolean = when {
+        paste.isPasswordProtected -> when {
+            paste.passwordHash.isNullOrBlank() -> true
             password.isNullOrBlank() -> false
-            else -> checkPassword(password, pasteEntity.passwordHash)
+            else -> checkPassword(password, paste.passwordHash)
         }
 
         else -> true

@@ -3,8 +3,7 @@ import fr.marstech.mtlinkspray.MtLinkSprayApplication
 import fr.marstech.mtlinkspray.config.SecurityConfig
 import fr.marstech.mtlinkspray.adapter.inbound.web.common.RootApiController
 import fr.marstech.mtlinkspray.adapter.inbound.web.common.GlobalRestExceptionHandler
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.shared.HistoryItem
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.paste.PasteEntity
+import fr.marstech.mtlinkspray.domain.paste.Paste
 import fr.marstech.mtlinkspray.domain.paste.PastebinTextLanguageEnum.KOTLIN
 import fr.marstech.mtlinkspray.domain.paste.PasteService
 import org.junit.jupiter.api.Test
@@ -39,15 +38,14 @@ class PasteViewControllerTest {
         val pasteId = "abc123"
         `when`(pasteService.isPasswordProtected(pasteId)).thenReturn(false)
         `when`(pasteService.getPaste(pasteId, null)).thenReturn(
-            PasteEntity(
+            Paste(
                 id = pasteId,
                 title = "Test",
                 content = "Hello",
                 language = KOTLIN,
                 passwordHash = null,
                 isPrivate = false,
-                isPasswordProtected = false,
-                author = HistoryItem("user1")
+                isPasswordProtected = false
             )
         )
 
@@ -63,17 +61,16 @@ class PasteViewControllerTest {
         // Given
         val pasteId = "abc123"
         val content = "Hello, raw world!"
-        val pasteEntity = PasteEntity(
+        val paste = Paste(
             id = pasteId,
             title = "Test",
             content = content,
             language = KOTLIN,
             passwordHash = null,
             isPrivate = false,
-            isPasswordProtected = false,
-            author = HistoryItem("user1")
+            isPasswordProtected = false
         )
-        `when`(pasteService.getPaste(pasteId, null)).thenReturn(pasteEntity)
+        `when`(pasteService.getPaste(pasteId, null)).thenReturn(paste)
 
         // When / Then
         get("/paste/$pasteId/raw")
@@ -121,17 +118,16 @@ class PasteViewControllerTest {
         val pasteId = "protected123"
         val password = "s3cr3t"
         val content = "Protected content here"
-        val pasteEntity = PasteEntity(
+        val paste = Paste(
             id = pasteId,
             title = "Protected",
             content = content,
             language = KOTLIN,
             passwordHash = "hash",
             isPrivate = false,
-            isPasswordProtected = true,
-            author = HistoryItem("user1")
+            isPasswordProtected = true
         )
-        `when`(pasteService.getPaste(pasteId, password)).thenReturn(pasteEntity)
+        `when`(pasteService.getPaste(pasteId, password)).thenReturn(paste)
 
         // When / Then
         get("/paste/$pasteId/raw")

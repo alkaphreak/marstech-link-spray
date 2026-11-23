@@ -1,4 +1,5 @@
 package fr.marstech.mtlinkspray.adapter.inbound.web.common
+import fr.marstech.mtlinkspray.domain.shared.ClientContext
 import jakarta.servlet.http.HttpServletRequest
 import java.net.URI
 
@@ -74,4 +75,6 @@ object NetworkUtils {
             ?: request.getHeader("X-Forwarded-For")?.split(",")?.firstOrNull()?.trim()
             ?: request.remoteAddr
 
+    @JvmStatic
+    fun clientContext(request: HttpServletRequest): ClientContext = ClientContext(ipAddress = getIpAddress(request))
 }

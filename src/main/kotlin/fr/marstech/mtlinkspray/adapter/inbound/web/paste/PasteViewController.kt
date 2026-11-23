@@ -2,8 +2,10 @@ package fr.marstech.mtlinkspray.adapter.inbound.web.paste
 import fr.marstech.mtlinkspray.adapter.inbound.web.common.ThymeleafViewControllerInterface
 import fr.marstech.mtlinkspray.adapter.outbound.mongo.signature.WriteSignatureEntity.ResourceType
 import fr.marstech.mtlinkspray.adapter.inbound.web.common.ViewNameEnum.PASTE
+import fr.marstech.mtlinkspray.domain.paste.PasteDraft
 import fr.marstech.mtlinkspray.domain.paste.PasteService
 import fr.marstech.mtlinkspray.domain.signature.WriteSignatureService
+import fr.marstech.mtlinkspray.adapter.inbound.web.common.NetworkUtils.clientContext
 import fr.marstech.mtlinkspray.adapter.inbound.web.common.NetworkUtils.getFilteredPort
 import fr.marstech.mtlinkspray.adapter.inbound.web.common.NetworkUtils.getHost
 import fr.marstech.mtlinkspray.adapter.inbound.web.common.NetworkUtils.getScheme
@@ -39,7 +41,7 @@ class PasteViewController(
             when {
                 isProtected -> modelAndView.addObject("pasteId", pasteId)
                 else -> pasteService.getPaste(pasteId, null)
-                    .let { modelAndView.addObject("paste", PasteResponse.fromEntity(it)) }
+                    .let { modelAndView.addObject("paste", PasteResponse.from(it)) }
             }
         }.addObject("create", false)
             .addObject(
@@ -86,7 +88,7 @@ class PasteViewController(
         @RequestParam(required = false) fp: String?,
         httpServletRequest: HttpServletRequest
     ): String {
-        val pasteId = pasteService.createPaste(PasteRequest(content = inputPasteBinTextArea), httpServletRequest)
+        val pasteId = pasteService.createPaste(PasteDraft(content = inputPasteBinTextArea), clientContext(httpServletRequest))
         writeSignatureService.record(ResourceType.PASTE, pasteId, fp, httpServletRequest)
         return getRedirectUrl("/paste/$pasteId")
     }
