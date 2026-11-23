@@ -1,48 +1,35 @@
 package fr.marstech.mtlinkspray.domain.abuse
+import fr.marstech.mtlinkspray.domain.shared.ClientContext
 import fr.marstech.mtlinkspray.domain.shared.MailSenderService
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.abuse.AbuseReportEntity
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.shared.HistoryItem
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.abuse.AbuseReportRepository
-import jakarta.servlet.http.HttpServletRequest
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.`when`
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.context.junit.jupiter.SpringExtension
+import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 
-@ExtendWith(SpringExtension::class)
-@SpringBootTest
 internal class ReportAbuseServiceImplTest {
-    private val abuseReportRepository = mock(AbuseReportRepository::class.java)
-    private val mailSenderService = mock(MailSenderService::class.java)
-    private val reportAbuseService = ReportAbuseServiceImpl(abuseReportRepository, mailSenderService)
-
-    @BeforeEach
-    fun setUp() {
-        `when`(abuseReportRepository.save(org.mockito.kotlin.any())).thenAnswer { it.arguments[0] as AbuseReportEntity }
-        `when`(abuseReportRepository.count()).thenReturn(1)
-        `when`(abuseReportRepository.findAll()).thenReturn(
-            listOf(
-                AbuseReportEntity(
-                    description = "reportAbuse:abuse", author = HistoryItem(
-                        "dummy-author"
-                    )
-                )
-            )
-        )
-    }
+    private val abuseReportStore = mock<AbuseReportStore>()
+    private val mailSenderService = mock<MailSenderService>()
+    private val reportAbuseService = ReportAbuseServiceImpl(abuseReportStore, mailSenderService)
 
     @Test
     fun reportAbuse() {
-        val request = mock<HttpServletRequest>()
-        `when`(request.remoteAddr).thenReturn("127.0.0.1")
+        // Given
+        whenever(abuseReportStore.create(any())).thenAnswer { it.arguments[0] as AbuseReport }
 
-        val abuse = "abuse"
-        reportAbuseService.reportAbuse(abuse, request)
-        Assertions.assertEquals(1, abuseReportRepository.count())
-        Assertions.assertEquals("reportAbuse:abuse", abuseReportRepository.findAll().first().description)
+        // When
+        reportAbuseService.reportAbuse("spam-xyz", ClientContext(ipAddress = "127.0.0.1"))
+
+        // Then: stored with the caller's IP, then mailed
+        val report = argumentCaptor<AbuseReport>().also { verify(abuseReportStore).create(it.capture()) }.firstValue
+        assertEquals("New abuse report received:\n\nspam-xyz", report.description)
+        assertEquals("127.0.0.1", report.authorIpAddress)
+        val body = argumentCaptor<String>().also { verify(mailSenderService).sendMail(eq(" MarsTech Link-Spray - Abuse report"), it.capture()) }.firstValue
+        assertEquals(report.toString(), body)
+        assertTrue(body.contains("spam-xyz") && body.contains("127.0.0.1"), body)
     }
 }

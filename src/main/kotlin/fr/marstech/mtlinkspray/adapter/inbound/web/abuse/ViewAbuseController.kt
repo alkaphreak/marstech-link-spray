@@ -1,6 +1,7 @@
 package fr.marstech.mtlinkspray.adapter.inbound.web.abuse
 import fr.marstech.mtlinkspray.adapter.inbound.web.common.ThymeleafViewControllerInterface
 import fr.marstech.mtlinkspray.adapter.inbound.web.common.ViewNameEnum.ABUSE
+import fr.marstech.mtlinkspray.adapter.inbound.web.common.NetworkUtils.clientContext
 import fr.marstech.mtlinkspray.domain.abuse.ReportAbuseService
 import fr.marstech.mtlinkspray.adapter.inbound.web.common.NetworkUtils.getHeadersAsMap
 import jakarta.servlet.http.HttpServletRequest
@@ -25,7 +26,7 @@ class ViewAbuseController(private val reportAbuseService: ReportAbuseService) : 
         @RequestParam @NotBlank inputAbuseDecsription: String,
         httpServletRequest: HttpServletRequest
     ): ModelAndView = reportAbuseService
-        .reportAbuse(inputAbuseDecsription, httpServletRequest)
+        .reportAbuse(inputAbuseDecsription, clientContext(httpServletRequest))
         .let { getModelAndView() }
         .addObject("headers", getHeadersAsMap(httpServletRequest))
         .addObject("abuseReported", true)

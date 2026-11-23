@@ -38,6 +38,11 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `signature` domain on ports (MLS-276 step 2): `WriteSignature` model and `ResourceType` in the domain,
   `WriteSignatureStore` port whose Mongo adapter also owns the 12-month TTL index, signatures recorded from a
   `ClientContext` (IP and user agent) instead of `HttpServletRequest`; stored signatures unchanged
+- `document` and `abuse` domains off Spring and Mongo (MLS-276 step 2): md2pdf/pdf2md limits read by
+  `DocumentConfig` instead of `@Value` in the services, bundled CSS and fonts read through the class
+  loader instead of `ClassPathResource`; abuse reports stored through an `AbuseReportStore` port (Mongo
+  `insert`) from a `ClientContext`. The admin abuse mail body is the `AbuseReport` summary (id, date,
+  description, IP) instead of the full stored document
 
 ### Security
 

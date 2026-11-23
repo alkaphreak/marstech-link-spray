@@ -6,8 +6,6 @@ import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.pdmodel.encryption.InvalidPasswordException
 import org.apache.pdfbox.text.PDFTextStripper
 import org.apache.pdfbox.text.TextPosition
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.stereotype.Service
 import java.io.IOException
 import java.io.InputStream
 import kotlin.math.roundToInt
@@ -26,13 +24,12 @@ internal fun loadPdf(bytes: ByteArray): PDDocument = try {
  * text, bullet glyphs become `- ` items, soft line breaks inside a paragraph are joined and
  * page-number lines are dropped. Bullets drawn as graphics (not glyphs) stay plain paragraphs.
  * Tables, images and multi-column layouts come out as plain text; a scanned PDF has no text
- * layer and gives an empty result.
+ * layer and gives an empty result. Built by `DocumentConfig`, which reads its limits.
  */
-@Service
 class PdfToMarkdownServiceImpl(
     private val apiKeyResolver: ApiKeyResolver,
-    @Value("\${mt.link-spray.pdf2md.max-input-bytes:10485760}") private val maxInputBytes: Int,
-    @Value("\${mt.link-spray.pdf2md.max-pages:200}") private val maxPages: Int,
+    private val maxInputBytes: Int,
+    private val maxPages: Int,
 ) : PdfToMarkdownService {
 
     override fun convert(rawApiKey: String?, pdf: InputStream): String {

@@ -1,9 +1,9 @@
 package fr.marstech.mtlinkspray.domain.abuse
-import jakarta.servlet.http.HttpServletRequest
+import fr.marstech.mtlinkspray.domain.shared.ClientContext
 
 fun interface ReportAbuseService {
     fun reportAbuse(
         inputAbuseDecsription: String,
-        httpServletRequest: HttpServletRequest
+        client: ClientContext,
     )
 }

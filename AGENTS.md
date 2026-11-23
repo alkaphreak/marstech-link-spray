@@ -49,12 +49,13 @@ src/main/kotlin/fr/marstech/mtlinkspray/
 │   └── mcp/         # MCP server tools on /mcp (Sol4McpTools, MLS-266, ADR 0004)
 ├── adapter/outbound/
 │   ├── mongo/<name>/ # @Document classes (with @TypeAlias = pre-move class name), repositories and
-│   │               #   port implementations (MongoApiKeyStore, MongoPasteStore, MongoWriteSignatureStore
+│   │               #   port implementations (MongoApiKeyStore, MongoPasteStore, MongoAbuseReportStore, MongoWriteSignatureStore
 │   │               #   with its TTL index)
 │   ├── security/    # BCryptPasswordHasher
 │   ├── s3/ dns/ mail/ ratelimit/ scheduler/ web/  # DigitalOcean Spaces, JNDI DNS, SMTP, Bucket4j
 │   │               #   AnonymousQuota, CronConfig, ReservedPaths
-└── config/          # Security, CSP, rate limit, S3, JSON body cap, MongoConfig (managed types for
+└── config/          # Security, CSP, rate limit, S3, JSON body cap, DocumentConfig (md2pdf/pdf2md
+                     #   services with their limits), MongoConfig (managed types for
                     #   @TypeAlias resolution of polymorphic items, ADR 0007)
 ```
 
@@ -80,7 +81,7 @@ src/main/kotlin/fr/marstech/mtlinkspray/
 - Shorten URL: `GET /api/url-shortener/shorten?url=` (or `POST /api/url-shortener`, 201 Created, MLS-258) → `ShortenerApiController` → `ShortenerServiceImpl` → `LinkItemRepository` (MongoDB)
 - Resolve short code: `GET /{code}` → `UrlRedirectController` → `ShortenerServiceImpl` → redirect; the User-Agent is matched in memory by `BotUserAgents` (vendored patterns in `resources/bot-user-agents/`, refresh steps in its README): robots bump `botClickCount`, people `clickCount` and `lastClickedAt` (MLS-273)
 - Create paste: `POST /api/paste` → `PasteApiController` (`PasteRequest.toDraft()`, `ClientContext`) → `PasteServiceImpl` → `PasteStore`
-- Abuse report: `POST /api/abuse` → `ReportAbuseServiceImpl` → `MailSenderServiceImpl`
+- Abuse report: `POST /abuse` (form) → `ViewAbuseController` (`ClientContext`) → `ReportAbuseServiceImpl` → `AbuseReportStore` (`MongoAbuseReportStore`), then `MailSenderServiceImpl`
 - Rate limit (MLS-161, ADR 0006): `RateLimitConfig` registers a `HandlerInterceptor` on the public write routes, API and form (`/api/url-shortener`, `GET`/`HEAD /api/url-shortener/shorten`, `/api/paste`, `/api/dashboard[/*]`, `/shortener`, `/paste`, `/dashboard`: one shared `writeQuota` bean per client) and on `POST /abuse` (own budget, it sends a mail); a shortened spray pays one token per link in `SprayServiceImpl`. `AnonymousQuota` is a Bucket4j token bucket per IPv4 or IPv6 /64 in a bounded Caffeine cache, 429 with `Retry-After` (JSON, or the error page for `Accept: text/html`); limits under `mt.link-spray.rate-limit.*`, a window of 0 disables them (test profile). A new public write route must be added to `RateLimitConfig`
 - Upload image: `POST /api/images` (header `X-Api-Key: {keyId}.{secret}`) → `ImageApiController` → `ImageServiceImpl` (key checked through `ApiKeyResolver`) → `DigitalOceanSpacesServiceImpl` → DO Spaces bucket `mt-mls-img-storage`
 - Download image: `GET /api/images/{id}` → `ImageApiController` streams bytes from DO Spaces (no redirect), enforces visibility/ownership
@@ -266,4 +267,4 @@ This file is **living documentation**. Any agent (or human) making changes to th
 
 ---
 
-_Last updated: 2026-11-23 — apikey, paste and signature domains on ports (MLS-276)_
+_Last updated: 2026-11-23 — apikey, paste, signature, document and abuse domains on ports (MLS-276)_
