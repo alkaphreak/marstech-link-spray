@@ -3,6 +3,7 @@ package fr.marstech.mtlinkspray.adapter.outbound.mongo.paste
 import org.springframework.data.annotation.TypeAlias
 import fr.marstech.mtlinkspray.adapter.outbound.mongo.shared.HistoryItem
 import fr.marstech.mtlinkspray.adapter.outbound.mongo.shared.StandardEntity
+import fr.marstech.mtlinkspray.domain.paste.Paste
 import fr.marstech.mtlinkspray.domain.paste.PastebinTextLanguageEnum
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
@@ -28,4 +29,35 @@ data class PasteEntity(
     val isPrivate: Boolean = false,
     val isPasswordProtected: Boolean = false,
     val viewHistory: MutableList<HistoryItem> = mutableListOf(),
-) : StandardEntity
+) : StandardEntity {
+    fun toDomain() = Paste(
+        id = id,
+        title = title,
+        content = content,
+        language = language,
+        passwordHash = passwordHash,
+        isPrivate = isPrivate,
+        isPasswordProtected = isPasswordProtected,
+        creationDate = creationDate,
+        expiresAt = expiresAt,
+        authorIpAddress = author.ipAddress,
+    )
+
+    companion object {
+        /** A new paste: the domain creates and deletes pastes, never updates one. */
+        fun of(paste: Paste) = with(paste) {
+            PasteEntity(
+                id = id,
+                creationDate = creationDate,
+                expiresAt = expiresAt,
+                author = HistoryItem(ipAddress = authorIpAddress, action = "CREATE_PASTE"),
+                title = title,
+                content = content,
+                language = language,
+                passwordHash = passwordHash,
+                isPrivate = isPrivate,
+                isPasswordProtected = isPasswordProtected,
+            )
+        }
+    }
+}

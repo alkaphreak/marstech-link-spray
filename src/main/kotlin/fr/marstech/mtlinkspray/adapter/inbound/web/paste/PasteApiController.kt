@@ -1,5 +1,6 @@
 package fr.marstech.mtlinkspray.adapter.inbound.web.paste
-import fr.marstech.mtlinkspray.adapter.inbound.web.paste.PasteResponse.Companion.fromEntity
+import fr.marstech.mtlinkspray.adapter.inbound.web.common.NetworkUtils
+import fr.marstech.mtlinkspray.adapter.inbound.web.paste.PasteResponse.Companion.from
 import fr.marstech.mtlinkspray.domain.paste.PasteService
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
@@ -23,16 +24,16 @@ class PasteApiController(private val pasteService: PasteService) {
     fun createPaste(
         @RequestBody @Valid request: PasteRequest, httpServletRequest: HttpServletRequest
     ): ResponseEntity<PasteResponse> =
-        pasteService.createPaste(request, httpServletRequest)
+        pasteService.createPaste(request.toDraft(), NetworkUtils.clientContext(httpServletRequest))
             .let { pasteService.getPaste(it, request.password) }
-            .let { return ResponseEntity.status(CREATED).body(fromEntity(it)) }
+            .let { return ResponseEntity.status(CREATED).body(from(it)) }
 
     @GetMapping("/{pasteId}")
     fun getPaste(
         @PathVariable @NotBlank(message = "Paste ID cannot be blank") pasteId: String,
         @RequestParam(required = false) password: String?
     ): ResponseEntity<PasteResponse> =
-        fromEntity(pasteService.getPaste(pasteId, password))
+        from(pasteService.getPaste(pasteId, password))
             .let { return ResponseEntity.ok(it) }
 
     @GetMapping("/{pasteId}/raw", produces = [TEXT_PLAIN_VALUE])

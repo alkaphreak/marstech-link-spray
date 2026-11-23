@@ -1,24 +1,24 @@
 package fr.marstech.mtlinkspray.domain.paste
-import fr.marstech.mtlinkspray.adapter.inbound.web.paste.PasteRequest
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.shared.HistoryItem
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.paste.PasteEntity
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.paste.PasteRepository
-import jakarta.servlet.http.HttpServletRequest
+import fr.marstech.mtlinkspray.adapter.outbound.security.BCryptPasswordHasher
+import fr.marstech.mtlinkspray.domain.shared.ClientContext
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.mockito.Mockito.*
-import java.time.LocalDateTime
-import java.util.*
+import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 
 class PasteServiceImplTest {
 
-    private val pasteRepository = mock(PasteRepository::class.java)
-    private val pasteService = PasteServiceImpl(pasteRepository)
+    private val pasteStore = mock<PasteStore>()
+    private val passwordHasher = BCryptPasswordHasher()
+    private val pasteService = PasteServiceImpl(pasteStore, passwordHasher)
 
     @Test
     fun createPaste() {
-        val request = PasteRequest(
+        val draft = PasteDraft(
             title = "Test",
             content = "Hello",
             language = PastebinTextLanguageEnum.TEXT.name,
@@ -26,30 +26,22 @@ class PasteServiceImplTest {
             expiration = ExpirationEnum.ONE_HOUR.expiration,
             isPrivate = false,
         )
-        val savedPasteEntity = PasteEntity(
-            id = "id123",
-            title = request.title,
-            content = request.content,
-            language = PastebinTextLanguageEnum.fromName(request.language)!!,
-            passwordHash = "hashed",
-            expiresAt = null,
-            isPrivate = false,
-            isPasswordProtected = true,
-            author = HistoryItem(
-                ipAddress = "user", dateTime = LocalDateTime.now()
-            )
-        )
-        `when`(pasteRepository.save(any(PasteEntity::class.java))).thenReturn(savedPasteEntity)
+        val captor = argumentCaptor<Paste>()
+        whenever(pasteStore.create(captor.capture())).thenAnswer { (it.arguments[0] as Paste).copy(id = "id123") }
 
-        val httpServletRequest: HttpServletRequest = mock(HttpServletRequest::class.java)
-        val id = pasteService.createPaste(request, httpServletRequest)
+        val id = pasteService.createPaste(draft, ClientContext(ipAddress = "203.0.113.7"))
+
         assertEquals("id123", id)
-        verify(pasteRepository).save(any(PasteEntity::class.java))
+        val saved = captor.firstValue
+        assertEquals("Hello", saved.content)
+        assertEquals("203.0.113.7", saved.authorIpAddress)
+        assertTrue(saved.isPasswordProtected)
+        assertTrue(passwordHasher.matches("secret", saved.passwordHash!!))
     }
 
     @Test
     fun createPasteWithBadExpirationLeadShouldLeadToError() {
-        val request = PasteRequest(
+        val draft = PasteDraft(
             title = "Test",
             content = "Hello",
             language = PastebinTextLanguageEnum.TEXT.name,
@@ -57,44 +49,39 @@ class PasteServiceImplTest {
             expiration = "10m", // invalid expiration
             isPrivate = false,
         )
-        val httpServletRequest: HttpServletRequest = mock(HttpServletRequest::class.java)
 
         assertThrows<IllegalArgumentException> {
-            pasteService.createPaste(request, httpServletRequest)
+            pasteService.createPaste(draft, ClientContext(ipAddress = null))
         }
     }
 
     @Test
     fun getPaste_withCorrectPassword_returnsPaste() {
-        val pasteEntity = PasteEntity(
+        val paste = Paste(
             id = "id123",
             title = "Test",
             content = "Hello",
             language = PastebinTextLanguageEnum.TEXT,
             passwordHash = pasteService.hashPassword("secret"),
             isPasswordProtected = true,
-            author = HistoryItem(
-                ipAddress = "user", dateTime = LocalDateTime.now()
-            )
         )
-        `when`(pasteRepository.findById("id123")).thenReturn(Optional.of(pasteEntity))
+        whenever(pasteStore.findById("id123")).thenReturn(paste)
 
         val result = pasteService.getPaste("id123", "secret")
-        assertEquals(pasteEntity, result)
+        assertEquals(paste, result)
     }
 
     @Test
     fun getPaste_withWrongPassword_throwsException() {
-        val pasteEntity = PasteEntity(
+        val paste = Paste(
             id = "id123",
             title = "Test",
             content = "Hello",
             language = PastebinTextLanguageEnum.TEXT,
             passwordHash = pasteService.hashPassword("secret"),
             isPasswordProtected = true,
-            author = HistoryItem(ipAddress = "user", dateTime = LocalDateTime.now())
         )
-        `when`(pasteRepository.findById("id123")).thenReturn(Optional.of(pasteEntity))
+        whenever(pasteStore.findById("id123")).thenReturn(paste)
 
         assertThrows<IllegalAccessException> {
             pasteService.getPaste("id123", "wrong")
@@ -103,7 +90,7 @@ class PasteServiceImplTest {
 
     @Test
     fun getPaste_notFound_throwsException() {
-        `when`(pasteRepository.findById("id123")).thenReturn(Optional.empty())
+        whenever(pasteStore.findById("id123")).thenReturn(null)
         assertThrows<NoSuchElementException> {
             pasteService.getPaste("id123", null)
         }
@@ -112,6 +99,6 @@ class PasteServiceImplTest {
     @Test
     fun deletePaste() {
         pasteService.deletePaste("id123")
-        verify(pasteRepository).deleteById("id123")
+        verify(pasteStore).deleteById("id123")
     }
 }

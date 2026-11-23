@@ -28,6 +28,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `apikey` domain on ports (MLS-276 step 2): other domains resolve keys through `ApiKeyResolver`
   (`domain/shared`) instead of `ApiKeyService` and `ApiKeyRepository`, key storage sits behind
   `ApiKeyStore` (Mongo adapter) and BCrypt behind `PasswordHasher`; stored keys unchanged
+- `paste` domain on ports (MLS-276 step 2): `Paste` model and `PasteStore` port (Mongo adapter), creation
+  from a `PasteDraft` and a `ClientContext` instead of the web DTO and `HttpServletRequest`, passwords
+  hashed through `PasswordHasher`; stored pastes unchanged
 
 ### Security
 

@@ -58,8 +58,9 @@ requests add the domain models they map to.
 - `ApiKeyResolver` and its `ApiCaller` (key id and namespace), implemented by the `apikey` domain,
   so other domains never see API key storage.
 - `PasswordHasher`, implemented with BCrypt in `adapter/outbound/security`: shared because
-  `paste` hashes passwords too (it moves onto it in its own pull request).
-- `ClientContext` (IP or IPv6 /64, base URL, user agent), built by the web adapter, replacing
+  `paste` hashes passwords too.
+- `ClientContext` (IP address today; IPv6 /64, base URL and user agent join with their first user,
+  see the step 2 amendment), built by the web adapter, replacing
   `HttpServletRequest` in service signatures.
 - `Page<T>` replacing Spring Data's `Page`, `PageRequest` and `Sort`.
 - `QuotaPort` (implemented by the Bucket4j limiter of ADR 0006) and `MailPort`.
@@ -174,7 +175,8 @@ commits and linear history, so a rebase merge, which GitHub does not sign, canno
    pass unfrozen.
    The `apikey` pull request folds the planned `Namespace` into `ApiCaller`, since callers need the
    key id as well, and puts the password hasher in `domain/shared` rather than `apikey`, since
-   `paste` will use it too.
+   `paste` will use it too. The `paste` pull request introduces `ClientContext` with the IP address
+   only; the base URL and user agent join it with their first user.
 
 Before the release of each PR, a smoke run against the dev MongoDB (port 27019) with
 existing data checks that documents with the old `_class` values still load, that a stale

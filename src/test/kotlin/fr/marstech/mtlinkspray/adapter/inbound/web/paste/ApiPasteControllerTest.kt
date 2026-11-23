@@ -5,8 +5,7 @@ import tools.jackson.module.kotlin.jacksonObjectMapper
 import fr.marstech.mtlinkspray.MtLinkSprayApplication
 import fr.marstech.mtlinkspray.config.SecurityConfig
 import fr.marstech.mtlinkspray.adapter.inbound.web.common.GlobalRestExceptionHandler
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.shared.HistoryItem
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.paste.PasteEntity
+import fr.marstech.mtlinkspray.domain.paste.Paste
 import fr.marstech.mtlinkspray.domain.paste.PastebinTextLanguageEnum
 import fr.marstech.mtlinkspray.domain.paste.PastebinTextLanguageEnum.KOTLIN
 import fr.marstech.mtlinkspray.domain.paste.PasteService
@@ -48,21 +47,20 @@ class ApiPasteControllerTest {
             isPrivate = false,
         )
         val pasteId = "abc123"
-        val pasteEntity = PasteEntity(
+        val paste = Paste(
             id = pasteId,
             title = request.title,
             content = request.content,
             language = PastebinTextLanguageEnum.fromName(request.language)!!,
             passwordHash = null,
             isPrivate = request.isPrivate,
-            isPasswordProtected = false,
-            author = HistoryItem("user1")
+            isPasswordProtected = false
         )
         // Use matchers for both parameters to avoid InvalidUseOfMatchersException
         `when`(pasteService.createPaste(any(), any()))
             .thenReturn(pasteId)
         `when`(pasteService.getPaste(pasteId, request.password))
-            .thenReturn(pasteEntity)
+            .thenReturn(paste)
 
         post("/api/paste")
             .contentType(APPLICATION_JSON)
@@ -78,18 +76,17 @@ class ApiPasteControllerTest {
     @Test
     fun shouldGetPasteById() {
         val pasteId = "abc123"
-        val pasteEntity = PasteEntity(
+        val paste = Paste(
             id = pasteId,
             title = "Test",
             content = "Hello World",
             language = KOTLIN,
             passwordHash = null,
             isPrivate = false,
-            isPasswordProtected = false,
-            author = HistoryItem("user1")
+            isPasswordProtected = false
         )
         `when`(pasteService.getPaste(pasteId, null))
-            .thenReturn(pasteEntity)
+            .thenReturn(paste)
 
         get("/api/paste/$pasteId")
             .let(mockMvc::perform)
@@ -130,19 +127,18 @@ class ApiPasteControllerTest {
     fun shouldCreatePasteWithMinimalData() {
         val request = PasteRequest(content = "Minimal content")
         val pasteId = "xyz789"
-        val pasteEntity = PasteEntity(
+        val paste = Paste(
             id = pasteId,
             title = null,
             content = request.content,
             language = PastebinTextLanguageEnum.TEXT,
             passwordHash = null,
             isPrivate = false,
-            isPasswordProtected = false,
-            author = HistoryItem("user1")
+            isPasswordProtected = false
         )
 
         `when`(pasteService.createPaste(any(), any())).thenReturn(pasteId)
-        `when`(pasteService.getPaste(pasteId, null)).thenReturn(pasteEntity)
+        `when`(pasteService.getPaste(pasteId, null)).thenReturn(paste)
 
         post("/api/paste")
             .contentType(APPLICATION_JSON)
@@ -157,17 +153,16 @@ class ApiPasteControllerTest {
     fun shouldGetPasteWithPassword() {
         val pasteId = "protected123"
         val password = "secret"
-        val pasteEntity = PasteEntity(
+        val paste = Paste(
             id = pasteId,
             title = "Protected Paste",
             content = "Secret content",
             language = KOTLIN,
             passwordHash = "hashedPassword",
             isPrivate = true,
-            isPasswordProtected = true,
-            author = HistoryItem("user1")
+            isPasswordProtected = true
         )
-        `when`(pasteService.getPaste(pasteId, password)).thenReturn(pasteEntity)
+        `when`(pasteService.getPaste(pasteId, password)).thenReturn(paste)
 
         get("/api/paste/$pasteId")
             .param("password", password)
@@ -333,19 +328,18 @@ class ApiPasteControllerTest {
             language = "TEXT"
         )
         val pasteId = "test123"
-        val pasteEntity = PasteEntity(
+        val paste = Paste(
             id = pasteId,
             title = null,
             content = request.content,
             language = PastebinTextLanguageEnum.TEXT,
             passwordHash = "hashed",
             isPrivate = false,
-            isPasswordProtected = true,
-            author = HistoryItem("user1")
+            isPasswordProtected = true
         )
 
         `when`(pasteService.createPaste(any(), any())).thenReturn(pasteId)
-        `when`(pasteService.getPaste(pasteId, request.password)).thenReturn(pasteEntity)
+        `when`(pasteService.getPaste(pasteId, request.password)).thenReturn(paste)
 
         post("/api/paste")
             .contentType(APPLICATION_JSON)
@@ -363,19 +357,18 @@ class ApiPasteControllerTest {
             language = "TEXT"
         )
         val pasteId = "test456"
-        val pasteEntity = PasteEntity(
+        val paste = Paste(
             id = pasteId,
             title = request.title,
             content = request.content,
             language = PastebinTextLanguageEnum.TEXT,
             passwordHash = null,
             isPrivate = false,
-            isPasswordProtected = false,
-            author = HistoryItem("user1")
+            isPasswordProtected = false
         )
 
         `when`(pasteService.createPaste(any(), any())).thenReturn(pasteId)
-        `when`(pasteService.getPaste(pasteId, null)).thenReturn(pasteEntity)
+        `when`(pasteService.getPaste(pasteId, null)).thenReturn(paste)
 
         post("/api/paste")
             .contentType(APPLICATION_JSON)
@@ -402,19 +395,18 @@ class ApiPasteControllerTest {
             language = "TEXT"
         )
         val pasteId = "test789"
-        val pasteEntity = PasteEntity(
+        val paste = Paste(
             id = pasteId,
             title = null,
             content = request.content,
             language = PastebinTextLanguageEnum.TEXT,
             passwordHash = null,
             isPrivate = false,
-            isPasswordProtected = false,
-            author = HistoryItem("user1")
+            isPasswordProtected = false
         )
 
         `when`(pasteService.createPaste(any(), any())).thenReturn(pasteId)
-        `when`(pasteService.getPaste(pasteId, null)).thenReturn(pasteEntity)
+        `when`(pasteService.getPaste(pasteId, null)).thenReturn(paste)
 
         post("/api/paste")
             .contentType(APPLICATION_JSON)
@@ -429,17 +421,16 @@ class ApiPasteControllerTest {
         // Given
         val pasteId = "raw123"
         val content = "Raw plain text content"
-        val pasteEntity = PasteEntity(
+        val paste = Paste(
             id = pasteId,
             title = "Raw Test",
             content = content,
             language = KOTLIN,
             passwordHash = null,
             isPrivate = false,
-            isPasswordProtected = false,
-            author = HistoryItem("user1")
+            isPasswordProtected = false
         )
-        `when`(pasteService.getPaste(pasteId, null)).thenReturn(pasteEntity)
+        `when`(pasteService.getPaste(pasteId, null)).thenReturn(paste)
 
         // When / Then
         get("/api/paste/$pasteId/raw")
@@ -487,17 +478,16 @@ class ApiPasteControllerTest {
         val pasteId = "protected456"
         val password = "s3cr3t"
         val content = "Secret raw content"
-        val pasteEntity = PasteEntity(
+        val paste = Paste(
             id = pasteId,
             title = "Protected Raw",
             content = content,
             language = KOTLIN,
             passwordHash = "hash",
             isPrivate = false,
-            isPasswordProtected = true,
-            author = HistoryItem("user1")
+            isPasswordProtected = true
         )
-        `when`(pasteService.getPaste(pasteId, password)).thenReturn(pasteEntity)
+        `when`(pasteService.getPaste(pasteId, password)).thenReturn(paste)
 
         // When / Then
         get("/api/paste/$pasteId/raw")

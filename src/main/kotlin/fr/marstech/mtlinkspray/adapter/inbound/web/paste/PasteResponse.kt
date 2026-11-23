@@ -1,5 +1,5 @@
 package fr.marstech.mtlinkspray.adapter.inbound.web.paste
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.paste.PasteEntity
+import fr.marstech.mtlinkspray.domain.paste.Paste
 import java.time.LocalDateTime
 
 data class PasteResponse(
@@ -13,16 +13,16 @@ data class PasteResponse(
     val isPasswordProtected: Boolean,
 ) {
     companion object {
-        fun fromEntity(pasteEntity: PasteEntity): PasteResponse {
+        fun from(paste: Paste): PasteResponse {
             return PasteResponse(
-                id = pasteEntity.id,
-                title = pasteEntity.title,
-                content = pasteEntity.content,
-                language = pasteEntity.language.name,
-                createdAt = pasteEntity.creationDate,
-                expiresAt = pasteEntity.expiresAt,
-                isPrivate = pasteEntity.isPrivate,
-                isPasswordProtected = pasteEntity.isPasswordProtected,
+                id = paste.id,
+                title = paste.title,
+                content = paste.content,
+                language = paste.language.name,
+                createdAt = paste.creationDate,
+                expiresAt = paste.expiresAt,
+                isPrivate = paste.isPrivate,
+                isPasswordProtected = paste.isPasswordProtected,
             )
         }
     }
