@@ -31,6 +31,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `paste` domain on ports (MLS-276 step 2): `Paste` model and `PasteStore` port (Mongo adapter), creation
   from a `PasteDraft` and a `ClientContext` instead of the web DTO and `HttpServletRequest`, passwords
   hashed through `PasswordHasher`; stored pastes unchanged
+- `signature` domain on ports (MLS-276 step 2): `WriteSignature` model and `ResourceType` in the domain,
+  `WriteSignatureStore` port whose Mongo adapter also owns the 12-month TTL index, signatures recorded from a
+  `ClientContext` (IP and user agent) instead of `HttpServletRequest`; stored signatures unchanged
 
 ### Security
 

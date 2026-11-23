@@ -1,16 +1,14 @@
 package fr.marstech.mtlinkspray.adapter.outbound.mongo.signature
 
+import fr.marstech.mtlinkspray.domain.signature.ResourceType
+import fr.marstech.mtlinkspray.domain.signature.WriteSignature
 import org.springframework.data.annotation.TypeAlias
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 import java.time.Instant
 import java.util.*
 
-/**
- * Who created a resource through the web UI (MLS-254 phase B): browser fingerprint hash plus the
- * network side, kept 12 months by a TTL index on [createdAt] (see `WriteSignatureService`).
- * A clue for abuse reports, not a proof: a fingerprint can be spoofed.
- */
+/** Stored form of [WriteSignature], expired by the TTL index of `MongoWriteSignatureStore`. */
 @Document(collection = "mt-link-spray-write-signatures")
 @TypeAlias("fr.marstech.mtlinkspray.entity.WriteSignatureEntity")
 data class WriteSignatureEntity(
@@ -22,5 +20,11 @@ data class WriteSignatureEntity(
     val userAgent: String?,
     val createdAt: Instant = Instant.now(),
 ) {
-    enum class ResourceType { SHORT_LINK, SPRAY, PASTE }
+    fun toDomain() = WriteSignature(id, resourceType, resourceId, fingerprintHash, ipAddress, userAgent, createdAt)
+
+    companion object {
+        fun of(signature: WriteSignature) = with(signature) {
+            WriteSignatureEntity(id, resourceType, resourceId, fingerprintHash, ipAddress, userAgent, createdAt)
+        }
+    }
 }

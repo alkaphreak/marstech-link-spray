@@ -1,6 +1,7 @@
 package fr.marstech.mtlinkspray.adapter.inbound.web.shortener
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.signature.WriteSignatureEntity.ResourceType.SHORT_LINK
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.signature.WriteSignatureEntity.ResourceType.SPRAY
+import fr.marstech.mtlinkspray.adapter.inbound.web.common.NetworkUtils.clientContext
+import fr.marstech.mtlinkspray.domain.signature.ResourceType.SHORT_LINK
+import fr.marstech.mtlinkspray.domain.signature.ResourceType.SPRAY
 import fr.marstech.mtlinkspray.domain.shortener.SprayService
 import fr.marstech.mtlinkspray.domain.signature.WriteSignatureService
 import org.junit.jupiter.api.Test
@@ -88,7 +89,7 @@ class ViewSprayControllerTest {
         assertNotNull(result.model["linkListText"])
         assertEquals(shortenedUrl, result.model["linkSpray"])
         assertEquals(true, result.model["linkSprayShortened"])
-        verify(writeSignatureService).record(SHORT_LINK, childUrl, fp, request)
-        verify(writeSignatureService).record(SPRAY, shortenedUrl, fp, request)
+        verify(writeSignatureService).record(SHORT_LINK, childUrl, fp, clientContext(request))
+        verify(writeSignatureService).record(SPRAY, shortenedUrl, fp, clientContext(request))
     }
 }

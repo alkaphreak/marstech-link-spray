@@ -1,6 +1,6 @@
 package fr.marstech.mtlinkspray.adapter.inbound.web.paste
 import fr.marstech.mtlinkspray.adapter.inbound.web.common.ThymeleafViewControllerInterface
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.signature.WriteSignatureEntity.ResourceType
+import fr.marstech.mtlinkspray.domain.signature.ResourceType
 import fr.marstech.mtlinkspray.adapter.inbound.web.common.ViewNameEnum.PASTE
 import fr.marstech.mtlinkspray.domain.paste.PasteDraft
 import fr.marstech.mtlinkspray.domain.paste.PasteService
@@ -89,7 +89,7 @@ class PasteViewController(
         httpServletRequest: HttpServletRequest
     ): String {
         val pasteId = pasteService.createPaste(PasteDraft(content = inputPasteBinTextArea), clientContext(httpServletRequest))
-        writeSignatureService.record(ResourceType.PASTE, pasteId, fp, httpServletRequest)
+        writeSignatureService.record(ResourceType.PASTE, pasteId, fp, clientContext(httpServletRequest))
         return getRedirectUrl("/paste/$pasteId")
     }
 }

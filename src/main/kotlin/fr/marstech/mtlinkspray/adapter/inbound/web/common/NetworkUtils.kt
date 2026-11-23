@@ -76,5 +76,6 @@ object NetworkUtils {
             ?: request.remoteAddr
 
     @JvmStatic
-    fun clientContext(request: HttpServletRequest): ClientContext = ClientContext(ipAddress = getIpAddress(request))
+    fun clientContext(request: HttpServletRequest): ClientContext =
+        ClientContext(ipAddress = getIpAddress(request), userAgent = request.getHeader("User-Agent"))
 }

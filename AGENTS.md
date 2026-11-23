@@ -41,7 +41,7 @@ src/main/kotlin/fr/marstech/mtlinkspray/
 │                   #   abuse, signature, devtools (DNS, IP, QR, random number, sleep cycles)
 ├── domain/shared/   # PayloadTooLargeException, ImageTypes, MailSenderService, ApiKeyResolver +
 │                   #   ApiCaller (other domains' only view of API keys), PasswordHasher,
-│                   #   ClientContext (caller IP, built by NetworkUtils.clientContext)
+│                   #   ClientContext (caller IP and user agent, built by NetworkUtils.clientContext)
 ├── adapter/inbound/
 │   ├── web/<name>/  # REST + Thymeleaf controllers and their DTOs, per domain
 │   ├── web/common/  # Exception handlers, ViewNameEnum, CommonConfs, NetworkUtils, URL validators,
@@ -49,7 +49,8 @@ src/main/kotlin/fr/marstech/mtlinkspray/
 │   └── mcp/         # MCP server tools on /mcp (Sol4McpTools, MLS-266, ADR 0004)
 ├── adapter/outbound/
 │   ├── mongo/<name>/ # @Document classes (with @TypeAlias = pre-move class name), repositories and
-│   │               #   port implementations (MongoApiKeyStore, MongoPasteStore)
+│   │               #   port implementations (MongoApiKeyStore, MongoPasteStore, MongoWriteSignatureStore
+│   │               #   with its TTL index)
 │   ├── security/    # BCryptPasswordHasher
 │   ├── s3/ dns/ mail/ ratelimit/ scheduler/ web/  # DigitalOcean Spaces, JNDI DNS, SMTP, Bucket4j
 │   │               #   AnonymousQuota, CronConfig, ReservedPaths
@@ -265,4 +266,4 @@ This file is **living documentation**. Any agent (or human) making changes to th
 
 ---
 
-_Last updated: 2026-11-23 — apikey and paste domains on ports (MLS-276)_
+_Last updated: 2026-11-23 — apikey, paste and signature domains on ports (MLS-276)_
