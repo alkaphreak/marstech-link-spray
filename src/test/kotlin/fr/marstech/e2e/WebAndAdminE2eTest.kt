@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.junit.jupiter.api.Test
+import java.net.http.HttpRequest
 import java.util.UUID
 
 /** Thymeleaf pages, form posts, admin pages and the MCP endpoint. */
@@ -131,5 +132,23 @@ internal class WebAndAdminE2eTest : E2eTest() {
         val invalid = rpc("""{"jsonrpc":"2.0","id":4,"method":"tools/call","params":{"name":"dns_lookup","arguments":{"name":"not a domain"}}}""")
             .json()["result"]
         assertTrue(invalid["isError"].asBoolean())
+    }
+
+    @Test
+    fun shouldRefuseOversizedBodies() {
+        // MLS-272: 8 MiB JSON cap on MVC routes, 64 KiB on /mcp whatever the Content-Type
+        val json = mapOf("Content-Type" to "application/json", "Accept" to "application/json, text/event-stream")
+        fun body(size: Int) = """{"content":"${"a".repeat(size)}"}"""
+        fun chunked(text: String) = HttpRequest.BodyPublishers.ofInputStream { text.byteInputStream() }
+        val overJson = body(9 * 1024 * 1024)
+        val overMcp = body(80 * 1024)
+
+        assertEquals(413, send("POST", "/api/paste", HttpRequest.BodyPublishers.ofString(overJson), json).statusCode())
+        // No Content-Length: counted while Jackson reads it
+        assertEquals(413, send("POST", "/api/paste", chunked(overJson), json).statusCode())
+
+        assertEquals(413, send("POST", "/mcp", HttpRequest.BodyPublishers.ofString(overMcp), json).statusCode())
+        assertEquals(413, send("POST", "/mcp", chunked(overMcp), json).statusCode())
+        assertEquals(413, send("POST", "/mcp", chunked(overMcp), json + ("Content-Type" to "text/plain")).statusCode())
     }
 }

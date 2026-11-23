@@ -22,6 +22,13 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   (also for a dashboard created without a key, which is read-only), private image read and image delete.
   A missing, malformed or invalid key stays 401, checked first (MLS-279)
 
+### Security
+
+- JSON request bodies are capped at 8 MiB (`mt.link-spray.json.max-body-bytes`) and answered 413 above it,
+  before Jackson, bean validation or the `X-Api-Key` check read them; `/mcp` bodies, whatever their type,
+  at 64 KiB (`mt.link-spray.json.mcp-max-body-bytes`). Tomcat's `max-swallow-size` is raised to 10 MB so a
+  client sending its whole body before reading still gets the 413 rather than a reset (MLS-272)
+
 ---
 
 ## [0.16.0] - 2026-11-18
