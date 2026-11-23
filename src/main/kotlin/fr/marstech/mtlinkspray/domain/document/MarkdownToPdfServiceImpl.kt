@@ -15,9 +15,6 @@ import org.commonmark.renderer.html.HtmlNodeRendererContext
 import org.commonmark.renderer.html.HtmlRenderer
 import org.jsoup.Jsoup
 import org.jsoup.helper.W3CDom
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.core.io.ClassPathResource
-import org.springframework.stereotype.Service
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import kotlin.text.Charsets.UTF_8
@@ -26,12 +23,11 @@ import kotlin.text.Charsets.UTF_8
  * Markdown -> HTML (commonmark) -> W3C DOM (jsoup) -> PDF (OpenHTMLtoPDF), fully JVM-native.
  * Raw HTML is escaped, unsafe URL schemes are emptied and every external resource (images,
  * stylesheets, fonts) is refused, so a document can never make the server read a local file or
- * call the network.
+ * call the network. Built by `DocumentConfig`, which reads its size cap.
  */
-@Service
 class MarkdownToPdfServiceImpl(
     private val apiKeyResolver: ApiKeyResolver,
-    @Value("\${mt.link-spray.md2pdf.max-input-bytes:1048576}") private val maxInputBytes: Int,
+    private val maxInputBytes: Int,
 ) : MarkdownToPdfService {
 
     private val extensions =
@@ -47,7 +43,7 @@ class MarkdownToPdfServiceImpl(
         .sanitizeUrls(true)
         .build()
 
-    private val css = ClassPathResource("md2pdf/default.css").getContentAsString(UTF_8)
+    private val css = resource("md2pdf/default.css").use { it.readBytes().toString(UTF_8) }
 
     override fun render(rawApiKey: String?, markdown: InputStream): ByteArray {
         apiKeyResolver.resolve(rawApiKey)
@@ -71,7 +67,7 @@ class MarkdownToPdfServiceImpl(
                 withW3cDocument(W3CDom().fromJsoup(Jsoup.parse(html)), null)
                 useFastMode()
                 FONTS.forEach { (file, family, weight, style) ->
-                    useFont({ ClassPathResource("md2pdf/fonts/$file").inputStream }, family, weight, style, true)
+                    useFont({ resource("md2pdf/fonts/$file") }, family, weight, style, true)
                 }
                 ExternalResourceControlPriority.entries.forEach { useExternalResourceAccessControl({ _, _ -> false }, it) }
                 toStream(out)
@@ -99,3 +95,7 @@ class MarkdownToPdfServiceImpl(
         )
     }
 }
+
+/** A classpath resource, as `ClassPathResource` read it, without Spring in the domain. */
+private fun resource(path: String): InputStream =
+    checkNotNull(MarkdownToPdfServiceImpl::class.java.classLoader.getResourceAsStream(path)) { "Missing classpath resource $path" }
