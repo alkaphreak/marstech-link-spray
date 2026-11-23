@@ -25,6 +25,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - A valid API key that does not own the resource now gets 403 Forbidden instead of 401: dashboard update
   (also for a dashboard created without a key, which is read-only), private image read and image delete.
   A missing, malformed or invalid key stays 401, checked first (MLS-279)
+- `apikey` domain on ports (MLS-276 step 2): other domains resolve keys through `ApiKeyResolver`
+  (`domain/shared`) instead of `ApiKeyService` and `ApiKeyRepository`, key storage sits behind
+  `ApiKeyStore` (Mongo adapter) and BCrypt behind `PasswordHasher`; stored keys unchanged
 
 ### Security
 

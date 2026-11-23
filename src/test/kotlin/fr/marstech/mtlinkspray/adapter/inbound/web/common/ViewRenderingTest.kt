@@ -1,5 +1,6 @@
 package fr.marstech.mtlinkspray.adapter.inbound.web.common
 import fr.marstech.mtlinkspray.domain.apikey.ApiKeyService
+import fr.marstech.mtlinkspray.domain.shared.ApiKeyResolver
 import fr.marstech.mtlinkspray.domain.signature.WriteSignatureService
 import org.hamcrest.Matchers.containsString
 import fr.marstech.mtlinkspray.adapter.inbound.web.dashboard.DashboardDto
@@ -35,9 +36,13 @@ internal class ViewRenderingTest {
     @Autowired
     private lateinit var mockMvc: MockMvc
 
-    // No MongoDB in the test profile: the admin view lists API keys, so stub the service.
+    // No MongoDB in the test profile: the admin view lists API keys, so stub the service. Its
+    // implementation is also the ApiKeyResolver bean, which the mock would otherwise remove.
     @MockitoBean
     private lateinit var apiKeyService: ApiKeyService
+
+    @MockitoBean
+    private lateinit var apiKeyResolver: ApiKeyResolver
 
     @MockitoBean
     private lateinit var writeSignatureService: WriteSignatureService

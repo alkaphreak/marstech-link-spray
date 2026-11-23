@@ -1,10 +1,10 @@
 package fr.marstech.mtlinkspray.domain.dashboard
-import fr.marstech.mtlinkspray.domain.apikey.ApiKeyService
+import fr.marstech.mtlinkspray.domain.shared.ApiKeyResolver
 import org.junit.jupiter.params.provider.ValueSource
 import org.junit.jupiter.params.provider.NullSource
 import org.junit.jupiter.params.ParameterizedTest
 import fr.marstech.mtlinkspray.adapter.inbound.web.dashboard.DashboardDto
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.apikey.ApiKeyEntity
+import fr.marstech.mtlinkspray.domain.shared.ApiCaller
 import fr.marstech.mtlinkspray.adapter.outbound.mongo.dashboard.DashboardEntity
 import fr.marstech.mtlinkspray.adapter.outbound.mongo.dashboard.DashboardItem
 import fr.marstech.mtlinkspray.adapter.outbound.mongo.dashboard.DashboardLink
@@ -30,18 +30,18 @@ import java.util.*
 
 class DashboardServiceTest {
     private val dashboardRepository = mock<DashboardRepository>()
-    private val apiKeyService = mock<ApiKeyService>()
+    private val apiKeyResolver = mock<ApiKeyResolver>()
     private val mongoTemplate = mock<MongoTemplate>()
-    private val dashboardService = DashboardServiceImpl(dashboardRepository, apiKeyService, mongoTemplate)
+    private val dashboardService = DashboardServiceImpl(dashboardRepository, apiKeyResolver, mongoTemplate)
 
-    private val ownerKey = ApiKeyEntity(id = "owner", name = "app", keyId = "k1", secretHash = "h", namespace = "ns1")
-    private val otherKey = ApiKeyEntity(id = "other", name = "app2", keyId = "k2", secretHash = "h", namespace = "ns2")
+    private val ownerKey = ApiCaller(apiKeyId = "owner", namespace = "ns1")
+    private val otherKey = ApiCaller(apiKeyId = "other", namespace = "ns2")
 
     init {
         whenever(dashboardRepository.save(any<DashboardEntity>())).thenAnswer { it.arguments[0] }
         whenever(dashboardRepository.insert(any<DashboardEntity>())).thenAnswer { it.arguments[0] }
-        whenever(apiKeyService.resolve("owner-raw")).thenReturn(ownerKey)
-        whenever(apiKeyService.resolve("other-raw")).thenReturn(otherKey)
+        whenever(apiKeyResolver.resolve("owner-raw")).thenReturn(ownerKey)
+        whenever(apiKeyResolver.resolve("other-raw")).thenReturn(otherKey)
     }
 
     private fun givenStored(apiKeyId: String?, slug: String? = null, isEnabled: Boolean = true): DashboardEntity =
@@ -239,7 +239,7 @@ class DashboardServiceTest {
     fun shouldCheckCredentialsBeforeReadOnlyOnAnonymousDashboard(rawApiKey: String?) {
         // Given: credentials are checked first, a bad key is 401 even on a read-only dashboard
         givenStored(apiKeyId = null)
-        whenever(apiKeyService.resolve(rawApiKey)).thenAnswer { throw IllegalAccessException("Invalid API key") }
+        whenever(apiKeyResolver.resolve(rawApiKey)).thenAnswer { throw IllegalAccessException("Invalid API key") }
         // When / Then
         assertThrows<IllegalAccessException> { dashboardService.updateDashboard("d1", DashboardDto(id = "d1"), rawApiKey) }
         verify(dashboardRepository, never()).save(any<DashboardEntity>())

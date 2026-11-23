@@ -1,7 +1,8 @@
 package fr.marstech.mtlinkspray.adapter.inbound.web.apikey
 import fr.marstech.mtlinkspray.MtLinkSprayApplication
 import fr.marstech.mtlinkspray.config.SecurityConfig
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.apikey.ApiKeyEntity
+import fr.marstech.mtlinkspray.domain.apikey.ApiKey
+import fr.marstech.mtlinkspray.domain.apikey.ApiKeyCreationResult
 import fr.marstech.mtlinkspray.domain.apikey.ApiKeyService
 import org.hamcrest.Matchers.containsString
 import org.junit.jupiter.api.Test
@@ -31,7 +32,7 @@ class AdminApiKeyViewControllerTest {
     @MockitoBean
     lateinit var apiKeyService: ApiKeyService
 
-    private fun givenApiKey(): ApiKeyEntity = ApiKeyEntity(
+    private fun givenApiKey(): ApiKey = ApiKey(
         id = "id1",
         name = "Maeva App",
         keyId = "key123",
@@ -113,7 +114,7 @@ class AdminApiKeyViewControllerTest {
 
     @Test
     fun toggleApiKeyShouldDisableAndRedirect() {
-        doAnswer { givenApiKey().apply { isEnabled = false } }
+        doAnswer { givenApiKey().copy(isEnabled = false) }
             .`when`(apiKeyService).setEnabled(eq("id1"), eq(false))
 
         mockMvc.perform(

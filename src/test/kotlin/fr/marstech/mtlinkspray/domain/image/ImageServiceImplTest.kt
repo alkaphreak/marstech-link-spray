@@ -1,6 +1,6 @@
 package fr.marstech.mtlinkspray.domain.image
-import fr.marstech.mtlinkspray.domain.apikey.ApiKeyService
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.apikey.ApiKeyEntity
+import fr.marstech.mtlinkspray.domain.shared.ApiKeyResolver
+import fr.marstech.mtlinkspray.domain.shared.ApiCaller
 import fr.marstech.mtlinkspray.adapter.outbound.mongo.shared.HistoryItem
 import fr.marstech.mtlinkspray.adapter.outbound.mongo.image.ImageEntity
 import fr.marstech.mtlinkspray.adapter.outbound.mongo.image.ImageRepository
@@ -21,28 +21,22 @@ import java.util.*
 class ImageServiceImplTest {
 
     private val imageRepository = mock(ImageRepository::class.java)
-    private val apiKeyService = mock(ApiKeyService::class.java)
+    private val apiKeyResolver = mock(ApiKeyResolver::class.java)
     private val imageStorageService = mock(ImageStorageService::class.java)
     private val httpServletRequest = mock(HttpServletRequest::class.java)
 
     private val maxFileSizeBytes = 25L * 1024 * 1024 // 25 MB, same default as production config
     private val imageService = ImageServiceImpl(
-        imageRepository, apiKeyService, imageStorageService, maxFileSizeBytes
+        imageRepository, apiKeyResolver, imageStorageService, maxFileSizeBytes
     )
 
     private val jpegBytes = byteArrayOf(0xFF.toByte(), 0xD8.toByte(), 0xFF.toByte(), 0xE0.toByte(), 0x00)
 
-    private val apiKey = ApiKeyEntity(
-        id = "apikey-1",
-        name = "Maeva App",
-        keyId = "key123",
-        secretHash = "hashed",
-        namespace = "maeva-app-1",
-    )
+    private val apiKey = ApiCaller(apiKeyId = "apikey-1", namespace = "maeva-app-1")
 
     private fun givenImage(
         id: String = "img-1",
-        apiKeyId: String = apiKey.id,
+        apiKeyId: String = apiKey.apiKeyId,
         isPrivate: Boolean = false,
     ): ImageEntity = ImageEntity(
         id = id,
@@ -58,7 +52,7 @@ class ImageServiceImplTest {
     @Test
     fun uploadImageShouldStoreFileAndSaveMetadata() {
         val file = MockMultipartFile("file", "photo.jpg", "image/jpeg", jpegBytes)
-        `when`(apiKeyService.resolve("key123.secret")).thenReturn(apiKey)
+        `when`(apiKeyResolver.resolve("key123.secret")).thenReturn(apiKey)
         whenever(imageStorageService.upload(any(), any(), any(), any()))
             .thenReturn("maeva-app-1/2026/07/generated.jpg")
         `when`(imageRepository.save(any(ImageEntity::class.java))).thenAnswer { it.arguments[0] }
@@ -68,7 +62,7 @@ class ImageServiceImplTest {
         assertEquals("maeva-app-1/2026/07/generated.jpg", result.s3Key)
         assertEquals("photo.jpg", result.originalFilename)
         assertEquals("image/jpeg", result.contentType)
-        assertEquals(apiKey.id, result.apiKeyId)
+        assertEquals(apiKey.apiKeyId, result.apiKeyId)
         verify(imageStorageService).upload(eq("maeva-app-1"), eq("photo.jpg"), eq("image/jpeg"), any())
         verify(imageRepository).save(any(ImageEntity::class.java))
     }
@@ -77,7 +71,7 @@ class ImageServiceImplTest {
     fun uploadImageShouldThrowWhenApiKeyIsInvalid() {
         val file = MockMultipartFile("file", "photo.jpg", "image/jpeg", "bytes".toByteArray())
         org.mockito.kotlin.doAnswer { throw IllegalAccessException("Invalid API key") }
-            .`when`(apiKeyService).resolve("bad-key")
+            .`when`(apiKeyResolver).resolve("bad-key")
 
         assertThrows<IllegalAccessException> {
             imageService.uploadImage("bad-key", file, false, httpServletRequest)
@@ -88,7 +82,7 @@ class ImageServiceImplTest {
     @Test
     fun uploadImageShouldRejectHtmlDisguisedAsJpeg() {
         val file = MockMultipartFile("file", "photo.jpg", "image/jpeg", "<script>alert(1)</script>".toByteArray())
-        `when`(apiKeyService.resolve("key123.secret")).thenReturn(apiKey)
+        `when`(apiKeyResolver.resolve("key123.secret")).thenReturn(apiKey)
 
         assertThrows<IllegalArgumentException> {
             imageService.uploadImage("key123.secret", file, false, httpServletRequest)
@@ -100,7 +94,7 @@ class ImageServiceImplTest {
     fun uploadImageShouldRejectSvg() {
         val svg = "<svg xmlns=\"http://www.w3.org/2000/svg\" onload=\"alert(1)\"/>".toByteArray()
         val file = MockMultipartFile("file", "logo.svg", "image/svg+xml", svg)
-        `when`(apiKeyService.resolve("key123.secret")).thenReturn(apiKey)
+        `when`(apiKeyResolver.resolve("key123.secret")).thenReturn(apiKey)
 
         assertThrows<IllegalArgumentException> {
             imageService.uploadImage("key123.secret", file, false, httpServletRequest)
@@ -112,7 +106,7 @@ class ImageServiceImplTest {
     fun uploadImageShouldStoreDetectedTypeInsteadOfClientType() {
         val pngBytes = byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00)
         val file = MockMultipartFile("file", "photo.jpg", "text/html", pngBytes)
-        `when`(apiKeyService.resolve("key123.secret")).thenReturn(apiKey)
+        `when`(apiKeyResolver.resolve("key123.secret")).thenReturn(apiKey)
         whenever(imageStorageService.upload(any(), any(), any(), any())).thenReturn("maeva-app-1/x.png")
         `when`(imageRepository.save(any(ImageEntity::class.java))).thenAnswer { it.arguments[0] }
 
@@ -124,7 +118,7 @@ class ImageServiceImplTest {
     @Test
     fun uploadImageShouldThrowWhenFileIsEmpty() {
         val file = MockMultipartFile("file", "empty.jpg", "image/jpeg", ByteArray(0))
-        `when`(apiKeyService.resolve("key123.secret")).thenReturn(apiKey)
+        `when`(apiKeyResolver.resolve("key123.secret")).thenReturn(apiKey)
 
         assertThrows<IllegalArgumentException> {
             imageService.uploadImage("key123.secret", file, false, httpServletRequest)
@@ -136,7 +130,7 @@ class ImageServiceImplTest {
     fun uploadImageShouldThrowWhenFileExceedsMaxSize() {
         val oversizedContent = ByteArray((maxFileSizeBytes + 1).toInt())
         val file = MockMultipartFile("file", "big.jpg", "image/jpeg", oversizedContent)
-        `when`(apiKeyService.resolve("key123.secret")).thenReturn(apiKey)
+        `when`(apiKeyResolver.resolve("key123.secret")).thenReturn(apiKey)
 
         assertThrows<IllegalArgumentException> {
             imageService.uploadImage("key123.secret", file, false, httpServletRequest)
@@ -152,7 +146,7 @@ class ImageServiceImplTest {
         val result = imageService.getImage("img-1", null)
 
         assertEquals(image, result)
-        verifyNoInteractions(apiKeyService)
+        verifyNoInteractions(apiKeyResolver)
     }
 
     @Test
@@ -168,7 +162,7 @@ class ImageServiceImplTest {
     fun getImageShouldReturnPrivateImageWhenOwnerApiKeyMatches() {
         val image = givenImage(isPrivate = true)
         `when`(imageRepository.findById("img-1")).thenReturn(Optional.of(image))
-        `when`(apiKeyService.resolve("key123.secret")).thenReturn(apiKey)
+        `when`(apiKeyResolver.resolve("key123.secret")).thenReturn(apiKey)
 
         val result = imageService.getImage("img-1", "key123.secret")
 
@@ -180,7 +174,7 @@ class ImageServiceImplTest {
         val image = givenImage(isPrivate = true)
         `when`(imageRepository.findById("img-1")).thenReturn(Optional.of(image))
         org.mockito.kotlin.doAnswer { throw IllegalAccessException("Missing API key") }
-            .`when`(apiKeyService).resolve(null)
+            .`when`(apiKeyResolver).resolve(null)
 
         assertThrows<IllegalAccessException> {
             imageService.getImage("img-1", null)
@@ -191,7 +185,7 @@ class ImageServiceImplTest {
     fun getImageShouldThrowWhenPrivateImageAccessedByDifferentApp() {
         val image = givenImage(isPrivate = true, apiKeyId = "other-app-id")
         `when`(imageRepository.findById("img-1")).thenReturn(Optional.of(image))
-        `when`(apiKeyService.resolve("key123.secret")).thenReturn(apiKey)
+        `when`(apiKeyResolver.resolve("key123.secret")).thenReturn(apiKey)
 
         assertEquals(FORBIDDEN, assertThrows<ResponseStatusException> {
             imageService.getImage("img-1", "key123.secret")
@@ -214,7 +208,7 @@ class ImageServiceImplTest {
     fun deleteImageShouldRemoveFromStorageAndRepositoryWhenOwnedByApp() {
         val image = givenImage()
         `when`(imageRepository.findById("img-1")).thenReturn(Optional.of(image))
-        `when`(apiKeyService.resolve("key123.secret")).thenReturn(apiKey)
+        `when`(apiKeyResolver.resolve("key123.secret")).thenReturn(apiKey)
 
         imageService.deleteImage("img-1", "key123.secret")
 
@@ -226,7 +220,7 @@ class ImageServiceImplTest {
     fun deleteImageShouldThrowWhenNotOwnedByApp() {
         val image = givenImage(apiKeyId = "other-app-id")
         `when`(imageRepository.findById("img-1")).thenReturn(Optional.of(image))
-        `when`(apiKeyService.resolve("key123.secret")).thenReturn(apiKey)
+        `when`(apiKeyResolver.resolve("key123.secret")).thenReturn(apiKey)
 
         assertEquals(FORBIDDEN, assertThrows<ResponseStatusException> {
             imageService.deleteImage("img-1", "key123.secret")
@@ -238,8 +232,8 @@ class ImageServiceImplTest {
     @Test
     fun listImagesShouldReturnImagesForResolvedApiKey() {
         val images = listOf(givenImage(id = "img-1"), givenImage(id = "img-2"))
-        `when`(apiKeyService.resolve("key123.secret")).thenReturn(apiKey)
-        `when`(imageRepository.findByApiKeyId(apiKey.id)).thenReturn(images)
+        `when`(apiKeyResolver.resolve("key123.secret")).thenReturn(apiKey)
+        `when`(imageRepository.findByApiKeyId(apiKey.apiKeyId)).thenReturn(images)
 
         val result = imageService.listImages("key123.secret")
 

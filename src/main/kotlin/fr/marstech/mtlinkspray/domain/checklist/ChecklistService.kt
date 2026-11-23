@@ -1,5 +1,5 @@
 package fr.marstech.mtlinkspray.domain.checklist
-import fr.marstech.mtlinkspray.domain.apikey.ApiKeyService
+import fr.marstech.mtlinkspray.domain.shared.ApiKeyResolver
 import fr.marstech.mtlinkspray.adapter.inbound.web.checklist.ChecklistInstanceRequest
 import fr.marstech.mtlinkspray.adapter.inbound.web.checklist.ChecklistItemRequest
 import fr.marstech.mtlinkspray.adapter.inbound.web.checklist.ChecklistTemplateRequest
@@ -37,7 +37,7 @@ private const val NAMESPACE = "namespace"
 class ChecklistService(
     private val templateRepository: ChecklistTemplateRepository,
     private val instanceRepository: ChecklistInstanceRepository,
-    private val apiKeyService: ApiKeyService,
+    private val apiKeyResolver: ApiKeyResolver,
     private val mongoTemplate: MongoTemplate,
     @param:Value($$"${mt.link-spray.checklist.max-templates-per-namespace:50}") private val maxTemplates: Int,
     @param:Value($$"${mt.link-spray.checklist.max-instances-per-namespace:500}") private val maxInstances: Int,
@@ -159,5 +159,5 @@ class ChecklistService(
 
     private fun pageOf(page: Int, size: Int) = PageRequest.of(page, size, Sort.by("creationDate").descending().and(Sort.by("_id")))
 
-    private fun namespaceOf(apiKey: String?) = apiKeyService.resolve(apiKey).namespace
+    private fun namespaceOf(apiKey: String?) = apiKeyResolver.resolve(apiKey).namespace
 }

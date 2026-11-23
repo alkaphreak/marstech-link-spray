@@ -1,14 +1,9 @@
 package fr.marstech.mtlinkspray.domain.apikey
-import fr.marstech.mtlinkspray.adapter.inbound.web.apikey.ApiKeyCreationResult
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.apikey.ApiKeyEntity
 
+import fr.marstech.mtlinkspray.domain.shared.ApiKeyResolver
+
+/** Admin operations on API keys; key resolution for other domains is [ApiKeyResolver]. */
 interface ApiKeyService {
-    /**
-     * Resolves and validates a raw API key (as received in the `X-Api-Key` header).
-     * Throws [IllegalAccessException] if the key is unknown, disabled, or blank.
-     */
-    fun resolve(rawApiKey: String?): ApiKeyEntity
-
     /**
      * Creates a new API key for app [name] under [namespace]. Per MLS-203 decision, this is
      * only ever called from the admin page (`/admin/api-keys`), never self-service.
@@ -20,12 +15,12 @@ interface ApiKeyService {
     /**
      * Lists all registered API keys (admin view).
      */
-    fun listApiKeys(): List<ApiKeyEntity>
+    fun listApiKeys(): List<ApiKey>
 
     /**
      * Enables or disables an existing API key. Throws [NoSuchElementException] if not found.
      */
-    fun setEnabled(id: String, isEnabled: Boolean): ApiKeyEntity
+    fun setEnabled(id: String, isEnabled: Boolean): ApiKey
 
     /**
      * Replaces the secret of an existing API key, keeping its keyId and namespace: the previous

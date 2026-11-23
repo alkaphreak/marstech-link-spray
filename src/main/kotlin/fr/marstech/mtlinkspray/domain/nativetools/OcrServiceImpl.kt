@@ -1,6 +1,6 @@
 package fr.marstech.mtlinkspray.domain.nativetools
 import fr.marstech.mtlinkspray.adapter.outbound.ratelimit.AnonymousQuota
-import fr.marstech.mtlinkspray.domain.apikey.ApiKeyService
+import fr.marstech.mtlinkspray.domain.shared.ApiKeyResolver
 import fr.marstech.mtlinkspray.domain.document.loadPdf
 import fr.marstech.mtlinkspray.adapter.inbound.web.nativetools.OcrResult
 import fr.marstech.mtlinkspray.domain.shared.PayloadTooLargeException
@@ -32,7 +32,7 @@ import kotlin.math.max
  */
 @Service
 class OcrServiceImpl(
-    private val apiKeyService: ApiKeyService,
+    private val apiKeyResolver: ApiKeyResolver,
     private val running: NativeWorkPermit,
     @Value("\${mt.link-spray.ocr.command:tesseract}") private val command: String,
     @Value("\${mt.link-spray.ocr.max-input-bytes:10485760}") private val maxInputBytes: Int,
@@ -50,7 +50,7 @@ class OcrServiceImpl(
         // A "+" left unencoded in the query string arrives as a space
         val languages = lang.trim().replace(' ', '+')
         require(LANGUAGES.matches(languages)) { "Unsupported language '$lang': use fra, eng or fra+eng" }
-        if (rawApiKey == null) anonymous.count(clientIp ?: "unknown") else apiKeyService.resolve(rawApiKey)
+        if (rawApiKey == null) anonymous.count(clientIp ?: "unknown") else apiKeyResolver.resolve(rawApiKey)
 
         val bytes = image.readNBytes(maxInputBytes + 1)
         if (bytes.size > maxInputBytes) {
