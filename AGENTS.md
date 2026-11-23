@@ -35,7 +35,8 @@
 ```
 src/main/kotlin/fr/marstech/mtlinkspray/
 ├── conf/           # Spring configuration (SecurityConfig, ValidationConfig, S3Config, etc.),
-│                   #   JsonBodySizeLimitFilter: 413 above mt.link-spray.json.max-body-bytes (MLS-272)
+│                   #   JsonBodySizeLimitFilter: 413 above mt.link-spray.json.max-body-bytes, /mcp above
+│                   #   json.mcp-max-body-bytes (buffered there, streamed elsewhere) (MLS-272)
 ├── controller/
 │   ├── api/        # REST API endpoints (ShortenerApiController, SprayApiController,
 │   │               #   PasteApiController, DashboardApiController, ImageApiController,

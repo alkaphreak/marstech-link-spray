@@ -6,7 +6,9 @@ import jakarta.servlet.FilterChain
 import jakarta.servlet.ServletContext
 import jakarta.servlet.ServletRequest
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertSame
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.http.MediaType.APPLICATION_JSON
@@ -25,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 
 private const val LIMIT = 64L
+private const val MCP_LIMIT = 32
 private const val ECHO = "/echo"
 private const val ACCENTED_JSON = """{"k":"é"}"""
 
@@ -45,7 +48,7 @@ class JsonBodySizeLimitFilterTest {
         override fun getContentLength() = -1
     }
 
-    private val filter = JsonBodySizeLimitFilter(LIMIT)
+    private val filter = JsonBodySizeLimitFilter(LIMIT, MCP_LIMIT)
     private val mockMvc = MockMvcBuilders.standaloneSetup(EchoController())
         .setControllerAdvice(GlobalRestExceptionHandler())
         .addFilters<StandaloneMockMvcBuilder>(filter)
@@ -53,9 +56,9 @@ class JsonBodySizeLimitFilterTest {
 
     private fun json(size: Int) = """{"k":"${"a".repeat(size - 8)}"}"""
 
-    private fun passedRequest(request: MockHttpServletRequest): ServletRequest? {
+    private fun passedRequest(request: MockHttpServletRequest, response: MockHttpServletResponse = MockHttpServletResponse()): ServletRequest? {
         var passed: ServletRequest? = null
-        filter.doFilter(request, MockHttpServletResponse()) { req, _ -> passed = req }
+        filter.doFilter(request, response) { req, _ -> passed = req }
         return passed
     }
 
@@ -133,5 +136,39 @@ class JsonBodySizeLimitFilterTest {
 
         assertEquals(ACCENTED_JSON, passedRequest(latin1)!!.reader.readText())
         assertEquals(ACCENTED_JSON, passedRequest(bogus)!!.reader.readText())
+    }
+
+    private fun mcp(body: ByteArray, type: String? = APPLICATION_JSON_VALUE) =
+        ChunkedRequest().apply { requestURI = "/mcp"; contentType = type; setContent(body) }
+
+    @Test
+    fun shouldAnswerContentTooLargeOnMcpBeforeDispatchWhateverTheContentType() {
+        // Given chunked /mcp bodies over the MCP cap, declared as JSON, as text or with no type
+        for (type in listOf(APPLICATION_JSON_VALUE, "text/plain", null)) {
+            val response = MockHttpServletResponse()
+
+            // When / Then: the transport is never reached
+            assertNull(passedRequest(mcp(ByteArray(MCP_LIMIT + 1), type), response))
+            assertEquals(413, response.status)
+        }
+    }
+
+    @Test
+    fun shouldAnswerContentTooLargeOnMcpForADeclaredLengthOverItsCap() {
+        val request = MockHttpServletRequest("POST", "/mcp").apply { contentType = "text/plain"; setContent(ByteArray(MCP_LIMIT + 1)) }
+        val response = MockHttpServletResponse()
+
+        assertNull(passedRequest(request, response))
+        assertEquals(413, response.status)
+    }
+
+    @Test
+    fun shouldReplayAChunkedMcpBodyWithinItsCap() {
+        val body = ByteArray(MCP_LIMIT) { 'a'.code.toByte() }
+
+        val passed = passedRequest(mcp(body))!!
+        assertEquals(MCP_LIMIT.toLong(), passed.contentLengthLong)
+        assertEquals(String(body), String(passed.inputStream.readAllBytes()))
+        assertTrue(passed.inputStream.isFinished)
     }
 }
