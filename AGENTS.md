@@ -133,6 +133,11 @@ See `.local/llm/README.md` for complete conventions.
   today's `_class` values on a cold context; `QuotaE2eTest` runs with small buckets in its own context.
   A new public route gets a success and an error case there. Field injection in `E2eTest` (port,
   `MongoTemplate`) is the one exception to constructor injection, to keep subclasses free of constructors
+- **Architecture rules** (ADR 0007, MLS-276): `ArchitectureTest` checks the hexagonal boundaries, frozen on
+  `src/test/resources/archunit_store` until the migration ends. Never add a violation (the build fails) and
+  never edit the store by hand. The store is read-only, so removing violations also fails the build until
+  `./mvnw test -Dtest=ArchitectureTest -Darchunit.freeze.store.default.allowStoreUpdate=true` records the
+  shrunk store; commit it with the change. New code goes where the ADR says, not next to a frozen violation
 - **DTOs for all API responses** — never return raw entities from controllers
 - **Schema-first**: data classes with validation annotations are the contract, not comments
 - **ADRs**: architecture decisions live in `docs/adr/` (MADR; create it from the Marstech-Configs

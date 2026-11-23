@@ -13,6 +13,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   embedded MongoDB, covering every public route, quotas, admin key lifecycle, MCP and legacy `_class`
   documents, isolated from production code by an ArchUnit rule (MLS-277)
 - ADR 0007, hexagonal packages enforced by ArchUnit, accepted (MLS-276)
+- ArchUnit rules of ADR 0007 (`ArchitectureTest`), frozen on the violations left by the package move: a new violation fails the build, each migration step shrinks `src/test/resources/archunit_store` (MLS-276)
 
 ### Changed
 
