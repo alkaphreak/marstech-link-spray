@@ -49,9 +49,9 @@ MLS-275 will decide. An extracted service takes its `domain/<feature>` package a
 | `signature`   | WriteSignature                                                                   |
 | `devtools`    | Dns, Ip, QrCode, RandomNumber, `SleepCycles`, uuid                               |
 
-Spray stays with the shortener because it creates short links through the shortener service. The class lists name today's classes: in the first PR the Mongo documents among them (`LinkItem`,
-`DashboardItem`, `DashboardLink`) stay in `adapter/outbound/mongo/<domain>`, and the second PR adds the
-domain models they map to.
+Spray stays with the shortener because it creates short links through the shortener service. The class lists name today's classes: in step 1 the Mongo documents among them (`LinkItem`,
+`DashboardItem`, `DashboardLink`) stay in `adapter/outbound/mongo/<domain>`, and the step-2 pull
+requests add the domain models they map to.
 
 **`domain/shared/`** holds only interfaces, value types and exceptions, checked by ArchUnit:
 
@@ -132,7 +132,7 @@ in a version that reads Java 25 bytecode)
 - Domain services throw domain errors and return domain types, never Mongo documents.
 
 **Prerequisite: end-to-end regression suite** (MLS-277), merged and green before the first migration PR
-is opened, and left unchanged by both migration PRs:
+is opened, and left unchanged by every migration PR:
 
 - `@SpringBootTest(classes = [MtLinkSprayApplication::class], webEnvironment = RANDOM_PORT)`
   with real HTTP calls and a real MongoDB started by flapdoodle through its Spring Boot 4
@@ -149,10 +149,10 @@ is opened, and left unchanged by both migration PRs:
   pages behind HTTP Basic.
 - Runs in `mvn verify` and in the CI workflow.
 - The `mt.link-spray.*` property names the suite sets (`e2e` profile, quota overrides) are part
-  of the contract: the `@ConfigurationProperties` of the second PR keep them, otherwise the suite
+  of the contract: the `@ConfigurationProperties` introduced in step 2 keep them, otherwise the suite
   would silently fall back to defaults (real object storage, installed binaries).
 
-**Migration** in two pull requests, each merged with `--squash` (the repository requires signed
+**Migration** in two steps, each pull request merged with `--squash` (the repository requires signed
 commits and linear history, so a rebase merge, which GitHub does not sign, cannot be used):
 
 1. Pure move: packages and imports only, behaviour and tests unchanged, with two exceptions
@@ -160,12 +160,21 @@ commits and linear history, so a rebase merge, which GitHub does not sign, canno
    registration of polymorphic types. Thymeleaf `T(...)` references are updated with it. Its squash commit goes into `.git-blame-ignore-revs`.
 2. Refactors: ports, domain types, domain errors, `ClientContext`, `@ConfigurationProperties`,
    removal of the interface + Impl pairs, of the dead `MtLinkSprayCollection*` code and of the
-   duplicated `namespaceOf()`. The ArchUnit rules land in this PR and must pass.
+   duplicated `namespaceOf()`.
+
+   Amended 2026-11-23 (MLS-276): step 2 is split into several pull requests instead of one, since
+   the first move left about 190 forbidden imports across 47 domain files. The ArchUnit rules land
+   first, wrapped in `FreezingArchRule`: the violations of that day are recorded in
+   `src/test/resources/archunit_store`, a new violation fails the build, and each following pull
+   request moves one domain (or a small group, `apikey` first since most domains depend on it) and
+   commits the shrunk store. A shared type of `domain/shared` lands with its first user, not ahead
+   of it. The last pull request removes the freeze once the store is empty, and the rules must then
+   pass unfrozen.
 
 Before the release of each PR, a smoke run against the dev MongoDB (port 27019) with
 existing data checks that documents with the old `_class` values still load, that a stale
 checklist version returns 409, and that the `cron_runs` and write-signature TTL indexes are
-unchanged. `ViewRenderingTest` covers every public page, `/ocr` included. Both PRs are announced
+unchanged. `ViewRenderingTest` covers every public page, `/ocr` included. Each migration PR is announced
 to the parallel sessions working on the repository beforehand.
 
 ### Consequences
