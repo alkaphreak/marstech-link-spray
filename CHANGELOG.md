@@ -44,7 +44,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `insert`) from a `ClientContext`. The admin abuse mail body is the `AbuseReport` summary (id, date,
   description, IP) instead of the full stored document
 - `nativetools` domain off Spring and adapters (MLS-276 step 2): OCR and image compression limits and
-  commands read by `NativeToolsConfig` instead of `@Value` in the services, anonymous quotas received
+  commands bound to `@ConfigurationProperties` in `NativeToolsConfig` (same keys and defaults) instead of
+  `@Value` in the services, anonymous quotas received
   through a `QuotaPort` (`domain/shared`, implemented by `AnonymousQuota`), `OcrResult` in the domain,
   and no dependency left on the `document` domain
 

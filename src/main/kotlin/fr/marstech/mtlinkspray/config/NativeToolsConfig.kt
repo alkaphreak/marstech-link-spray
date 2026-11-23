@@ -6,46 +6,53 @@ import fr.marstech.mtlinkspray.domain.nativetools.NativeWorkPermit
 import fr.marstech.mtlinkspray.domain.nativetools.OcrService
 import fr.marstech.mtlinkspray.domain.nativetools.OcrServiceImpl
 import fr.marstech.mtlinkspray.domain.shared.ApiKeyResolver
-import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
-/** OCR and image compression services with their commands, limits and anonymous quotas, so the domain reads no Spring property (ADR 0007). */
+/** `mt.link-spray.ocr.*`: tesseract command, input limits and anonymous quota (MLS-252, MLS-253). */
+@ConfigurationProperties("mt.link-spray.ocr")
+data class OcrProperties(
+    val command: String = "tesseract",
+    val maxInputBytes: Int = 10_485_760,
+    val timeoutSeconds: Long = 30,
+    val anonymousQuota: Int = 10,
+    val anonymousWindowMs: Long = 3_600_000,
+    val maxPdfPages: Int = 1,
+    val maxPdfPixels: Long = 20_000_000,
+    val maxImagePixels: Long = 12_000_000,
+)
+
+/** `mt.link-spray.img.*`: encoder commands, input and pixel limits and anonymous quota (MLS-108, ADR 0002). */
+@ConfigurationProperties("mt.link-spray.img")
+data class ImageCompressionProperties(
+    val cwebpCommand: String = "cwebp",
+    val caesiumCommand: String = "caesiumclt",
+    val maxInputBytes: Int = 10_485_760,
+    val timeoutSeconds: Long = 30,
+    val webpMaxPixels: Long = 8_000_000,
+    val jpegMaxPixels: Long = 8_000_000,
+    val pngMaxPixels: Long = 3_000_000,
+    val anonymousQuota: Int = 20,
+    val anonymousWindowMs: Long = 3_600_000,
+)
+
+/** OCR and image compression services with their limits and quotas, so the domain reads no Spring property (ADR 0007). */
 @Configuration(proxyBeanMethods = false)
+@EnableConfigurationProperties(OcrProperties::class, ImageCompressionProperties::class)
 class NativeToolsConfig {
 
     @Bean
-    fun ocrService(
-        apiKeyResolver: ApiKeyResolver,
-        permit: NativeWorkPermit,
-        @Value("\${mt.link-spray.ocr.command:tesseract}") command: String,
-        @Value("\${mt.link-spray.ocr.max-input-bytes:10485760}") maxInputBytes: Int,
-        @Value("\${mt.link-spray.ocr.timeout-seconds:30}") timeoutSeconds: Long,
-        @Value("\${mt.link-spray.ocr.anonymous-quota:10}") anonymousQuota: Int,
-        @Value("\${mt.link-spray.ocr.anonymous-window-ms:3600000}") anonymousWindowMillis: Long,
-        @Value("\${mt.link-spray.ocr.max-pdf-pages:1}") maxPdfPages: Int,
-        @Value("\${mt.link-spray.ocr.max-pdf-pixels:20000000}") maxPdfPixels: Long,
-        @Value("\${mt.link-spray.ocr.max-image-pixels:12000000}") maxImagePixels: Long,
-    ): OcrService = OcrServiceImpl(
-        apiKeyResolver, permit, AnonymousQuota("Anonymous OCR", anonymousQuota, anonymousWindowMillis),
-        command, maxInputBytes, timeoutSeconds, maxPdfPages, maxPdfPixels, maxImagePixels,
+    fun ocrService(apiKeyResolver: ApiKeyResolver, permit: NativeWorkPermit, p: OcrProperties): OcrService = OcrServiceImpl(
+        apiKeyResolver, permit, AnonymousQuota("Anonymous OCR", p.anonymousQuota, p.anonymousWindowMs),
+        p.command, p.maxInputBytes, p.timeoutSeconds, p.maxPdfPages, p.maxPdfPixels, p.maxImagePixels,
     )
 
     @Bean
-    fun imageCompressionService(
-        apiKeyResolver: ApiKeyResolver,
-        permit: NativeWorkPermit,
-        @Value("\${mt.link-spray.img.cwebp-command:cwebp}") cwebp: String,
-        @Value("\${mt.link-spray.img.caesium-command:caesiumclt}") caesium: String,
-        @Value("\${mt.link-spray.img.max-input-bytes:10485760}") maxInputBytes: Int,
-        @Value("\${mt.link-spray.img.timeout-seconds:30}") timeoutSeconds: Long,
-        @Value("\${mt.link-spray.img.webp-max-pixels:8000000}") webpMaxPixels: Long,
-        @Value("\${mt.link-spray.img.jpeg-max-pixels:8000000}") jpegMaxPixels: Long,
-        @Value("\${mt.link-spray.img.png-max-pixels:3000000}") pngMaxPixels: Long,
-        @Value("\${mt.link-spray.img.anonymous-quota:20}") anonymousQuota: Int,
-        @Value("\${mt.link-spray.img.anonymous-window-ms:3600000}") anonymousWindowMillis: Long,
-    ) = ImageCompressionService(
-        apiKeyResolver, permit, AnonymousQuota("Anonymous image compression", anonymousQuota, anonymousWindowMillis),
-        cwebp, caesium, maxInputBytes, timeoutSeconds, webpMaxPixels, jpegMaxPixels, pngMaxPixels,
-    )
+    fun imageCompressionService(apiKeyResolver: ApiKeyResolver, permit: NativeWorkPermit, p: ImageCompressionProperties) =
+        ImageCompressionService(
+            apiKeyResolver, permit, AnonymousQuota("Anonymous image compression", p.anonymousQuota, p.anonymousWindowMs),
+            p.cwebpCommand, p.caesiumCommand, p.maxInputBytes, p.timeoutSeconds, p.webpMaxPixels, p.jpegMaxPixels, p.pngMaxPixels,
+        )
 }
