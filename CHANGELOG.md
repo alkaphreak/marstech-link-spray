@@ -17,6 +17,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- Spring Boot 4.1.2 → 4.2.0, Spring AI 2.0.2 → 2.1.0, AWS SDK S3 2.59.0 → 2.59.5, openhtmltopdf-pdfbox
+  1.1.113 → 1.1.114, commons-io 2.20.0 → 2.22.0 (#275); `server.forward-headers-strategy` renamed to
+  `server.request.header.forwarded.strategy` (deprecated in 4.2). Internal redirects now send a relative
+  `Location` (Boot 4.2 default)
 - Code reorganised into hexagonal packages (ADR 0007, MLS-276 step 1): `domain/<feature>`, `adapter/inbound`,
   `adapter/outbound`, `config`. Packages and imports only; stored documents keep loading through a
   `@TypeAlias` holding each class's previous name, and `MongoConfig` registers the polymorphic dashboard item

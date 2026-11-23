@@ -1,6 +1,7 @@
 package fr.marstech.e2e
 
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 internal class ShortenerE2eTest : E2eTest() {
@@ -33,6 +34,17 @@ internal class ShortenerE2eTest : E2eTest() {
         val stats = get("/api/url-shortener/$uid/stats").json()
         assertEquals(0, stats["clickCount"].asInt())
         assertEquals(1, stats["botClickCount"].asInt())
+    }
+
+    /** Behind the App Platform proxy: short URLs must carry the public scheme and host (framework strategy). */
+    @Test
+    fun shouldBuildShortUrlFromForwardedHeaders() {
+        val response = get(
+            "/api/url-shortener/shorten?url=${enc("https://example.com/forwarded")}",
+            mapOf("X-Forwarded-Proto" to "https", "X-Forwarded-Host" to "sol4.space"),
+        )
+        assertEquals(200, response.statusCode(), response.body())
+        assertTrue(response.body().trim().startsWith("https://sol4.space/"), response.body())
     }
 
     @Test
