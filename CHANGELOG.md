@@ -13,14 +13,34 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   embedded MongoDB, covering every public route, quotas, admin key lifecycle, MCP and legacy `_class`
   documents, isolated from production code by an ArchUnit rule (MLS-277)
 - ADR 0007, hexagonal packages enforced by ArchUnit, accepted (MLS-276)
+- ArchUnit rules of ADR 0007 (`ArchitectureTest`), frozen on the violations left by the package move: a new violation fails the build, each migration step shrinks `src/test/resources/archunit_store` (MLS-276)
 
 ### Changed
 
+- Code reorganised into hexagonal packages (ADR 0007, MLS-276 step 1): `domain/<feature>`, `adapter/inbound`,
+  `adapter/outbound`, `config`. Packages and imports only; stored documents keep loading through a
+  `@TypeAlias` holding each class's previous name, and `MongoConfig` registers the polymorphic dashboard item
 - Tests run against an embedded MongoDB 8.0.5 (flapdoodle `spring4x` 4.33.0, replacing the unused
   `de.flapdoodle.embed.mongo` 5.0.0); `commons-io` pinned to 2.20.0 (MLS-277)
 - A valid API key that does not own the resource now gets 403 Forbidden instead of 401: dashboard update
   (also for a dashboard created without a key, which is read-only), private image read and image delete.
   A missing, malformed or invalid key stays 401, checked first (MLS-279)
+- `apikey` domain on ports (MLS-276 step 2): other domains resolve keys through `ApiKeyResolver`
+  (`domain/shared`) instead of `ApiKeyService` and `ApiKeyRepository`, key storage sits behind
+  `ApiKeyStore` (Mongo adapter) and BCrypt behind `PasswordHasher`; stored keys unchanged
+- `paste` domain on ports (MLS-276 step 2): `Paste` model and `PasteStore` port (Mongo adapter), creation
+  from a `PasteDraft` and a `ClientContext` instead of the web DTO and `HttpServletRequest`, passwords
+  hashed through `PasswordHasher`; stored pastes unchanged
+- `signature` domain on ports (MLS-276 step 2): `WriteSignature` model and `ResourceType` in the domain,
+  `WriteSignatureStore` port whose Mongo adapter also owns the 12-month TTL index, signatures recorded from a
+  `ClientContext` (IP and user agent) instead of `HttpServletRequest`; stored signatures unchanged
+
+### Security
+
+- JSON request bodies are capped at 8 MiB (`mt.link-spray.json.max-body-bytes`) and answered 413 above it,
+  before Jackson, bean validation or the `X-Api-Key` check read them; `/mcp` bodies, whatever their type,
+  at 64 KiB (`mt.link-spray.json.mcp-max-body-bytes`). Tomcat's `max-swallow-size` is raised to 10 MB so a
+  client sending its whole body before reading still gets the 413 rather than a reset (MLS-272)
 
 ---
 

@@ -1,0 +1,172 @@
+package fr.marstech.mtlinkspray.adapter.inbound.web.apikey
+import fr.marstech.mtlinkspray.MtLinkSprayApplication
+import fr.marstech.mtlinkspray.config.SecurityConfig
+import fr.marstech.mtlinkspray.domain.apikey.ApiKey
+import fr.marstech.mtlinkspray.domain.apikey.ApiKeyCreationResult
+import fr.marstech.mtlinkspray.domain.apikey.ApiKeyService
+import org.hamcrest.Matchers.containsString
+import org.junit.jupiter.api.Test
+import org.mockito.Mockito.`when`
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.eq
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
+import org.springframework.context.annotation.Import
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic
+import org.springframework.test.context.ContextConfiguration
+import org.springframework.test.context.bean.override.mockito.MockitoBean
+import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
+
+@WebMvcTest(controllers = [AdminApiKeyViewController::class])
+@ContextConfiguration(classes = [MtLinkSprayApplication::class])
+@Import(SecurityConfig::class)
+class AdminApiKeyViewControllerTest {
+
+    @Autowired
+    lateinit var mockMvc: MockMvc
+
+    @MockitoBean
+    lateinit var apiKeyService: ApiKeyService
+
+    private fun givenApiKey(): ApiKey = ApiKey(
+        id = "id1",
+        name = "Maeva App",
+        keyId = "key123",
+        secretHash = "hash",
+        namespace = "maeva-app-1",
+    )
+
+    @Test
+    fun getApiKeysShouldRequireAuthentication() {
+        mockMvc.perform(get("/admin/api-keys"))
+            .andExpect(status().isUnauthorized)
+    }
+
+    @Test
+    fun getApiKeysShouldReturnListWhenAuthenticated() {
+        `when`(apiKeyService.listApiKeys()).thenReturn(listOf(givenApiKey()))
+
+        mockMvc.perform(get("/admin/api-keys").with(httpBasic("admin", "test-admin-password")))
+            .andExpect(status().isOk)
+            .andExpect(view().name("admin/api-keys"))
+            .andExpect(model().attributeExists("apiKeys"))
+            .andExpect(content().string(containsString("name=\"_csrf\"")))
+    }
+
+    @Test
+    fun getApiKeysShouldOfferCopyButtonForNewKey() {
+        `when`(apiKeyService.listApiKeys()).thenReturn(listOf(givenApiKey()))
+
+        mockMvc.perform(
+            get("/admin/api-keys")
+                .with(httpBasic("admin", "test-admin-password"))
+                .flashAttr("newRawKey", "key123.s3cr3t")
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().string(containsString("data-key=\"key123.s3cr3t\"")))
+            .andExpect(content().string(containsString("/assets/js/mt-script.js")))
+    }
+
+    @Test
+    fun postApiKeysShouldBeRejectedWithoutCsrfToken() {
+        mockMvc.perform(
+            post("/admin/api-keys")
+                .with(httpBasic("admin", "test-admin-password"))
+                .param("name", "Maeva App")
+                .param("namespace", "maeva-app-1")
+        )
+            .andExpect(status().isForbidden)
+    }
+
+    @Test
+    fun postApiKeysShouldCreateKeyAndRedirectWithFlashAttributes() {
+        val apiKey = givenApiKey()
+        `when`(apiKeyService.createApiKey("Maeva App", "maeva-app-1"))
+            .thenReturn(ApiKeyCreationResult(apiKey = apiKey, rawKey = "key123.s3cr3t"))
+
+        mockMvc.perform(
+            post("/admin/api-keys")
+                .with(csrf())
+                .with(httpBasic("admin", "test-admin-password"))
+                .param("name", "Maeva App")
+                .param("namespace", "maeva-app-1")
+        )
+            .andExpect(status().is3xxRedirection)
+            .andExpect(redirectedUrl("/admin/api-keys"))
+            .andExpect(flash().attribute("newRawKey", "key123.s3cr3t"))
+            .andExpect(flash().attribute("newKeyName", "Maeva App"))
+    }
+
+    @Test
+    fun postApiKeysShouldRequireAuthentication() {
+        mockMvc.perform(
+            post("/admin/api-keys")
+                .with(csrf())
+                .param("name", "Maeva App")
+                .param("namespace", "maeva-app-1")
+        )
+            .andExpect(status().isUnauthorized)
+    }
+
+    @Test
+    fun toggleApiKeyShouldDisableAndRedirect() {
+        doAnswer { givenApiKey().copy(isEnabled = false) }
+            .`when`(apiKeyService).setEnabled(eq("id1"), eq(false))
+
+        mockMvc.perform(
+            post("/admin/api-keys/id1/toggle")
+                .with(csrf())
+                .with(httpBasic("admin", "test-admin-password"))
+                .param("isEnabled", "false")
+        )
+            .andExpect(status().is3xxRedirection)
+            .andExpect(redirectedUrl("/admin/api-keys"))
+    }
+
+    @Test
+    fun toggleApiKeyShouldRequireAuthentication() {
+        mockMvc.perform(
+            post("/admin/api-keys/id1/toggle")
+                .with(csrf())
+                .param("isEnabled", "false")
+        )
+            .andExpect(status().isUnauthorized)
+    }
+
+    @Test
+    fun regenerateSecretShouldRedirectWithNewRawKey() {
+        // Given
+        `when`(apiKeyService.regenerateSecret("id1"))
+            .thenReturn(ApiKeyCreationResult(apiKey = givenApiKey(), rawKey = "key123.n3wS3cr3t"))
+
+        // When / Then
+        mockMvc.perform(
+            post("/admin/api-keys/id1/regenerate")
+                .with(csrf())
+                .with(httpBasic("admin", "test-admin-password"))
+        )
+            .andExpect(status().is3xxRedirection)
+            .andExpect(redirectedUrl("/admin/api-keys"))
+            .andExpect(flash().attribute("newRawKey", "key123.n3wS3cr3t"))
+            .andExpect(flash().attribute("newKeyName", "Maeva App"))
+    }
+
+    @Test
+    fun regenerateSecretShouldRequireAuthentication() {
+        mockMvc.perform(post("/admin/api-keys/id1/regenerate").with(csrf()))
+            .andExpect(status().isUnauthorized)
+    }
+
+    @Test
+    fun getApiKeysShouldOfferRegenerateActionPerKey() {
+        `when`(apiKeyService.listApiKeys()).thenReturn(listOf(givenApiKey()))
+
+        mockMvc.perform(get("/admin/api-keys").with(httpBasic("admin", "test-admin-password")))
+            .andExpect(status().isOk)
+            .andExpect(content().string(containsString("/admin/api-keys/id1/regenerate")))
+    }
+}

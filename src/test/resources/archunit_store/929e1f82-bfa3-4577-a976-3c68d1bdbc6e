@@ -1,0 +1,2 @@
+Slice nativetools depends on Slice document:\
+Method <fr.marstech.mtlinkspray.domain.nativetools.OcrServiceImpl.recognize(java.lang.String, java.lang.String, java.io.InputStream, java.lang.String)> calls method <fr.marstech.mtlinkspray.domain.document.PdfToMarkdownServiceImplKt.loadPdf([B)> in (OcrServiceImpl.kt:70)

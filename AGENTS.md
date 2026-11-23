@@ -34,34 +34,28 @@
 
 ```
 src/main/kotlin/fr/marstech/mtlinkspray/
-├── conf/           # Spring configuration (SecurityConfig, ValidationConfig, S3Config, etc.)
-├── controller/
-│   ├── api/        # REST API endpoints (ShortenerApiController, SprayApiController,
-│   │               #   PasteApiController, DashboardApiController, ImageApiController,
-│   │               #   UuidApiController, RandomNumberApiController, SleepApiController, RootApiController,
-│   │               #   Md2PdfApiController, Pdf2MdApiController, OcrApiController, CronJobApiController,
-│   │               #   ChecklistApiController)
-│   ├── view/       # Thymeleaf view controllers (incl. AdminApiKeyViewController)
-│   └── commons/    # Shared controller utilities
-├── dto/            # Request/response DTOs (PasteRequest, PasteResponse, DashboardDto,
-│                   #   ImageUploadResponse, ImageMetadataDto, ApiKeyCreationResult, …)
-├── entity/         # MongoDB documents (LinkItem, LinkItemTarget, PasteEntity,
-│                   #   AbuseReportEntity, DashboardEntity, ApiKeyEntity, ImageEntity, …)
-├── enums/          # Enumerations
-├── exception/      # Custom exceptions + @ControllerAdvice handlers
-├── mcp/            # MCP server tools on /mcp (Sol4McpTools, MLS-266, ADR 0004)
-├── objects/        # Constant/static objects
-├── repository/     # Spring Data MongoDB repos (LinkItemRepository, PasteRepository,
-│                   #   DashboardRepository, AbuseReportRepository, ApiKeyRepository,
-│                   #   ImageRepository, …)
-├── service/        # Interfaces + Impl pairs (ShortenerService/Impl, SprayService/Impl,
-│                   #   PasteService/Impl, DashboardService/Impl, MailSenderService/Impl,
-│                   #   ReportAbuseService/Impl, RandomIdGeneratorService/Impl,
-│                   #   ImageService/Impl, ApiKeyService/Impl, ImageStorageService +
-│                   #   DigitalOceanSpacesServiceImpl, MarkdownToPdfService/Impl,
-│                   #   PdfToMarkdownService/Impl, …)
-├── utils/          # Utility functions
-└── validation/     # Custom validators
+├── MtLinkSprayApplication.kt
+├── domain/<name>/   # Services, per feature (ADR 0007): shortener (+ spray, random ids, bot UAs),
+│                   #   paste, dashboard, image, nativetools (OCR, compression, NativeWorkPermit),
+│                   #   document (md2pdf, pdf2md), checklist, cron (+ CronJobValidator), apikey,
+│                   #   abuse, signature, devtools (DNS, IP, QR, random number, sleep cycles)
+├── domain/shared/   # PayloadTooLargeException, ImageTypes, MailSenderService, ApiKeyResolver +
+│                   #   ApiCaller (other domains' only view of API keys), PasswordHasher,
+│                   #   ClientContext (caller IP and user agent, built by NetworkUtils.clientContext)
+├── adapter/inbound/
+│   ├── web/<name>/  # REST + Thymeleaf controllers and their DTOs, per domain
+│   ├── web/common/  # Exception handlers, ViewNameEnum, CommonConfs, NetworkUtils, URL validators,
+│   │               #   root/privacy pages, RootApiController
+│   └── mcp/         # MCP server tools on /mcp (Sol4McpTools, MLS-266, ADR 0004)
+├── adapter/outbound/
+│   ├── mongo/<name>/ # @Document classes (with @TypeAlias = pre-move class name), repositories and
+│   │               #   port implementations (MongoApiKeyStore, MongoPasteStore, MongoWriteSignatureStore
+│   │               #   with its TTL index)
+│   ├── security/    # BCryptPasswordHasher
+│   ├── s3/ dns/ mail/ ratelimit/ scheduler/ web/  # DigitalOcean Spaces, JNDI DNS, SMTP, Bucket4j
+│   │               #   AnonymousQuota, CronConfig, ReservedPaths
+└── config/          # Security, CSP, rate limit, S3, JSON body cap, MongoConfig (managed types for
+                    #   @TypeAlias resolution of polymorphic items, ADR 0007)
 ```
 
 **Key entry points**:
@@ -69,10 +63,10 @@ src/main/kotlin/fr/marstech/mtlinkspray/
 - `MtLinkSprayApplication.kt` — Spring Boot main
 - `ShortenerApiController` → `ShortenerService` → `LinkItemRepository` (core URL shortener flow)
 - `SprayApiController` → `SprayService` — multi-URL spray
-- `PasteApiController` → `PasteService` → `PasteRepository` — paste CRUD
+- `PasteApiController` → `PasteService` → `PasteStore` (`MongoPasteStore` → `PasteRepository`) — paste CRUD
 - `DashboardApiController` → `DashboardService` — collection management
 - `ImageApiController` → `ImageService` → `ImageStorageService` (`DigitalOceanSpacesServiceImpl`) — image storage (MLS-203)
-- `AdminApiKeyViewController` → `ApiKeyService` → `ApiKeyRepository` — admin page to create/list/enable-disable per-app API keys (`/admin/api-keys`, HTTP Basic protected)
+- `AdminApiKeyViewController` → `ApiKeyService` → `ApiKeyStore` (`MongoApiKeyStore` → `ApiKeyRepository`) — admin page to create/list/enable-disable per-app API keys (`/admin/api-keys`, HTTP Basic protected)
 - `Md2PdfApiController` → `MarkdownToPdfService` — raw Markdown body to PDF, `X-Api-Key` (MLS-223)
 - `Pdf2MdApiController` → `PdfToMarkdownService` — raw PDF body to Markdown (PDFBox), `X-Api-Key` (MLS-196)
 - `OcrApiController` → `OcrServiceImpl` — raw PNG/JPEG body, or a scanned PDF of one page rendered at 300 dpi (MLS-253), to text through a `tesseract` subprocess (apt package in both Dockerfiles), one OCR at a time (503 when busy), anonymous per-IP quota lifted by `X-Api-Key` (429), web page `/ocr` (MLS-252)
@@ -85,10 +79,10 @@ src/main/kotlin/fr/marstech/mtlinkspray/
 
 - Shorten URL: `GET /api/url-shortener/shorten?url=` (or `POST /api/url-shortener`, 201 Created, MLS-258) → `ShortenerApiController` → `ShortenerServiceImpl` → `LinkItemRepository` (MongoDB)
 - Resolve short code: `GET /{code}` → `UrlRedirectController` → `ShortenerServiceImpl` → redirect; the User-Agent is matched in memory by `BotUserAgents` (vendored patterns in `resources/bot-user-agents/`, refresh steps in its README): robots bump `botClickCount`, people `clickCount` and `lastClickedAt` (MLS-273)
-- Create paste: `POST /api/paste` → `PasteApiController` → `PasteServiceImpl` → `PasteRepository`
+- Create paste: `POST /api/paste` → `PasteApiController` (`PasteRequest.toDraft()`, `ClientContext`) → `PasteServiceImpl` → `PasteStore`
 - Abuse report: `POST /api/abuse` → `ReportAbuseServiceImpl` → `MailSenderServiceImpl`
 - Rate limit (MLS-161, ADR 0006): `RateLimitConfig` registers a `HandlerInterceptor` on the public write routes, API and form (`/api/url-shortener`, `GET`/`HEAD /api/url-shortener/shorten`, `/api/paste`, `/api/dashboard[/*]`, `/shortener`, `/paste`, `/dashboard`: one shared `writeQuota` bean per client) and on `POST /abuse` (own budget, it sends a mail); a shortened spray pays one token per link in `SprayServiceImpl`. `AnonymousQuota` is a Bucket4j token bucket per IPv4 or IPv6 /64 in a bounded Caffeine cache, 429 with `Retry-After` (JSON, or the error page for `Accept: text/html`); limits under `mt.link-spray.rate-limit.*`, a window of 0 disables them (test profile). A new public write route must be added to `RateLimitConfig`
-- Upload image: `POST /api/images` (header `X-Api-Key: {keyId}.{secret}`) → `ImageApiController` → `ApiKeyServiceImpl.resolve` → `ImageServiceImpl` → `DigitalOceanSpacesServiceImpl` → DO Spaces bucket `mt-mls-img-storage`
+- Upload image: `POST /api/images` (header `X-Api-Key: {keyId}.{secret}`) → `ImageApiController` → `ImageServiceImpl` (key checked through `ApiKeyResolver`) → `DigitalOceanSpacesServiceImpl` → DO Spaces bucket `mt-mls-img-storage`
 - Download image: `GET /api/images/{id}` → `ImageApiController` streams bytes from DO Spaces (no redirect), enforces visibility/ownership
 - Manage API keys: `GET/POST /admin/api-keys` (HTTP Basic) → `AdminApiKeyViewController` → `ApiKeyServiceImpl` (create/list/enable-disable)
 - Cron page: `GET /cron` → `ViewCronController` (no model); the page's JS calls `/api/cron/jobs` with the key typed in the page (sessionStorage), toggling a job is a `PUT` of the whole job with `isEnabled` flipped, API values rendered with `textContent` only (MLS-265)
@@ -144,6 +138,13 @@ See `.local/llm/README.md` for complete conventions.
   today's `_class` values on a cold context; `QuotaE2eTest` runs with small buckets in its own context.
   A new public route gets a success and an error case there. Field injection in `E2eTest` (port,
   `MongoTemplate`) is the one exception to constructor injection, to keep subclasses free of constructors
+- **Architecture rules** (ADR 0007, MLS-276): `ArchitectureTest` checks the hexagonal boundaries, frozen on
+  `src/test/resources/archunit_store` until the migration ends. Never add a violation (the build fails) and
+  never edit the store by hand. The store is read-only, so removing violations also fails the build until
+  `./mvnw test -Dtest=ArchitectureTest -Darchunit.freeze.store.default.allowStoreUpdate=true` records the
+  shrunk store; commit it with the change. A changed constructor or method signature re-reports its old
+  violations as new: add `-Darchunit.freeze.refreeze=true` and check that every added store entry is a
+  removed one with the new signature (`archunit.properties`). New code goes where the ADR says, not next to a frozen violation
 - **DTOs for all API responses** — never return raw entities from controllers
 - **Schema-first**: data classes with validation annotations are the contract, not comments
 - **ADRs**: architecture decisions live in `docs/adr/` (MADR; create it from the Marstech-Configs
@@ -265,4 +266,4 @@ This file is **living documentation**. Any agent (or human) making changes to th
 
 ---
 
-_Last updated: 2026-11-18 — robots kept out of the short-link click counter (MLS-273)_
+_Last updated: 2026-11-23 — apikey, paste and signature domains on ports (MLS-276)_

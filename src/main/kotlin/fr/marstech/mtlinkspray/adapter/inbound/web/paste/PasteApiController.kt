@@ -1,0 +1,60 @@
+package fr.marstech.mtlinkspray.adapter.inbound.web.paste
+import fr.marstech.mtlinkspray.adapter.inbound.web.common.NetworkUtils
+import fr.marstech.mtlinkspray.adapter.inbound.web.paste.PasteResponse.Companion.from
+import fr.marstech.mtlinkspray.domain.paste.PasteService
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.validation.Valid
+import jakarta.validation.constraints.NotBlank
+import org.springframework.http.HttpHeaders.CONTENT_DISPOSITION
+import org.springframework.http.HttpStatus
+import org.springframework.http.HttpStatus.*
+import org.springframework.http.MediaType
+import org.springframework.http.MediaType.TEXT_PLAIN_VALUE
+import org.springframework.http.ResponseEntity
+import org.springframework.validation.annotation.Validated
+import org.springframework.web.bind.annotation.*
+import java.nio.charset.StandardCharsets.UTF_8
+
+@Validated
+@RestController
+@RequestMapping("/api/paste")
+class PasteApiController(private val pasteService: PasteService) {
+
+    @PostMapping
+    fun createPaste(
+        @RequestBody @Valid request: PasteRequest, httpServletRequest: HttpServletRequest
+    ): ResponseEntity<PasteResponse> =
+        pasteService.createPaste(request.toDraft(), NetworkUtils.clientContext(httpServletRequest))
+            .let { pasteService.getPaste(it, request.password) }
+            .let { return ResponseEntity.status(CREATED).body(from(it)) }
+
+    @GetMapping("/{pasteId}")
+    fun getPaste(
+        @PathVariable @NotBlank(message = "Paste ID cannot be blank") pasteId: String,
+        @RequestParam(required = false) password: String?
+    ): ResponseEntity<PasteResponse> =
+        from(pasteService.getPaste(pasteId, password))
+            .let { return ResponseEntity.ok(it) }
+
+    @GetMapping("/{pasteId}/raw", produces = [TEXT_PLAIN_VALUE])
+    fun getRawPaste(
+        @PathVariable pasteId: String,
+        @RequestParam(required = false) password: String?
+    ): ResponseEntity<String> = try {
+        if (pasteId.isBlank()) return plainText(BAD_REQUEST).body("Bad request: paste ID cannot be blank")
+        pasteService.getPaste(pasteId, password).let { paste ->
+            plainText(OK)
+                .header(CONTENT_DISPOSITION, "inline; filename=\"paste-$pasteId.txt\"")
+                .body(paste.content)
+        }
+    } catch (_: NoSuchElementException) {
+        plainText(NOT_FOUND).body("Not found: paste $pasteId does not exist")
+    } catch (_: IllegalAccessException) {
+        plainText(UNAUTHORIZED).body("Unauthorized: password required or incorrect")
+    }
+
+    private fun plainText(status: HttpStatus): ResponseEntity.BodyBuilder =
+        ResponseEntity.status(status)
+            .contentType(MediaType("text", "plain", UTF_8))
+            .header("X-Content-Type-Options", "nosniff")
+}

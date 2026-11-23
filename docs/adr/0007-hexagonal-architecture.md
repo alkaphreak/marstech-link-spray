@@ -44,46 +44,52 @@ MLS-275 will decide. An extracted service takes its `domain/<feature>` package a
 | `document`    | MarkdownToPdf, PdfToMarkdown                                                     |
 | `checklist`   | Checklist                                                                        |
 | `cron`        | CronJob, `CronJobValidator`                                                      |
-| `apikey`      | ApiKey (creation, regeneration, hashing behind `PasswordHasherPort`)             |
+| `apikey`      | ApiKey (creation, regeneration, storage behind `ApiKeyStore`)                    |
 | `abuse`       | ReportAbuse                                                                      |
 | `signature`   | WriteSignature                                                                   |
 | `devtools`    | Dns, Ip, QrCode, RandomNumber, `SleepCycles`, uuid                               |
 
-Spray stays with the shortener because it creates short links through the shortener service.
+Spray stays with the shortener because it creates short links through the shortener service. The class lists name today's classes: in step 1 the Mongo documents among them (`LinkItem`,
+`DashboardItem`, `DashboardLink`) stay in `adapter/outbound/mongo/<domain>`, and the step-2 pull
+requests add the domain models they map to.
 
 **`domain/shared/`** holds only interfaces, value types and exceptions, checked by ArchUnit:
 
-- `Namespace` and `ApiKeyResolver` (implemented by the `apikey` domain), so other domains never
-  see API key storage.
-- `ClientContext` (IP or IPv6 /64, base URL, user agent), built by the web adapter, replacing
+- `ApiKeyResolver` and its `ApiCaller` (key id and namespace), implemented by the `apikey` domain,
+  so other domains never see API key storage.
+- `PasswordHasher`, implemented with BCrypt in `adapter/outbound/security`: shared because
+  `paste` hashes passwords too.
+- `ClientContext` (IP address and user agent today; IPv6 /64 and base URL join with their first user,
+  see the step 2 amendment), built by the web adapter, replacing
   `HttpServletRequest` in service signatures.
 - `Page<T>` replacing Spring Data's `Page`, `PageRequest` and `Sort`.
 - `QuotaPort` (implemented by the Bucket4j limiter of ADR 0006) and `MailPort`.
 - Domain errors: `NotFound`, `Conflict`, `QuotaExceeded`, `PayloadTooLarge`, `Busy` (the native
   work permit), `InvalidInput`.
 
-**Adapters**
+**Adapters** (`inbound`/`outbound` rather than `in`/`out`: `in` is a Kotlin keyword, so a package
+named `in` would need backticks in every declaration and import)
 
-- `adapter/in/web/<domain>/`: REST and Thymeleaf controllers, DTOs, DTO constraint annotations
+- `adapter/inbound/web/<domain>/`: REST and Thymeleaf controllers, DTOs, DTO constraint annotations
   (`NotEmptyNotBlank`, `ValidUrl`, `ValidUrlList`), `ViewNameEnum`, `CommonConfs`, the single
   `X-Api-Key` constant, both exception handlers. A view controller calls a domain service, never
   another controller. Admin views render DTOs, not documents.
-- `adapter/in/mcp/`: MCP tools.
-- `adapter/out/mongo/<domain>/`: `@Document` classes with their current collection names and a
+- `adapter/inbound/mcp/`: MCP tools.
+- `adapter/outbound/mongo/<domain>/`: `@Document` classes with their current collection names and a
   `@TypeAlias`, Spring Data repositories, port implementations, index and TTL creation at
   startup, mapping between documents and domain types.
-- `adapter/out/scheduler/`: `ThreadPoolTaskScheduler`, cron trigger, Spring `CronExpression`
+- `adapter/outbound/scheduler/`: `ThreadPoolTaskScheduler`, cron trigger, Spring `CronExpression`
   parsing (the 6-field behaviour of MLS-220), job re-registration at startup, behind
   `CronSchedulerPort`.
-- `adapter/out/http/`: the cron webhook client.
-- `adapter/out/{s3,dns,mail,geoip,native,ratelimit,security}/`: DigitalOcean Spaces, JNDI DNS,
+- `adapter/outbound/http/`: the cron webhook client.
+- `adapter/outbound/{s3,dns,mail,geoip,native,ratelimit,security}/`: DigitalOcean Spaces, JNDI DNS,
   SMTP, MaxMind, tesseract/cwebp/caesiumclt subprocesses, Bucket4j, BCrypt.
-- `adapter/out/web/`: `ReservedPaths` (reads `RequestMappingHandlerMapping`) behind
+- `adapter/outbound/web/`: `ReservedPaths` (reads `RequestMappingHandlerMapping`) behind
   `ReservedPathsPort`.
 - `config/`: security, CSP, rate-limit and S3 configuration, `@ConfigurationProperties`.
 - `utils/` is split: `ImageTypes` (magic-byte detection, used by `image`, `nativetools` and the
   image controller) becomes an `ImageType` enum with its pure `detect(bytes)` in
-  `domain/shared`, upload validation still excluding SVG; `NetworkUtils` goes to `adapter/in/web`,
+  `domain/shared`, upload validation still excluding SVG; `NetworkUtils` goes to `adapter/inbound/web`,
   `BotUserAgents` to `shortener` with its list loaded by an adapter (no `ClassPathResource` in
   the domain), `SleepCycles` to `devtools` with its result types (no `dto` import).
 - Domain classes that still use Spring today get a destination for that dependency:
@@ -98,7 +104,7 @@ in a version that reads Java 25 bytecode)
 
 - `domain..` depends on no Spring class except `org.springframework.stereotype.Service`, and
   not on `com.mongodb..`, `jakarta.servlet..` or `..adapter..`.
-- `..adapter.in..` does not depend on `..adapter.out..`.
+- `..adapter.inbound..` does not depend on `..adapter.outbound..`.
 - A `domain.<name>` package does not depend on another `domain.<name>` package, except
   `domain.shared`.
 - `domain.shared` contains only interfaces, data classes, enums and exceptions.
@@ -129,7 +135,7 @@ in a version that reads Java 25 bytecode)
 - Domain services throw domain errors and return domain types, never Mongo documents.
 
 **Prerequisite: end-to-end regression suite** (MLS-277), merged and green before the first migration PR
-is opened, and left unchanged by both migration PRs:
+is opened, and left unchanged by every migration PR:
 
 - `@SpringBootTest(classes = [MtLinkSprayApplication::class], webEnvironment = RANDOM_PORT)`
   with real HTTP calls and a real MongoDB started by flapdoodle through its Spring Boot 4
@@ -146,10 +152,10 @@ is opened, and left unchanged by both migration PRs:
   pages behind HTTP Basic.
 - Runs in `mvn verify` and in the CI workflow.
 - The `mt.link-spray.*` property names the suite sets (`e2e` profile, quota overrides) are part
-  of the contract: the `@ConfigurationProperties` of the second PR keep them, otherwise the suite
+  of the contract: the `@ConfigurationProperties` introduced in step 2 keep them, otherwise the suite
   would silently fall back to defaults (real object storage, installed binaries).
 
-**Migration** in two pull requests, each merged with `--squash` (the repository requires signed
+**Migration** in two steps, each pull request merged with `--squash` (the repository requires signed
 commits and linear history, so a rebase merge, which GitHub does not sign, cannot be used):
 
 1. Pure move: packages and imports only, behaviour and tests unchanged, with two exceptions
@@ -157,12 +163,27 @@ commits and linear history, so a rebase merge, which GitHub does not sign, canno
    registration of polymorphic types. Thymeleaf `T(...)` references are updated with it. Its squash commit goes into `.git-blame-ignore-revs`.
 2. Refactors: ports, domain types, domain errors, `ClientContext`, `@ConfigurationProperties`,
    removal of the interface + Impl pairs, of the dead `MtLinkSprayCollection*` code and of the
-   duplicated `namespaceOf()`. The ArchUnit rules land in this PR and must pass.
+   duplicated `namespaceOf()`.
+
+   Amended 2026-11-23 (MLS-276): step 2 is split into several pull requests instead of one, since
+   the first move left about 190 forbidden imports across 47 domain files. The ArchUnit rules land
+   first, wrapped in `FreezingArchRule`: the violations of that day are recorded in
+   `src/test/resources/archunit_store`, a new violation fails the build, and each following pull
+   request moves one domain (or a small group, `apikey` first since most domains depend on it) and
+   commits the shrunk store. A shared type of `domain/shared` lands with its first user, not ahead
+   of it. The last pull request removes the freeze once the store is empty, and the rules must then
+   pass unfrozen.
+   The `apikey` pull request folds the planned `Namespace` into `ApiCaller`, since callers need the
+   key id as well, and puts the password hasher in `domain/shared` rather than `apikey`, since
+   `paste` will use it too. The `paste` pull request introduces `ClientContext` with the IP address
+   only, the `signature` one adds the user agent; the IPv6 /64 and the base URL join it with their
+   first user. The
+   write-signature TTL index (creation with retry at startup) moves to the Mongo adapter.
 
 Before the release of each PR, a smoke run against the dev MongoDB (port 27019) with
 existing data checks that documents with the old `_class` values still load, that a stale
 checklist version returns 409, and that the `cron_runs` and write-signature TTL indexes are
-unchanged. `ViewRenderingTest` covers every public page, `/ocr` included. Both PRs are announced
+unchanged. `ViewRenderingTest` covers every public page, `/ocr` included. Each migration PR is announced
 to the parallel sessions working on the repository beforehand.
 
 ### Consequences

@@ -89,23 +89,8 @@ MarsTech Link Spray is a URL shortener and link management service built with:
 - Version format: `X.Y.Z` (e.g., `0.1.0`)
 
 ## Project Structure
-```
-src/main/kotlin/fr/marstech/mtlinkspray/
-├── conf/           # Spring configuration classes
-├── controller/     # REST controllers
-│   ├── api/        # API endpoints (@RestController)
-│   ├── view/       # Thymeleaf view controllers
-│   └── commons/    # Shared controller utilities
-├── dto/            # Request/response DTOs (never return entities from controllers)
-├── entity/         # MongoDB @Document classes
-├── enums/          # Enumerations
-├── exception/      # Custom exceptions + @ControllerAdvice handlers
-├── objects/        # Constants / singleton objects
-├── repository/     # Spring Data MongoDB repositories
-├── service/        # Service interfaces + Impl pairs
-├── utils/          # Pure utility functions
-└── validation/     # Custom JSR-380 validators
-```
+Hexagonal packages (ADR 0007): `domain/<feature>`, `adapter/inbound/{web,mcp}`, `adapter/outbound/{mongo,...}`,
+`config`. The package tree with what each holds is the **Codebase Map** in `AGENTS.md` (single source).
 
 ## Common Patterns in This Project
 
