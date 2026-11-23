@@ -44,6 +44,16 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `insert`) from a `ClientContext`. The admin abuse mail body is the `AbuseReport` summary (id, date,
   description, IP) instead of the full stored document
 
+### Fixed
+
+- Home page footer: the dead "From Marstech" link (marstech.fr no longer resolves) is now plain text (MLS-278)
+- Web app manifest: name, dark theme colors, `start_url`, and icon paths under `/assets/img/favicons/`
+  (they returned 404); `msapplication-TileColor` moves from the old orange to `#05070a` (MLS-278)
+- `bootstrap-icons.woff` (v1.11.3) vendored next to the `.woff2`: the stylesheet referenced it and got
+  a 404 (MLS-278)
+- Tool cards: a one-line description no longer drops to the bottom of a row stretched by a two-line
+  neighbour (MLS-278)
+
 ### Security
 
 - JSON request bodies are capped at 8 MiB (`mt.link-spray.json.max-body-bytes`) and answered 413 above it,
