@@ -1,5 +1,4 @@
 package fr.marstech.mtlinkspray.domain.nativetools
-import fr.marstech.mtlinkspray.adapter.inbound.web.nativetools.OcrResult
 import java.io.InputStream
 
 interface OcrService {

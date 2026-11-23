@@ -1,4 +1,5 @@
 package fr.marstech.mtlinkspray.domain.nativetools
+import fr.marstech.mtlinkspray.adapter.outbound.ratelimit.AnonymousQuota
 import fr.marstech.mtlinkspray.domain.shared.ApiKeyResolver
 import fr.marstech.mtlinkspray.domain.shared.PayloadTooLargeException
 import org.apache.pdfbox.pdmodel.PDDocument
@@ -61,8 +62,8 @@ class OcrServiceImplTest {
         maxPdfPixels: Long = 20_000_000,
         maxImagePixels: Long = 12_000_000,
     ) = OcrServiceImpl(
-        apiKeyResolver, NativeWorkPermit(), command, maxInputBytes, timeoutSeconds, anonymousQuota, anonymousWindowMillis, maxPdfPages, maxPdfPixels,
-        maxImagePixels,
+        apiKeyResolver, NativeWorkPermit(), AnonymousQuota("Anonymous OCR", anonymousQuota, anonymousWindowMillis),
+        command, maxInputBytes, timeoutSeconds, maxPdfPages, maxPdfPixels, maxImagePixels,
     )
 
     /** A PDF with one page per image, or blank pages when [images] is empty and [pages] is given. */

@@ -1,4 +1,5 @@
 package fr.marstech.mtlinkspray.adapter.inbound.web.nativetools
+import fr.marstech.mtlinkspray.domain.nativetools.OcrResult
 import fr.marstech.mtlinkspray.domain.nativetools.OcrService
 import fr.marstech.mtlinkspray.adapter.inbound.web.common.NetworkUtils
 import jakarta.servlet.http.HttpServletRequest

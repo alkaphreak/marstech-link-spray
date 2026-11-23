@@ -1,16 +1,14 @@
 package fr.marstech.mtlinkspray.domain.nativetools
-import fr.marstech.mtlinkspray.adapter.outbound.ratelimit.AnonymousQuota
 import fr.marstech.mtlinkspray.domain.shared.ApiKeyResolver
-import fr.marstech.mtlinkspray.domain.document.loadPdf
-import fr.marstech.mtlinkspray.adapter.inbound.web.nativetools.OcrResult
 import fr.marstech.mtlinkspray.domain.shared.PayloadTooLargeException
 import fr.marstech.mtlinkspray.domain.shared.ImageTypes
+import fr.marstech.mtlinkspray.domain.shared.QuotaPort
+import org.apache.pdfbox.Loader
+import org.apache.pdfbox.pdmodel.encryption.InvalidPasswordException
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.rendering.ImageType
 import org.apache.pdfbox.rendering.PDFRenderer
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE
-import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
 import java.io.ByteArrayOutputStream
 import java.io.IOException
@@ -30,21 +28,17 @@ import kotlin.math.max
  * A scanned PDF (MLS-253) is rendered page by page at 300 dpi in grey levels; at 15 s a page
  * on the prod instance (measured on v0.5.0), only [maxPdfPages] page fits in the timeout, which covers the whole request.
  */
-@Service
 class OcrServiceImpl(
     private val apiKeyResolver: ApiKeyResolver,
     private val running: NativeWorkPermit,
-    @Value("\${mt.link-spray.ocr.command:tesseract}") private val command: String,
-    @Value("\${mt.link-spray.ocr.max-input-bytes:10485760}") private val maxInputBytes: Int,
-    @Value("\${mt.link-spray.ocr.timeout-seconds:30}") private val timeoutSeconds: Long,
-    @Value("\${mt.link-spray.ocr.anonymous-quota:10}") anonymousQuota: Int,
-    @Value("\${mt.link-spray.ocr.anonymous-window-ms:3600000}") anonymousWindowMillis: Long,
-    @Value("\${mt.link-spray.ocr.max-pdf-pages:1}") private val maxPdfPages: Int,
-    @Value("\${mt.link-spray.ocr.max-pdf-pixels:20000000}") private val maxPdfPixels: Long,
-    @Value("\${mt.link-spray.ocr.max-image-pixels:12000000}") private val maxImagePixels: Long,
+    private val anonymous: QuotaPort,
+    private val command: String,
+    private val maxInputBytes: Int,
+    private val timeoutSeconds: Long,
+    private val maxPdfPages: Int,
+    private val maxPdfPixels: Long,
+    private val maxImagePixels: Long,
 ) : OcrService {
-
-    private val anonymous = AnonymousQuota("Anonymous OCR", anonymousQuota, anonymousWindowMillis)
 
     override fun recognize(rawApiKey: String?, clientIp: String?, image: InputStream, lang: String): OcrResult {
         // A "+" left unencoded in the query string arrives as a space
@@ -160,6 +154,15 @@ class OcrServiceImpl(
         } finally {
             Files.deleteIfExists(output)
         }
+    }
+
+    /** Same mapping as the `document` domain's loader, kept apart since domains share only `domain/shared`. */
+    private fun loadPdf(bytes: ByteArray): PDDocument = try {
+        Loader.loadPDF(bytes)
+    } catch (_: InvalidPasswordException) {
+        throw IllegalArgumentException("Password-protected PDFs are not supported")
+    } catch (_: IOException) {
+        throw IllegalArgumentException("Body is not a readable PDF")
     }
 
     private companion object {

@@ -1,4 +1,4 @@
-package fr.marstech.mtlinkspray.adapter.inbound.web.nativetools
+package fr.marstech.mtlinkspray.domain.nativetools
 /**
  * Text recognized in an image by the OCR API (MLS-252), with the Tesseract language(s) used.
  */

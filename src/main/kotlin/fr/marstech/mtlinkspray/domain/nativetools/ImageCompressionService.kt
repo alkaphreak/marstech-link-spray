@@ -1,11 +1,9 @@
 package fr.marstech.mtlinkspray.domain.nativetools
-import fr.marstech.mtlinkspray.adapter.outbound.ratelimit.AnonymousQuota
 import fr.marstech.mtlinkspray.domain.shared.ApiKeyResolver
 import fr.marstech.mtlinkspray.domain.shared.PayloadTooLargeException
 import fr.marstech.mtlinkspray.domain.shared.ImageTypes
-import org.springframework.beans.factory.annotation.Value
+import fr.marstech.mtlinkspray.domain.shared.QuotaPort
 import org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE
-import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
 import java.io.IOException
 import java.io.InputStream
@@ -32,22 +30,18 @@ class CompressedImage(val bytes: ByteArray, val mediaType: String, val compresse
  * to JPEG at 338 MB, but to PNG at 503 MB and 2.8 MP to PNG at 368 MB, hence 3 MP for PNG output.
  * A failed or timed-out encode returns the original image, flagged as not compressed.
  */
-@Service
 class ImageCompressionService(
     private val apiKeyResolver: ApiKeyResolver,
     private val permit: NativeWorkPermit,
-    @Value("\${mt.link-spray.img.cwebp-command:cwebp}") private val cwebp: String,
-    @Value("\${mt.link-spray.img.caesium-command:caesiumclt}") private val caesium: String,
-    @Value("\${mt.link-spray.img.max-input-bytes:10485760}") private val maxInputBytes: Int,
-    @Value("\${mt.link-spray.img.timeout-seconds:30}") private val timeoutSeconds: Long,
-    @Value("\${mt.link-spray.img.webp-max-pixels:8000000}") private val webpMaxPixels: Long,
-    @Value("\${mt.link-spray.img.jpeg-max-pixels:8000000}") private val jpegMaxPixels: Long,
-    @Value("\${mt.link-spray.img.png-max-pixels:3000000}") private val pngMaxPixels: Long,
-    @Value("\${mt.link-spray.img.anonymous-quota:20}") anonymousQuota: Int,
-    @Value("\${mt.link-spray.img.anonymous-window-ms:3600000}") anonymousWindowMillis: Long,
+    private val anonymous: QuotaPort,
+    private val cwebp: String,
+    private val caesium: String,
+    private val maxInputBytes: Int,
+    private val timeoutSeconds: Long,
+    private val webpMaxPixels: Long,
+    private val jpegMaxPixels: Long,
+    private val pngMaxPixels: Long,
 ) {
-
-    private val anonymous = AnonymousQuota("Anonymous image compression", anonymousQuota, anonymousWindowMillis)
 
     fun compress(
         rawApiKey: String?, clientIp: String?, image: InputStream, format: ImageFormat, quality: Int, maxDimension: Int?,

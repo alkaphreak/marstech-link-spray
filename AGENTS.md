@@ -55,7 +55,8 @@ src/main/kotlin/fr/marstech/mtlinkspray/
 │   ├── s3/ dns/ mail/ ratelimit/ scheduler/ web/  # DigitalOcean Spaces, JNDI DNS, SMTP, Bucket4j
 │   │               #   AnonymousQuota, CronConfig, ReservedPaths
 └── config/          # Security, CSP, rate limit, S3, JSON body cap, DocumentConfig (md2pdf/pdf2md
-                     #   services with their limits), MongoConfig (managed types for
+                     #   services with their limits), NativeToolsConfig (OCR and image compression
+                     #   services with their limits and quotas), MongoConfig (managed types for
                     #   @TypeAlias resolution of polymorphic items, ADR 0007)
 ```
 

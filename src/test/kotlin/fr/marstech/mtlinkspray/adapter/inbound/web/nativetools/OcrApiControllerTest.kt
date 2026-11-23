@@ -3,6 +3,7 @@ import fr.marstech.mtlinkspray.MtLinkSprayApplication
 import fr.marstech.mtlinkspray.config.SecurityConfig
 import fr.marstech.mtlinkspray.adapter.inbound.web.common.GlobalRestExceptionHandler
 import fr.marstech.mtlinkspray.domain.shared.PayloadTooLargeException
+import fr.marstech.mtlinkspray.domain.nativetools.OcrResult
 import fr.marstech.mtlinkspray.domain.nativetools.OcrService
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any

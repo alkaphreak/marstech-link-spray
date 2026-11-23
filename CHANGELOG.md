@@ -43,6 +43,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   loader instead of `ClassPathResource`; abuse reports stored through an `AbuseReportStore` port (Mongo
   `insert`) from a `ClientContext`. The admin abuse mail body is the `AbuseReport` summary (id, date,
   description, IP) instead of the full stored document
+- `nativetools` domain off Spring and adapters (MLS-276 step 2): OCR and image compression limits and
+  commands read by `NativeToolsConfig` instead of `@Value` in the services, anonymous quotas received
+  through a `QuotaPort` (`domain/shared`, implemented by `AnonymousQuota`), `OcrResult` in the domain,
+  and no dependency left on the `document` domain
 
 ### Fixed
 

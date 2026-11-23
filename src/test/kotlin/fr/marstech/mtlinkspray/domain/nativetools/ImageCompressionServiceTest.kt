@@ -1,4 +1,5 @@
 package fr.marstech.mtlinkspray.domain.nativetools
+import fr.marstech.mtlinkspray.adapter.outbound.ratelimit.AnonymousQuota
 import fr.marstech.mtlinkspray.domain.shared.PayloadTooLargeException
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -38,7 +39,10 @@ class ImageCompressionServiceTest {
         permit: NativeWorkPermit = NativeWorkPermit(),
         maxPixels: Long = 1_000,
         timeoutSeconds: Long = 5,
-    ) = ImageCompressionService(mock(), permit, cwebp, caesium, 1_000_000, timeoutSeconds, maxPixels, maxPixels, maxPixels, 10, 3_600_000)
+    ) = ImageCompressionService(
+        mock(), permit, AnonymousQuota("Anonymous image compression", 10, 3_600_000),
+        cwebp, caesium, 1_000_000, timeoutSeconds, maxPixels, maxPixels, maxPixels,
+    )
 
     private fun ImageCompressionService.compress(format: ImageFormat, bytes: ByteArray = png) =
         compress(null, "1.2.3.4", bytes.inputStream(), format, 75, null)
