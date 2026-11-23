@@ -1,10 +1,10 @@
-<!--/*@thymesVar id="viewNameEnum" type="fr.marstech.mtlinkspray.enums.ViewNameEnum"*/-->
+<!--/*@thymesVar id="viewNameEnum" type="fr.marstech.mtlinkspray.adapter.inbound.web.common.ViewNameEnum"*/-->
 <!DOCTYPE html>
 <html data-bs-theme="dark" lang="en" xmlns:th="http://www.thymeleaf.org">
 <head th:fragment="html-head">
     <meta charset="UTF-8">
     <meta content="width=device-width, initial-scale=1" name="viewport">
-    <title th:text="${T(fr.marstech.mtlinkspray.objects.CommonConfs).SITE_TITLE}">Marstech - Link Spray</title>
+    <title th:text="${T(fr.marstech.mtlinkspray.adapter.inbound.web.common.CommonConfs).SITE_TITLE}">Marstech - Link Spray</title>
 
     <!-- Bootstrap Icons 1.11.3, vendored (MLS-271): same file as the former CDN link (sha384 checked) -->
     <link href="../static/assets/vendor/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet"
@@ -57,7 +57,7 @@
     <!-- Below 992px the tools collapse into a vertical menu behind the burger (MarsTech-Skin data-collapsible) -->
     <nav aria-label="Tools" class="mt-menu" data-collapsible id="site-menu">
         <ul class="container">
-            <li th:each="view : ${T(fr.marstech.mtlinkspray.enums.ViewNameEnum).inMenu()}">
+            <li th:each="view : ${T(fr.marstech.mtlinkspray.adapter.inbound.web.common.ViewNameEnum).inMenu()}">
                 <a th:attr="aria-current=${null != viewNameEnum && viewNameEnum.name() == view.name()} ? 'page' : null"
                    th:href="@{'/' + ${view.getViewName()}}"
                    th:text="${view.getViewPage()}">Tool</a>
@@ -68,7 +68,7 @@
 
 <main class="container home" id="main">
     <div class="home-head">
-        <span class="mt-label" th:text="${T(fr.marstech.mtlinkspray.objects.CommonConfs).SITE_TITLE}">Marstech - Link Spray</span>
+        <span class="mt-label" th:text="${T(fr.marstech.mtlinkspray.adapter.inbound.web.common.CommonConfs).SITE_TITLE}">Marstech - Link Spray</span>
         <h1>Open multiple URLs in one click.</h1>
         <p>Shorten URLs, share pastes, generate ids and many more. From Marstech for public use.</p>
         <div class="actions">
@@ -79,7 +79,7 @@
     <h2 class="mt-label">Tools</h2>
     <div class="tools" id="tool-grid">
         <a class="tool-card mt-clip" th:classappend="${iter.first} ? 'is-main'"
-           th:each="view, iter : ${T(fr.marstech.mtlinkspray.enums.ViewNameEnum).inMenu()}"
+           th:each="view, iter : ${T(fr.marstech.mtlinkspray.adapter.inbound.web.common.ViewNameEnum).inMenu()}"
            th:href="@{'/' + ${view.getViewName()}}">
             <strong th:text="${view.getViewPage()}">Tool</strong>
             <span th:text="${view.getDescription()}">What the tool does.</span>
@@ -93,10 +93,10 @@
             <li>From <a href="https://marstech.fr/">Marstech</a> for public use, since 2021</li>
             <li>Created by <a href="https://cv.marstech.fr/" target="_blank">Stéphane ROBIN</a></li>
             <li><a href="https://github.com/alkaphreak/marstech-link-spray" target="_blank">github/marstech-link-spray</a></li>
-            <li th:with="view=${T(fr.marstech.mtlinkspray.enums.ViewNameEnum).PRIVACY}">
+            <li th:with="view=${T(fr.marstech.mtlinkspray.adapter.inbound.web.common.ViewNameEnum).PRIVACY}">
                 <a th:href="@{'/'+${view.getViewName()}}">Privacy</a>
             </li>
-            <li th:with="view=${T(fr.marstech.mtlinkspray.enums.ViewNameEnum).ABUSE}">
+            <li th:with="view=${T(fr.marstech.mtlinkspray.adapter.inbound.web.common.ViewNameEnum).ABUSE}">
                 <a th:href="@{'/'+${view.getViewName()}}">Abuse report</a>
             </li>
             <li class="mt-meta">Version <span th:text="${@rootApiController.version}">App version</span></li>

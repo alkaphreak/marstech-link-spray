@@ -1,0 +1,29 @@
+package fr.marstech.mtlinkspray.adapter.inbound.web.paste
+import fr.marstech.mtlinkspray.adapter.outbound.mongo.paste.PasteEntity
+import java.time.LocalDateTime
+
+data class PasteResponse(
+    val id: String,
+    val title: String?,
+    val content: String,
+    val language: String,
+    val createdAt: LocalDateTime,
+    val expiresAt: LocalDateTime?,
+    val isPrivate: Boolean,
+    val isPasswordProtected: Boolean,
+) {
+    companion object {
+        fun fromEntity(pasteEntity: PasteEntity): PasteResponse {
+            return PasteResponse(
+                id = pasteEntity.id,
+                title = pasteEntity.title,
+                content = pasteEntity.content,
+                language = pasteEntity.language.name,
+                createdAt = pasteEntity.creationDate,
+                expiresAt = pasteEntity.expiresAt,
+                isPrivate = pasteEntity.isPrivate,
+                isPasswordProtected = pasteEntity.isPasswordProtected,
+            )
+        }
+    }
+}

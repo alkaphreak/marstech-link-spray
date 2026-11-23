@@ -34,36 +34,23 @@
 
 ```
 src/main/kotlin/fr/marstech/mtlinkspray/
-├── conf/           # Spring configuration (SecurityConfig, ValidationConfig, S3Config, etc.),
-│                   #   JsonBodySizeLimitFilter: 413 above mt.link-spray.json.max-body-bytes, /mcp above
-│                   #   json.mcp-max-body-bytes (buffered there, streamed elsewhere) (MLS-272)
-├── controller/
-│   ├── api/        # REST API endpoints (ShortenerApiController, SprayApiController,
-│   │               #   PasteApiController, DashboardApiController, ImageApiController,
-│   │               #   UuidApiController, RandomNumberApiController, SleepApiController, RootApiController,
-│   │               #   Md2PdfApiController, Pdf2MdApiController, OcrApiController, CronJobApiController,
-│   │               #   ChecklistApiController)
-│   ├── view/       # Thymeleaf view controllers (incl. AdminApiKeyViewController)
-│   └── commons/    # Shared controller utilities
-├── dto/            # Request/response DTOs (PasteRequest, PasteResponse, DashboardDto,
-│                   #   ImageUploadResponse, ImageMetadataDto, ApiKeyCreationResult, …)
-├── entity/         # MongoDB documents (LinkItem, LinkItemTarget, PasteEntity,
-│                   #   AbuseReportEntity, DashboardEntity, ApiKeyEntity, ImageEntity, …)
-├── enums/          # Enumerations
-├── exception/      # Custom exceptions + @ControllerAdvice handlers
-├── mcp/            # MCP server tools on /mcp (Sol4McpTools, MLS-266, ADR 0004)
-├── objects/        # Constant/static objects
-├── repository/     # Spring Data MongoDB repos (LinkItemRepository, PasteRepository,
-│                   #   DashboardRepository, AbuseReportRepository, ApiKeyRepository,
-│                   #   ImageRepository, …)
-├── service/        # Interfaces + Impl pairs (ShortenerService/Impl, SprayService/Impl,
-│                   #   PasteService/Impl, DashboardService/Impl, MailSenderService/Impl,
-│                   #   ReportAbuseService/Impl, RandomIdGeneratorService/Impl,
-│                   #   ImageService/Impl, ApiKeyService/Impl, ImageStorageService +
-│                   #   DigitalOceanSpacesServiceImpl, MarkdownToPdfService/Impl,
-│                   #   PdfToMarkdownService/Impl, …)
-├── utils/          # Utility functions
-└── validation/     # Custom validators
+├── MtLinkSprayApplication.kt
+├── domain/<name>/   # Services, per feature (ADR 0007): shortener (+ spray, random ids, bot UAs),
+│                   #   paste, dashboard, image, nativetools (OCR, compression, NativeWorkPermit),
+│                   #   document (md2pdf, pdf2md), checklist, cron (+ CronJobValidator), apikey,
+│                   #   abuse, signature, devtools (DNS, IP, QR, random number, sleep cycles)
+├── domain/shared/   # PayloadTooLargeException, ImageTypes, MailSenderService
+├── adapter/inbound/
+│   ├── web/<name>/  # REST + Thymeleaf controllers and their DTOs, per domain
+│   ├── web/common/  # Exception handlers, ViewNameEnum, CommonConfs, NetworkUtils, URL validators,
+│   │               #   root/privacy pages, RootApiController
+│   └── mcp/         # MCP server tools on /mcp (Sol4McpTools, MLS-266, ADR 0004)
+├── adapter/outbound/
+│   ├── mongo/<name>/ # @Document classes (with @TypeAlias = pre-move class name) and repositories
+│   ├── s3/ dns/ mail/ ratelimit/ scheduler/ web/  # DigitalOcean Spaces, JNDI DNS, SMTP, Bucket4j
+│   │               #   AnonymousQuota, CronConfig, ReservedPaths
+└── config/          # Security, CSP, rate limit, S3, JSON body cap, MongoConfig (managed types for
+                    #   @TypeAlias resolution of polymorphic items, ADR 0007)
 ```
 
 **Key entry points**:
