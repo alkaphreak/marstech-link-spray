@@ -1,5 +1,7 @@
 package fr.marstech.mtlinkspray.adapter.inbound.web.image
+import fr.marstech.mtlinkspray.adapter.inbound.web.common.NetworkUtils.clientContext
 import fr.marstech.mtlinkspray.domain.image.ImageService
+import fr.marstech.mtlinkspray.domain.image.ImageUpload
 import fr.marstech.mtlinkspray.domain.shared.ImageTypes
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.HttpHeaders.CACHE_CONTROL
@@ -30,13 +32,13 @@ class ImageApiController(private val imageService: ImageService) {
         @RequestParam(defaultValue = "false") isPrivate: Boolean,
         httpServletRequest: HttpServletRequest,
     ): ResponseEntity<ImageUploadResponse> =
-        imageService.uploadImage(apiKey, file, isPrivate, httpServletRequest)
-            .let { ResponseEntity.status(HttpStatus.CREATED).body(ImageUploadResponse.fromEntity(it)) }
+        imageService.uploadImage(apiKey, ImageUpload(file.originalFilename, file.size, file::getInputStream), isPrivate, clientContext(httpServletRequest))
+            .let { ResponseEntity.status(HttpStatus.CREATED).body(ImageUploadResponse.from(it)) }
 
     @GetMapping
     fun listImages(@RequestHeader("X-Api-Key") apiKey: String?): ResponseEntity<List<ImageMetadataDto>> =
         imageService.listImages(apiKey)
-            .map { ImageMetadataDto.fromEntity(it) }
+            .map { ImageMetadataDto.from(it) }
             .let { ResponseEntity.ok(it) }
 
     @GetMapping("/{id}")

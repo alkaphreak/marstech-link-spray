@@ -1,34 +1,32 @@
 package fr.marstech.mtlinkspray.domain.image
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.image.ImageEntity
-import jakarta.servlet.http.HttpServletRequest
-import org.springframework.web.multipart.MultipartFile
+import fr.marstech.mtlinkspray.domain.shared.ClientContext
 import java.io.InputStream
 
 interface ImageService {
     /**
-     * Uploads [file] on behalf of the app identified by [rawApiKey]. Throws
+     * Uploads [upload] on behalf of the app identified by [rawApiKey]. Throws
      * [IllegalAccessException] if the API key is invalid, [IllegalArgumentException] if the file
      * is missing/empty or exceeds the maximum allowed size.
      */
     fun uploadImage(
         rawApiKey: String?,
-        file: MultipartFile,
+        upload: ImageUpload,
         isPrivate: Boolean,
-        httpServletRequest: HttpServletRequest,
-    ): ImageEntity
+        client: ClientContext,
+    ): Image
 
     /**
      * Retrieves the metadata for [id], enforcing visibility rules: public images are always
      * readable, private images require a valid [rawApiKey] matching the owning app.
      * Throws [NoSuchElementException] if not found, [IllegalAccessException] for a missing or invalid key, 403 [org.springframework.web.server.ResponseStatusException] for another app's private image.
      */
-    fun getImage(id: String, rawApiKey: String?): ImageEntity
+    fun getImage(id: String, rawApiKey: String?): Image
 
     /**
      * Streams the binary content of image [id], enforcing the same visibility rules as
      * [getImage].
      */
-    fun downloadImage(id: String, rawApiKey: String?): Pair<ImageEntity, InputStream>
+    fun downloadImage(id: String, rawApiKey: String?): Pair<Image, InputStream>
 
     /**
      * Deletes image [id]. Only the owning app (via [rawApiKey]) may delete its own images.
@@ -38,5 +36,5 @@ interface ImageService {
     /**
      * Lists all images belonging to the app identified by [rawApiKey].
      */
-    fun listImages(rawApiKey: String?): List<ImageEntity>
+    fun listImages(rawApiKey: String?): List<Image>
 }

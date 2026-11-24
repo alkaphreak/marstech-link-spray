@@ -4,12 +4,16 @@ import org.springframework.http.HttpStatus.FORBIDDEN
 import fr.marstech.mtlinkspray.MtLinkSprayApplication
 import fr.marstech.mtlinkspray.config.SecurityConfig
 import fr.marstech.mtlinkspray.adapter.inbound.web.common.GlobalRestExceptionHandler
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.shared.HistoryItem
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.image.ImageEntity
+import fr.marstech.mtlinkspray.domain.image.Image
 import fr.marstech.mtlinkspray.domain.image.ImageService
+import fr.marstech.mtlinkspray.domain.image.ImageUpload
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.verify
+import kotlin.test.assertEquals
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
 import org.springframework.context.annotation.Import
@@ -37,15 +41,15 @@ class ImageApiControllerTest {
     private fun givenImage(
         id: String = "img-1",
         isPrivate: Boolean = false,
-    ): ImageEntity = ImageEntity(
+    ): Image = Image(
         id = id,
         apiKeyId = "apikey-1",
-        s3Key = "maeva-app-1/2026/07/$id.jpg",
+        storageKey = "maeva-app-1/2026/07/$id.jpg",
         originalFilename = "photo.jpg",
         contentType = "image/jpeg",
         sizeBytes = 1234L,
         isPrivate = isPrivate,
-        author = HistoryItem(ipAddress = "127.0.0.1", action = "UPLOAD_IMAGE"),
+        authorIpAddress = "127.0.0.1",
     )
 
     @Test
@@ -63,6 +67,14 @@ class ImageApiControllerTest {
             .andExpect(jsonPath("$.originalFilename").value("photo.jpg"))
             .andExpect(jsonPath("$.contentType").value("image/jpeg"))
             .andExpect(jsonPath("$.isPrivate").value(false))
+            .andExpect(jsonPath("$.sizeBytes").value(image.sizeBytes))
+            .andExpect(jsonPath("$.creationDate").exists())
+
+        val upload = argumentCaptor<ImageUpload>()
+        verify(imageService).uploadImage(eq("key123.secret"), upload.capture(), eq(false), any())
+        assertEquals("photo.jpg", upload.firstValue.originalFilename)
+        assertEquals(10L, upload.firstValue.sizeBytes)
+        assertEquals("fake-bytes", upload.firstValue.content().readAllBytes().decodeToString())
     }
 
     @Test

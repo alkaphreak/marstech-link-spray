@@ -1,5 +1,5 @@
 package fr.marstech.mtlinkspray.adapter.inbound.web.image
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.image.ImageEntity
+import fr.marstech.mtlinkspray.domain.image.Image
 import java.time.LocalDateTime
 
 /**
@@ -14,13 +14,13 @@ data class ImageUploadResponse(
     val creationDate: LocalDateTime,
 ) {
     companion object {
-        fun fromEntity(entity: ImageEntity): ImageUploadResponse = ImageUploadResponse(
-            id = entity.id,
-            originalFilename = entity.originalFilename,
-            contentType = entity.contentType,
-            sizeBytes = entity.sizeBytes,
-            isPrivate = entity.isPrivate,
-            creationDate = entity.creationDate,
+        fun from(image: Image): ImageUploadResponse = ImageUploadResponse(
+            id = image.id,
+            originalFilename = image.originalFilename,
+            contentType = image.contentType,
+            sizeBytes = image.sizeBytes,
+            isPrivate = image.isPrivate,
+            creationDate = image.creationDate,
         )
     }
 }
