@@ -3,6 +3,7 @@ package fr.marstech.mtlinkspray.adapter.outbound.mongo.image
 import org.springframework.data.annotation.TypeAlias
 import fr.marstech.mtlinkspray.adapter.outbound.mongo.shared.HistoryItem
 import fr.marstech.mtlinkspray.adapter.outbound.mongo.shared.StandardEntity
+import fr.marstech.mtlinkspray.domain.image.Image
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.index.Indexed
 import org.springframework.data.mongodb.core.mapping.Document
@@ -33,4 +34,33 @@ data class ImageEntity(
     val contentType: String,
     val sizeBytes: Long,
     val isPrivate: Boolean = false,
-) : StandardEntity
+) : StandardEntity {
+
+    fun toDomain() = Image(
+        id = id,
+        creationDate = creationDate,
+        apiKeyId = apiKeyId,
+        storageKey = s3Key,
+        originalFilename = originalFilename,
+        contentType = contentType,
+        sizeBytes = sizeBytes,
+        isPrivate = isPrivate,
+        authorIpAddress = author.ipAddress,
+    )
+
+    companion object {
+        fun of(image: Image) = with(image) {
+            ImageEntity(
+                id = id,
+                creationDate = creationDate,
+                author = HistoryItem(ipAddress = authorIpAddress, action = "UPLOAD_IMAGE"),
+                apiKeyId = apiKeyId,
+                s3Key = storageKey,
+                originalFilename = originalFilename,
+                contentType = contentType,
+                sizeBytes = sizeBytes,
+                isPrivate = isPrivate,
+            )
+        }
+    }
+}

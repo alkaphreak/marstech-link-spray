@@ -48,6 +48,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `@Value` in the services, anonymous quotas received
   through a `QuotaPort` (`domain/shared`, implemented by `AnonymousQuota`), `OcrResult` in the domain,
   and no dependency left on the `document` domain
+- `image` domain on ports (MLS-276 step 2): `Image` model and `ImageStore` port (Mongo adapter, `insert`),
+  uploads received as an `ImageUpload` (file name, size, content) and a `ClientContext` instead of
+  `MultipartFile` and `HttpServletRequest`, upload size limit read by `ImageConfig`; stored images unchanged
 
 ### Fixed
 

@@ -2,69 +2,56 @@ package fr.marstech.mtlinkspray.domain.image
 import fr.marstech.mtlinkspray.domain.shared.ApiKeyResolver
 import org.springframework.web.server.ResponseStatusException
 import org.springframework.http.HttpStatus.FORBIDDEN
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.shared.HistoryItem
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.image.ImageEntity
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.image.ImageRepository
+import fr.marstech.mtlinkspray.domain.shared.ClientContext
 import fr.marstech.mtlinkspray.domain.shared.ImageTypes
-import fr.marstech.mtlinkspray.adapter.inbound.web.common.NetworkUtils
-import jakarta.servlet.http.HttpServletRequest
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.stereotype.Service
-import org.springframework.web.multipart.MultipartFile
 import java.io.InputStream
 
-@Service
 class ImageServiceImpl(
-    private val imageRepository: ImageRepository,
+    private val imageStore: ImageStore,
     private val apiKeyResolver: ApiKeyResolver,
     private val imageStorageService: ImageStorageService,
-    @Value("\${mt.link-spray.storage.max-file-size-bytes:26214400}") private val maxFileSizeBytes: Long,
+    private val maxFileSizeBytes: Long,
 ) : ImageService {
 
     override fun uploadImage(
         rawApiKey: String?,
-        file: MultipartFile,
+        upload: ImageUpload,
         isPrivate: Boolean,
-        httpServletRequest: HttpServletRequest,
-    ): ImageEntity {
+        client: ClientContext,
+    ): Image {
         val apiKey = apiKeyResolver.resolve(rawApiKey)
 
-        if (file.isEmpty) throw IllegalArgumentException("Uploaded file is empty")
-        if (file.size > maxFileSizeBytes) {
-            throw IllegalArgumentException(
-                "File size ${file.size} bytes exceeds the maximum allowed size of $maxFileSizeBytes bytes"
-            )
+        require(upload.sizeBytes != 0L) { "Uploaded file is empty" }
+        require(upload.sizeBytes <= maxFileSizeBytes) {
+            "File size ${upload.sizeBytes} bytes exceeds the maximum allowed size of $maxFileSizeBytes bytes"
         }
 
-        val filename = file.originalFilename?.takeIf { it.isNotBlank() } ?: "upload"
-        val bytes = file.bytes
+        val filename = upload.originalFilename?.takeIf { it.isNotBlank() } ?: "upload"
+        val bytes = upload.content().use { it.readAllBytes() }
         val contentType = ImageTypes.detect(bytes) ?: throw IllegalArgumentException(
             "Unsupported file type: only ${ImageTypes.ALLOWED.joinToString()} are accepted"
         )
         val storageKey = imageStorageService.upload(apiKey.namespace, filename, contentType, bytes)
 
-        return imageRepository.save(
-            ImageEntity(
+        return imageStore.create(
+            Image(
                 apiKeyId = apiKey.apiKeyId,
-                s3Key = storageKey,
+                storageKey = storageKey,
                 originalFilename = filename,
                 contentType = contentType,
-                sizeBytes = file.size,
+                sizeBytes = upload.sizeBytes,
                 isPrivate = isPrivate,
-                author = HistoryItem(
-                    ipAddress = NetworkUtils.getIpAddress(httpServletRequest),
-                    action = "UPLOAD_IMAGE"
-                ),
+                authorIpAddress = client.ipAddress,
             )
         )
     }
 
-    override fun getImage(id: String, rawApiKey: String?): ImageEntity =
+    override fun getImage(id: String, rawApiKey: String?): Image =
         findImage(id).also { checkAccess(it, rawApiKey) }
 
-    override fun downloadImage(id: String, rawApiKey: String?): Pair<ImageEntity, InputStream> {
+    override fun downloadImage(id: String, rawApiKey: String?): Pair<Image, InputStream> {
         val image = getImage(id, rawApiKey)
-        return image to imageStorageService.download(image.s3Key)
+        return image to imageStorageService.download(image.storageKey)
     }
 
     override fun deleteImage(id: String, rawApiKey: String?) {
@@ -72,23 +59,23 @@ class ImageServiceImpl(
         val image = findImage(id)
         if (image.apiKeyId != apiKey.apiKeyId) throw ResponseStatusException(FORBIDDEN, "Not authorized to delete this image")
 
-        imageStorageService.delete(image.s3Key)
-        imageRepository.deleteById(id)
+        imageStorageService.delete(image.storageKey)
+        imageStore.deleteById(id)
     }
 
-    override fun listImages(rawApiKey: String?): List<ImageEntity> {
+    override fun listImages(rawApiKey: String?): List<Image> {
         val apiKey = apiKeyResolver.resolve(rawApiKey)
-        return imageRepository.findByApiKeyId(apiKey.apiKeyId)
+        return imageStore.findByApiKeyId(apiKey.apiKeyId)
     }
 
-    private fun findImage(id: String): ImageEntity =
-        imageRepository.findById(id).orElseThrow { NoSuchElementException("Image $id not found") }
+    private fun findImage(id: String): Image =
+        imageStore.findById(id) ?: throw NoSuchElementException("Image $id not found")
 
     /**
      * Public images are readable by anyone; private images require a valid API key matching
      * the owning app.
      */
-    private fun checkAccess(image: ImageEntity, rawApiKey: String?) {
+    private fun checkAccess(image: Image, rawApiKey: String?) {
         if (!image.isPrivate) return
         val apiKey = apiKeyResolver.resolve(rawApiKey)
         if (image.apiKeyId != apiKey.apiKeyId) throw ResponseStatusException(FORBIDDEN, "Not authorized to access this image")

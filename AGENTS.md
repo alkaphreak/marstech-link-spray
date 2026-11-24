@@ -56,7 +56,8 @@ src/main/kotlin/fr/marstech/mtlinkspray/
 │   │               #   AnonymousQuota, CronConfig, ReservedPaths
 └── config/          # Security, CSP, rate limit, S3, JSON body cap, DocumentConfig (md2pdf/pdf2md
                      #   services with their limits), NativeToolsConfig (OCR and image compression
-                     #   services with their limits and quotas), MongoConfig (managed types for
+                     #   services with their limits and quotas), ImageConfig (image upload limit),
+                     #   MongoConfig (managed types for
                     #   @TypeAlias resolution of polymorphic items, ADR 0007)
 ```
 
@@ -67,7 +68,7 @@ src/main/kotlin/fr/marstech/mtlinkspray/
 - `SprayApiController` → `SprayService` — multi-URL spray
 - `PasteApiController` → `PasteService` → `PasteStore` (`MongoPasteStore` → `PasteRepository`) — paste CRUD
 - `DashboardApiController` → `DashboardService` — collection management
-- `ImageApiController` → `ImageService` → `ImageStorageService` (`DigitalOceanSpacesServiceImpl`) — image storage (MLS-203)
+- `ImageApiController` → `ImageService` → `ImageStore` (`MongoImageStore`) and `ImageStorageService` (`DigitalOceanSpacesServiceImpl`) — image storage (MLS-203)
 - `AdminApiKeyViewController` → `ApiKeyService` → `ApiKeyStore` (`MongoApiKeyStore` → `ApiKeyRepository`) — admin page to create/list/enable-disable per-app API keys (`/admin/api-keys`, HTTP Basic protected)
 - `Md2PdfApiController` → `MarkdownToPdfService` — raw Markdown body to PDF, `X-Api-Key` (MLS-223)
 - `Pdf2MdApiController` → `PdfToMarkdownService` — raw PDF body to Markdown (PDFBox), `X-Api-Key` (MLS-196)
