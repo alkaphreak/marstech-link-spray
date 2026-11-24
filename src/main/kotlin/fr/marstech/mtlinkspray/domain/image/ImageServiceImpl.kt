@@ -21,11 +21,9 @@ class ImageServiceImpl(
     ): Image {
         val apiKey = apiKeyResolver.resolve(rawApiKey)
 
-        if (upload.sizeBytes == 0L) throw IllegalArgumentException("Uploaded file is empty")
-        if (upload.sizeBytes > maxFileSizeBytes) {
-            throw IllegalArgumentException(
-                "File size ${upload.sizeBytes} bytes exceeds the maximum allowed size of $maxFileSizeBytes bytes"
-            )
+        require(upload.sizeBytes != 0L) { "Uploaded file is empty" }
+        require(upload.sizeBytes <= maxFileSizeBytes) {
+            "File size ${upload.sizeBytes} bytes exceeds the maximum allowed size of $maxFileSizeBytes bytes"
         }
 
         val filename = upload.originalFilename?.takeIf { it.isNotBlank() } ?: "upload"
