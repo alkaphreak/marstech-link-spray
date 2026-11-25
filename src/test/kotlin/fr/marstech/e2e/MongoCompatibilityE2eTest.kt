@@ -117,6 +117,9 @@ internal class MongoCompatibilityE2eTest : E2eTest() {
         index("cron_runs", "jobId_1_startedAt_-1")
         assertEquals(31_536_000L, (index("mt-link-spray-write-signatures", "createdAt_1")["expireAfterSeconds"] as Number).toLong())
 
+        index("checklist_templates", "namespace_1")
+        listOf("namespace_1", "namespace_1_templateId_1", "namespace_1_context_1").forEach { index("checklist_instances", it) }
+
         val slug = index("mt-link-spray-dashboard-entity", "slug_1")
         assertEquals(true, slug["unique"])
         assertEquals(true, slug["sparse"])

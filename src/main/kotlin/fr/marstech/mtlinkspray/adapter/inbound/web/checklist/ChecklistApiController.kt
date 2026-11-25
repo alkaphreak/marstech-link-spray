@@ -34,25 +34,25 @@ class ChecklistApiController(private val checklistService: ChecklistService) {
         @RequestHeader(API_KEY, required = false) apiKey: String?,
         @Valid @RequestBody request: ChecklistTemplateRequest,
     ): ResponseEntity<ChecklistTemplateDto> =
-        ResponseEntity.status(HttpStatus.CREATED).body(ChecklistTemplateDto.fromEntity(checklistService.createTemplate(apiKey, request)))
+        ResponseEntity.status(HttpStatus.CREATED).body(ChecklistTemplateDto.from(checklistService.createTemplate(apiKey, request.toDraft())))
 
     @GetMapping("/templates")
     fun listTemplates(
         @RequestHeader(API_KEY, required = false) apiKey: String?,
         @RequestParam(defaultValue = "0") @Min(0) page: Int,
         @RequestParam(defaultValue = "20") @Min(1) @Max(100) size: Int,
-    ): List<ChecklistTemplateDto> = checklistService.listTemplates(apiKey, page, size).map(ChecklistTemplateDto::fromEntity)
+    ): List<ChecklistTemplateDto> = checklistService.listTemplates(apiKey, page, size).map(ChecklistTemplateDto::from)
 
     @GetMapping(TEMPLATE_PATH)
     fun getTemplate(@RequestHeader(API_KEY, required = false) apiKey: String?, @PathVariable id: String): ChecklistTemplateDto =
-        ChecklistTemplateDto.fromEntity(checklistService.getTemplate(apiKey, id))
+        ChecklistTemplateDto.from(checklistService.getTemplate(apiKey, id))
 
     @PutMapping(TEMPLATE_PATH)
     fun updateTemplate(
         @RequestHeader(API_KEY, required = false) apiKey: String?,
         @PathVariable id: String,
         @Valid @RequestBody request: ChecklistTemplateRequest,
-    ): ChecklistTemplateDto = ChecklistTemplateDto.fromEntity(checklistService.updateTemplate(apiKey, id, request))
+    ): ChecklistTemplateDto = ChecklistTemplateDto.from(checklistService.updateTemplate(apiKey, id, request.toDraft()))
 
     @DeleteMapping(TEMPLATE_PATH)
     fun deleteTemplate(@RequestHeader(API_KEY, required = false) apiKey: String?, @PathVariable id: String): ResponseEntity<Void> {
@@ -65,7 +65,7 @@ class ChecklistApiController(private val checklistService: ChecklistService) {
         @RequestHeader(API_KEY, required = false) apiKey: String?,
         @Valid @RequestBody request: ChecklistInstanceRequest,
     ): ResponseEntity<ChecklistInstanceDto> =
-        ResponseEntity.status(HttpStatus.CREATED).body(ChecklistInstanceDto.fromEntity(checklistService.createInstance(apiKey, request)))
+        ResponseEntity.status(HttpStatus.CREATED).body(ChecklistInstanceDto.from(checklistService.createInstance(apiKey, request.templateId, request.context)))
 
     @GetMapping("/instances")
     fun listInstances(
@@ -75,11 +75,11 @@ class ChecklistApiController(private val checklistService: ChecklistService) {
         @RequestParam(defaultValue = "0") @Min(0) page: Int,
         @RequestParam(defaultValue = "20") @Min(1) @Max(100) size: Int,
     ): List<ChecklistInstanceDto> =
-        checklistService.listInstances(apiKey, templateId, context, page, size).map(ChecklistInstanceDto::fromEntity)
+        checklistService.listInstances(apiKey, templateId, context, page, size).map(ChecklistInstanceDto::from)
 
     @GetMapping(INSTANCE_PATH)
     fun getInstance(@RequestHeader(API_KEY, required = false) apiKey: String?, @PathVariable id: String): ChecklistInstanceDto =
-        ChecklistInstanceDto.fromEntity(checklistService.getInstance(apiKey, id))
+        ChecklistInstanceDto.from(checklistService.getInstance(apiKey, id))
 
     @DeleteMapping(INSTANCE_PATH)
     fun deleteInstance(@RequestHeader(API_KEY, required = false) apiKey: String?, @PathVariable id: String): ResponseEntity<Void> {
@@ -94,5 +94,5 @@ class ChecklistApiController(private val checklistService: ChecklistService) {
         @PathVariable itemId: String,
         @Valid @RequestBody request: ChecklistItemStatusRequest,
     ): ChecklistInstanceDto =
-        ChecklistInstanceDto.fromEntity(checklistService.updateItemStatus(apiKey, id, itemId, request.status!!))
+        ChecklistInstanceDto.from(checklistService.updateItemStatus(apiKey, id, itemId, request.status!!))
 }

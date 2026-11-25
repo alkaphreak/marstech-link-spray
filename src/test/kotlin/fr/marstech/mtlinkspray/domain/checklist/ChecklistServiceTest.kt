@@ -1,15 +1,12 @@
 package fr.marstech.mtlinkspray.domain.checklist
 import fr.marstech.mtlinkspray.domain.shared.ApiKeyResolver
 import com.mongodb.client.result.UpdateResult
-import fr.marstech.mtlinkspray.adapter.inbound.web.checklist.ChecklistInstanceRequest
-import fr.marstech.mtlinkspray.adapter.inbound.web.checklist.ChecklistItemRequest
-import fr.marstech.mtlinkspray.adapter.inbound.web.checklist.ChecklistTemplateRequest
 import fr.marstech.mtlinkspray.domain.shared.ApiCaller
 import fr.marstech.mtlinkspray.adapter.outbound.mongo.checklist.ChecklistInstanceEntity
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.checklist.ChecklistInstanceItem
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.checklist.ChecklistItemStatus
+import fr.marstech.mtlinkspray.adapter.outbound.mongo.checklist.ChecklistInstanceItemEntity
 import fr.marstech.mtlinkspray.adapter.outbound.mongo.checklist.ChecklistTemplateEntity
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.checklist.ChecklistTemplateItem
+import fr.marstech.mtlinkspray.adapter.outbound.mongo.checklist.ChecklistTemplateItemEntity
+import fr.marstech.mtlinkspray.adapter.outbound.mongo.checklist.MongoChecklistStore
 import fr.marstech.mtlinkspray.adapter.outbound.mongo.checklist.ChecklistInstanceRepository
 import fr.marstech.mtlinkspray.adapter.outbound.mongo.checklist.ChecklistTemplateRepository
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -27,7 +24,6 @@ import org.mockito.kotlin.whenever
 import org.springframework.dao.OptimisticLockingFailureException
 import org.springframework.data.domain.Pageable
 import org.springframework.data.mongodb.core.MongoTemplate
-import org.springframework.data.mongodb.core.index.IndexOperations
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.Update
 import org.springframework.http.HttpStatus
@@ -45,29 +41,29 @@ class ChecklistServiceTest {
     private val key = ApiCaller(apiKeyId = "key-1", namespace = "ns")
     private val template = ChecklistTemplateEntity(
         id = "tpl-1", namespace = "ns", title = "Trip",
-        items = listOf(ChecklistTemplateItem("i1", "Passport"), ChecklistTemplateItem("i2", "Charger", "USB-C")),
+        items = listOf(ChecklistTemplateItemEntity("i1", "Passport"), ChecklistTemplateItemEntity("i2", "Charger", "USB-C")),
         version = 3,
     )
     private val instance = ChecklistInstanceEntity(
         id = "ins-1", namespace = "ns", templateId = "tpl-1", templateVersion = 3, title = "Trip",
-        items = listOf(ChecklistInstanceItem("i1", "Passport")),
+        items = listOf(ChecklistInstanceItemEntity("i1", "Passport")),
     )
 
     @BeforeEach
     fun setUp() {
-        service = ChecklistService(templateRepository, instanceRepository, apiKeyResolver, mongoTemplate, 2, 2, 3)
+        service = ChecklistService(MongoChecklistStore(templateRepository, instanceRepository, mongoTemplate), apiKeyResolver, ChecklistLimits(2, 2, 3))
         whenever(apiKeyResolver.resolve("key")).thenReturn(key)
         whenever(templateRepository.save(any<ChecklistTemplateEntity>())).thenAnswer { it.arguments[0] }
         whenever(instanceRepository.save(any<ChecklistInstanceEntity>())).thenAnswer { it.arguments[0] }
     }
 
-    private fun request(vararg items: ChecklistItemRequest, version: Long? = null) =
-        ChecklistTemplateRequest(title = "Trip", items = items.toList(), version = version)
+    private fun request(vararg items: ChecklistItemDraft, version: Long? = null) =
+        ChecklistTemplateDraft(title = "Trip", items = items.toList(), version = version)
 
     @Test
     fun shouldCreateTemplateWithServerItemIds() {
         // When
-        val created = service.createTemplate("key", request(ChecklistItemRequest(label = "Passport")))
+        val created = service.createTemplate("key", request(ChecklistItemDraft(label = "Passport")))
         // Then
         assertEquals("ns", created.namespace)
         assertEquals(1, created.items.size)
@@ -78,32 +74,32 @@ class ChecklistServiceTest {
     @Test
     fun shouldRefuseTemplateBeyondNamespaceLimit() {
         whenever(templateRepository.countByNamespace("ns")).thenReturn(2)
-        assertThrows<IllegalArgumentException> { service.createTemplate("key", request(ChecklistItemRequest(label = "a"))) }
+        assertThrows<IllegalArgumentException> { service.createTemplate("key", request(ChecklistItemDraft(label = "a"))) }
         verify(templateRepository, never()).save(any<ChecklistTemplateEntity>())
     }
 
     @Test
     fun shouldRefuseTooManyItems() {
-        val items = Array(4) { ChecklistItemRequest(label = "item $it") }
+        val items = Array(4) { ChecklistItemDraft(label = "item $it") }
         assertThrows<IllegalArgumentException> { service.createTemplate("key", request(*items)) }
     }
 
     @Test
     fun shouldRefuseNullItem() {
         @Suppress("UNCHECKED_CAST")
-        val items = listOf<ChecklistItemRequest?>(null) as List<ChecklistItemRequest>
-        assertThrows<IllegalArgumentException> { service.createTemplate("key", ChecklistTemplateRequest("Trip", items)) }
+        val items = listOf<ChecklistItemDraft?>(null) as List<ChecklistItemDraft>
+        assertThrows<IllegalArgumentException> { service.createTemplate("key", ChecklistTemplateDraft("Trip", items)) }
     }
 
     @Test
     fun shouldStoreBlankContextAsNull() {
         whenever(templateRepository.findByIdAndNamespace("tpl-1", "ns")).thenReturn(Optional.of(template))
-        assertEquals(null, service.createInstance("key", ChecklistInstanceRequest("tpl-1", " ")).context)
+        assertEquals(null, service.createInstance("key", "tpl-1", " ").context)
     }
 
     @Test
     fun shouldRefuseItemIdOnCreate() {
-        assertThrows<IllegalArgumentException> { service.createTemplate("key", request(ChecklistItemRequest("i1", "a"))) }
+        assertThrows<IllegalArgumentException> { service.createTemplate("key", request(ChecklistItemDraft("i1", "a"))) }
     }
 
     @Test
@@ -112,7 +108,7 @@ class ChecklistServiceTest {
         whenever(templateRepository.findByIdAndNamespace("tpl-1", "ns")).thenReturn(Optional.of(template))
         // When
         val updated = service.updateTemplate(
-            "key", "tpl-1", request(ChecklistItemRequest("i2", "Charger"), ChecklistItemRequest(label = "Socks"), version = 3),
+            "key", "tpl-1", request(ChecklistItemDraft("i2", "Charger"), ChecklistItemDraft(label = "Socks"), version = 3),
         )
         // Then
         assertEquals("i2", updated.items[0].itemId)
@@ -123,7 +119,7 @@ class ChecklistServiceTest {
     @Test
     fun shouldSaveWithTheVersionTheCallerRead() {
         whenever(templateRepository.findByIdAndNamespace("tpl-1", "ns")).thenReturn(Optional.of(template))
-        service.updateTemplate("key", "tpl-1", request(ChecklistItemRequest(label = "a"), version = 3))
+        service.updateTemplate("key", "tpl-1", request(ChecklistItemDraft(label = "a"), version = 3))
         val captor = argumentCaptor<ChecklistTemplateEntity>()
         verify(templateRepository).save(captor.capture())
         assertEquals(3L, captor.firstValue.version)
@@ -133,7 +129,7 @@ class ChecklistServiceTest {
     fun shouldAnswerConflictBeforeSavingAStaleVersion() {
         whenever(templateRepository.findByIdAndNamespace("tpl-1", "ns")).thenReturn(Optional.of(template))
         val e = assertThrows<ResponseStatusException> {
-            service.updateTemplate("key", "tpl-1", request(ChecklistItemRequest(label = "a"), version = 1))
+            service.updateTemplate("key", "tpl-1", request(ChecklistItemDraft(label = "a"), version = 1))
         }
         assertEquals(HttpStatus.CONFLICT, e.statusCode)
         verify(templateRepository, never()).save(any<ChecklistTemplateEntity>())
@@ -145,21 +141,21 @@ class ChecklistServiceTest {
         whenever(templateRepository.findByIdAndNamespace("tpl-1", "ns")).thenReturn(Optional.of(template))
         // When / Then
         val e = assertThrows<ResponseStatusException> {
-            service.updateTemplate("key", "tpl-1", request(ChecklistItemRequest("gone", "a"), version = 2))
+            service.updateTemplate("key", "tpl-1", request(ChecklistItemDraft("gone", "a"), version = 2))
         }
         assertEquals(HttpStatus.CONFLICT, e.statusCode)
     }
 
     @Test
     fun shouldRefuseUpdateWithoutVersion() {
-        assertThrows<IllegalArgumentException> { service.updateTemplate("key", "tpl-1", request(ChecklistItemRequest(label = "a"))) }
+        assertThrows<IllegalArgumentException> { service.updateTemplate("key", "tpl-1", request(ChecklistItemDraft(label = "a"))) }
     }
 
     @Test
     fun shouldRefuseForeignItemIdOnUpdate() {
         whenever(templateRepository.findByIdAndNamespace("tpl-1", "ns")).thenReturn(Optional.of(template))
         assertThrows<IllegalArgumentException> {
-            service.updateTemplate("key", "tpl-1", request(ChecklistItemRequest("other", "a"), version = 3))
+            service.updateTemplate("key", "tpl-1", request(ChecklistItemDraft("other", "a"), version = 3))
         }
     }
 
@@ -167,7 +163,7 @@ class ChecklistServiceTest {
     fun shouldRefuseDuplicateItemIds() {
         whenever(templateRepository.findByIdAndNamespace("tpl-1", "ns")).thenReturn(Optional.of(template))
         assertThrows<IllegalArgumentException> {
-            service.updateTemplate("key", "tpl-1", request(ChecklistItemRequest("i1", "a"), ChecklistItemRequest("i1", "b"), version = 3))
+            service.updateTemplate("key", "tpl-1", request(ChecklistItemDraft("i1", "a"), ChecklistItemDraft("i1", "b"), version = 3))
         }
     }
 
@@ -176,7 +172,7 @@ class ChecklistServiceTest {
         whenever(templateRepository.findByIdAndNamespace("tpl-1", "ns")).thenReturn(Optional.of(template))
         whenever(templateRepository.save(any<ChecklistTemplateEntity>())).thenThrow(OptimisticLockingFailureException("stale"))
         val e = assertThrows<ResponseStatusException> {
-            service.updateTemplate("key", "tpl-1", request(ChecklistItemRequest(label = "a"), version = 3))
+            service.updateTemplate("key", "tpl-1", request(ChecklistItemDraft(label = "a"), version = 3))
         }
         assertEquals(HttpStatus.CONFLICT, e.statusCode)
     }
@@ -197,7 +193,7 @@ class ChecklistServiceTest {
     @Test
     fun shouldListTemplatesOfTheNamespace() {
         whenever(templateRepository.findByNamespace(eq("ns"), any<Pageable>())).thenReturn(listOf(template))
-        assertEquals(listOf(template), service.listTemplates("key", 0, 20))
+        assertEquals(listOf(template.toDomain()), service.listTemplates("key", 0, 20))
     }
 
     @Test
@@ -205,7 +201,7 @@ class ChecklistServiceTest {
         // Given
         whenever(templateRepository.findByIdAndNamespace("tpl-1", "ns")).thenReturn(Optional.of(template))
         // When
-        val created = service.createInstance("key", ChecklistInstanceRequest("tpl-1", "Lisbon 2026"))
+        val created = service.createInstance("key", "tpl-1", "Lisbon 2026")
         // Then
         assertEquals(3L, created.templateVersion)
         assertEquals("Trip", created.title)
@@ -217,13 +213,13 @@ class ChecklistServiceTest {
     @Test
     fun shouldRefuseInstanceBeyondNamespaceLimit() {
         whenever(instanceRepository.countByNamespace("ns")).thenReturn(2)
-        assertThrows<IllegalArgumentException> { service.createInstance("key", ChecklistInstanceRequest("tpl-1")) }
+        assertThrows<IllegalArgumentException> { service.createInstance("key", "tpl-1", null) }
     }
 
     @Test
     fun shouldRefuseInstanceOfUnknownTemplate() {
         whenever(templateRepository.findByIdAndNamespace("tpl-1", "ns")).thenReturn(Optional.empty())
-        assertThrows<NoSuchElementException> { service.createInstance("key", ChecklistInstanceRequest("tpl-1")) }
+        assertThrows<NoSuchElementException> { service.createInstance("key", "tpl-1", null) }
     }
 
     @Test
@@ -270,22 +266,4 @@ class ChecklistServiceTest {
         assertThrows<NoSuchElementException> { service.updateItemStatus("key", "ins-1", "nope", ChecklistItemStatus.DONE) }
     }
 
-    @Test
-    fun shouldCreateIndexesOffTheStartupThread() {
-        val ops: IndexOperations = mock()
-        whenever(mongoTemplate.indexOps(any<Class<*>>())).thenReturn(ops)
-        service.startIndexCreation()
-        verify(ops, org.mockito.kotlin.timeout(2000).times(4)).createIndex(any())
-    }
-
-    @Test
-    fun shouldCreateIndexesAndSurviveAFailure() {
-        val ops: IndexOperations = mock()
-        whenever(mongoTemplate.indexOps(any<Class<*>>())).thenReturn(ops)
-        service.createIndexes()
-        verify(ops, org.mockito.kotlin.times(4)).createIndex(any())
-
-        whenever(mongoTemplate.indexOps(any<Class<*>>())).thenThrow(IllegalStateException("down"))
-        service.createIndexes()
-    }
 }
