@@ -38,7 +38,7 @@ class Sol4McpTools(
 
     @McpTool(name = "random_number", description = "Random integer between min (default 0) and max, both inclusive.")
     fun randomNumber(
-        // Nullable so a client that omits max gets the service's message, not a reflection error
+        // Nullable: the tool schema already refuses a missing max (McpEndpointTest), the service checks it again
         @McpToolParam(description = "Upper bound", required = true) max: Int?,
         @McpToolParam(description = "Lower bound, 0 when omitted", required = false) min: Int?,
     ): RandomNumber = randomNumberService.generate(min?.toString(), max?.toString())

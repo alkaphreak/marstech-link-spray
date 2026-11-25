@@ -1,6 +1,5 @@
 package fr.marstech.mtlinkspray.domain.devtools
 import org.springframework.stereotype.Service
-import org.springframework.web.bind.MissingServletRequestParameterException
 import java.time.Instant
 import kotlin.random.Random
 
@@ -23,7 +22,8 @@ class RandomNumberServiceImpl : RandomNumberService {
 
         val inputMax = when {
             max.isNullOrBlank() ->
-                throw MissingServletRequestParameterException("max", "int")
+                // Same message as Spring MVC for a missing @RequestParam (GET /api/random; MCP refuses a missing max by its schema)
+                throw IllegalArgumentException("Required request parameter 'max' for method parameter type int is not present")
             max.length > MIN_AND_MAX_LENGTH ->
                 throw IllegalArgumentException("Max length must not exceed $MIN_AND_MAX_LENGTH characters")
             else -> try {

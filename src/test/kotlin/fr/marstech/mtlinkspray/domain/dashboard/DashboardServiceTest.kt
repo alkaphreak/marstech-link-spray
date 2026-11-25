@@ -1,4 +1,6 @@
 package fr.marstech.mtlinkspray.domain.dashboard
+import fr.marstech.mtlinkspray.domain.shared.ConflictException
+import fr.marstech.mtlinkspray.domain.shared.ForbiddenException
 import fr.marstech.mtlinkspray.domain.shared.ApiKeyResolver
 import org.junit.jupiter.params.provider.ValueSource
 import org.junit.jupiter.params.provider.NullSource
@@ -12,8 +14,6 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.springframework.http.HttpStatus.FORBIDDEN
-import org.springframework.web.server.ResponseStatusException
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.mock
@@ -82,7 +82,7 @@ class DashboardServiceTest {
         // Given
         whenever(dashboardRepository.findBySlug("me")).thenReturn(DashboardEntity(id = "x", author = HistoryItem(), slug = "me"))
         // When / Then
-        assertThrows<DuplicateKeyException> { dashboardService.createDashboard(Dashboard(slug = "me"), "owner-raw") }
+        assertThrows<ConflictException> { dashboardService.createDashboard(Dashboard(slug = "me"), "owner-raw") }
     }
 
     @Test
@@ -145,7 +145,7 @@ class DashboardServiceTest {
         // Given
         givenStored(apiKeyId = "owner")
         // When / Then
-        assertEquals(FORBIDDEN, assertThrows<ResponseStatusException> { dashboardService.updateDashboard("d1", Dashboard(id = "d1"), "other-raw") }.statusCode)
+        assertThrows<ForbiddenException> { dashboardService.updateDashboard("d1", Dashboard(id = "d1"), "other-raw") }
         verify(dashboardRepository, never()).save(any<DashboardEntity>())
     }
 
@@ -154,7 +154,7 @@ class DashboardServiceTest {
         // Given
         givenStored(apiKeyId = null)
         // When / Then
-        assertEquals(FORBIDDEN, assertThrows<ResponseStatusException> { dashboardService.updateDashboard("d1", Dashboard(id = "d1"), "owner-raw") }.statusCode)
+        assertThrows<ForbiddenException> { dashboardService.updateDashboard("d1", Dashboard(id = "d1"), "owner-raw") }
         verify(dashboardRepository, never()).save(any<DashboardEntity>())
     }
 

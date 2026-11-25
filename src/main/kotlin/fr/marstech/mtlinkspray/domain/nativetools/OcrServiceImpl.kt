@@ -1,4 +1,5 @@
 package fr.marstech.mtlinkspray.domain.nativetools
+import fr.marstech.mtlinkspray.domain.shared.BusyException
 import fr.marstech.mtlinkspray.domain.shared.ApiKeyResolver
 import fr.marstech.mtlinkspray.domain.shared.PayloadTooLargeException
 import fr.marstech.mtlinkspray.domain.shared.ImageTypes
@@ -8,8 +9,6 @@ import org.apache.pdfbox.pdmodel.encryption.InvalidPasswordException
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.rendering.ImageType
 import org.apache.pdfbox.rendering.PDFRenderer
-import org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE
-import org.springframework.web.server.ResponseStatusException
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.InputStream
@@ -56,7 +55,7 @@ class OcrServiceImpl(
 
         // The permit and the deadline cover the PDF parsing too, not just the engine (MLS-255)
         if (!running.tryAcquire()) {
-            throw ResponseStatusException(SERVICE_UNAVAILABLE, "Another OCR or image job is running, retry in a few seconds")
+            throw BusyException("Another OCR or image job is running, retry in a few seconds")
         }
         try {
             val start = System.nanoTime()
@@ -121,7 +120,7 @@ class OcrServiceImpl(
     /** PDFBox rendering cannot be interrupted: stop between steps instead, before the next render or engine run. */
     private fun checkDeadline(deadline: Long) {
         if (System.nanoTime() >= deadline) {
-            throw ResponseStatusException(SERVICE_UNAVAILABLE, "OCR took longer than $timeoutSeconds s")
+            throw BusyException("OCR took longer than $timeoutSeconds s")
         }
     }
 
@@ -138,7 +137,7 @@ class OcrServiceImpl(
                     .redirectError(ProcessBuilder.Redirect.DISCARD)
                     .start()
             } catch (e: IOException) {
-                throw ResponseStatusException(SERVICE_UNAVAILABLE, "OCR engine is not available", e)
+                throw BusyException("OCR engine is not available", e)
             }
             try {
                 process.outputStream.use { it.write(bytes) }
@@ -147,7 +146,7 @@ class OcrServiceImpl(
             }
             if (!process.waitFor(deadline - System.nanoTime(), TimeUnit.NANOSECONDS)) {
                 process.destroyForcibly()
-                throw ResponseStatusException(SERVICE_UNAVAILABLE, "OCR took longer than $timeoutSeconds s")
+                throw BusyException("OCR took longer than $timeoutSeconds s")
             }
             require(process.exitValue() == 0) { "The OCR engine could not read the image" }
             return Files.readString(output).trim()

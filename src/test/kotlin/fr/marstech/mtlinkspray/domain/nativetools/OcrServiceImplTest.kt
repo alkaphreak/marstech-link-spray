@@ -1,4 +1,6 @@
 package fr.marstech.mtlinkspray.domain.nativetools
+import fr.marstech.mtlinkspray.domain.shared.BusyException
+import fr.marstech.mtlinkspray.domain.shared.QuotaExceededException
 import fr.marstech.mtlinkspray.adapter.outbound.ratelimit.AnonymousQuota
 import fr.marstech.mtlinkspray.domain.shared.ApiKeyResolver
 import fr.marstech.mtlinkspray.domain.shared.PayloadTooLargeException
@@ -17,8 +19,6 @@ import org.mockito.kotlin.never
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import org.springframework.http.HttpStatus
-import org.springframework.web.server.ResponseStatusException
 import java.awt.Color
 import java.awt.Font
 import java.awt.image.BufferedImage
@@ -192,12 +192,11 @@ class OcrServiceImplTest {
         val marker = dir.resolve("ran")
 
         // When
-        val e = assertThrows<ResponseStatusException> {
+        val e = assertThrows<BusyException> {
             service(command = fakeEngine("touch $marker"), timeoutSeconds = 0).anonymous()
         }
 
         // Then
-        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, e.statusCode)
         assertEquals(false, marker.exists())
     }
 
@@ -214,11 +213,10 @@ class OcrServiceImplTest {
         while (!started.exists()) Thread.sleep(20)
 
         // When: a PDF over the page limit is not even parsed while the permit is taken
-        val e = assertThrows<ResponseStatusException> { service.anonymous(image = pdfOf(pages = 3)) }
+        val e = assertThrows<BusyException> { service.anonymous(image = pdfOf(pages = 3)) }
         Files.delete(gate)
 
         // Then
-        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, e.statusCode)
         first.get()
     }
 
@@ -253,10 +251,9 @@ class OcrServiceImplTest {
         val service = service(command = fakeEngine("cat > /dev/null; sleep 0.7"), timeoutSeconds = 1)
 
         // When
-        val e = assertThrows<ResponseStatusException> { service.anonymous(image = pdfOf(pages = 2)) }
+        val e = assertThrows<BusyException> { service.anonymous(image = pdfOf(pages = 2)) }
 
         // Then
-        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, e.statusCode)
     }
 
     @Test
@@ -278,10 +275,9 @@ class OcrServiceImplTest {
         repeat(2) { service.anonymous() }
 
         // When
-        val e = assertThrows<ResponseStatusException> { service.anonymous() }
+        val e = assertThrows<QuotaExceededException> { service.anonymous() }
 
         // Then
-        assertEquals(HttpStatus.TOO_MANY_REQUESTS, e.statusCode)
     }
 
     @Test
@@ -319,10 +315,9 @@ class OcrServiceImplTest {
     @Test
     fun shouldReturnServiceUnavailableWhenEngineIsMissing() {
         // When
-        val e = assertThrows<ResponseStatusException> { service(command = dir.resolve("absent").toString()).anonymous() }
+        val e = assertThrows<BusyException> { service(command = dir.resolve("absent").toString()).anonymous() }
 
         // Then
-        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, e.statusCode)
     }
 
     @Test
@@ -334,12 +329,11 @@ class OcrServiceImplTest {
     @Test
     fun shouldReturnServiceUnavailableWhenEngineIsTooSlow() {
         // When
-        val e = assertThrows<ResponseStatusException> {
+        val e = assertThrows<BusyException> {
             service(command = fakeEngine("sleep 5"), timeoutSeconds = 1).anonymous()
         }
 
         // Then
-        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, e.statusCode)
     }
 
     @Test
@@ -352,11 +346,10 @@ class OcrServiceImplTest {
         while (!started.exists()) Thread.sleep(20)
 
         // When
-        val e = assertThrows<ResponseStatusException> { service.anonymous() }
+        val e = assertThrows<BusyException> { service.anonymous() }
         Files.delete(gate)
 
         // Then
-        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, e.statusCode)
         first.get()
         verify(apiKeyResolver, never()).resolve(org.mockito.kotlin.any())
     }
