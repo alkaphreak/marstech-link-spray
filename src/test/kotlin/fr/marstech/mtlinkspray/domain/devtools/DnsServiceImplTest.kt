@@ -6,8 +6,6 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import javax.naming.CommunicationException
-import javax.naming.NameNotFoundException
 
 class DnsServiceImplTest {
 
@@ -30,7 +28,7 @@ class DnsServiceImplTest {
     @Test
     fun shouldReportNamingErrorInsteadOfThrowing() {
         // Given
-        val service = DnsServiceImpl { _, _, _ -> throw NameNotFoundException("DNS name not found") }
+        val service = DnsServiceImpl { _, _, _ -> throw DnsQueryException("DNS name not found", nxdomain = true) }
 
         // When
         val response = service.lookup("nope.example", "MX")
@@ -39,15 +37,6 @@ class DnsServiceImplTest {
         assertTrue(response.records.isEmpty())
         assertEquals("DNS name not found", response.error)
         assertTrue(response.nxdomain)
-    }
-
-    @Test
-    fun shouldFallBackToExceptionNameWhenNamingErrorHasNoExplanation() {
-        // Given
-        val service = DnsServiceImpl { _, _, _ -> throw NameNotFoundException() }
-
-        // When / Then
-        assertEquals("NameNotFoundException", service.lookup(EXAMPLE, "A").error)
     }
 
     @Test
@@ -69,7 +58,7 @@ class DnsServiceImplTest {
     fun shouldReportInconsistentWhenOneResolverStillAnswersNxdomain() {
         // Given
         val service = DnsServiceImpl { server, _, _ ->
-            if (server == PublicDnsResolver.QUAD9.address) throw NameNotFoundException("DNS name not found")
+            if (server == PublicDnsResolver.QUAD9.address) throw DnsQueryException("DNS name not found", nxdomain = true)
             listOf("new")
         }
 
@@ -84,7 +73,7 @@ class DnsServiceImplTest {
     @Test
     fun shouldReportConsistentWhenEveryResolverAnswersNxdomain() {
         // Given
-        val service = DnsServiceImpl { _, _, _ -> throw NameNotFoundException("DNS name not found") }
+        val service = DnsServiceImpl { _, _, _ -> throw DnsQueryException("DNS name not found", nxdomain = true) }
 
         // When / Then
         assertTrue(service.propagation(EXAMPLE, "A").consistent)
@@ -94,7 +83,7 @@ class DnsServiceImplTest {
     fun shouldReportIncompleteWhenAResolverFails() {
         // Given
         val service = DnsServiceImpl { server, _, _ ->
-            if (server == PublicDnsResolver.GOOGLE.address) throw CommunicationException("timeout")
+            if (server == PublicDnsResolver.GOOGLE.address) throw DnsQueryException("timeout", nxdomain = false)
             listOf("same")
         }
 

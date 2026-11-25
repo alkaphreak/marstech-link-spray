@@ -3,19 +3,12 @@ import fr.marstech.mtlinkspray.domain.shared.ApiKeyResolver
 import fr.marstech.mtlinkspray.domain.shared.MailSenderService
 import org.slf4j.LoggerFactory
 import java.net.InetAddress
-import java.net.URI
-import java.net.http.HttpClient
-import java.net.http.HttpRequest
-import java.net.http.HttpResponse
-import java.net.http.HttpTimeoutException
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ScheduledFuture
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
 
 /**
  * Cron jobs (MLS-220, ADR 0003): stored through [CronStore], scheduled in memory by [CronSchedulerPort],
@@ -26,7 +19,7 @@ class CronJobService(
     private val cron: CronSchedulerPort,
     private val apiKeyResolver: ApiKeyResolver,
     private val mailSenderService: MailSenderService,
-    private val cronHttpClient: HttpClient,
+    private val webhook: WebhookClient,
     private val maxJobsPerNamespace: Int,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -108,34 +101,15 @@ class CronJobService(
         if (status == CronRunStatus.FAILED && stored.consecutiveFailures == stored.failureThreshold) alert(stored, stored.consecutiveFailures, error)
     }
 
-    /**
-     * One HTTP call, bounded by the job timeout end to end (headers and body), the body itself is
-     * never read. Errors are kept generic so the run history does not describe internal hosts.
-     */
     private fun call(job: CronJob): Pair<Int?, String?> {
-        val future = try {
+        try {
             // Again at run time: DNS may have changed since creation.
             // ponytail: this lookup is outside the job timeout, and HttpClient resolves again (DNS rebinding); pin the IP with a custom resolver if the oracle matters
             CronJobValidator.validateUrl(job.url, resolve)
-            cronHttpClient.sendAsync(job.toHttpRequest(), HttpResponse.BodyHandlers.ofInputStream())
         } catch (e: IllegalArgumentException) {
             return null to (e.message ?: "Rejected URL")
         }
-        return try {
-            val response = future.get(job.timeoutSeconds.toLong(), TimeUnit.SECONDS)
-            response.body().close()
-            val code = response.statusCode()
-            code to (if (code in 200..299) null else "HTTP $code")
-        } catch (e: TimeoutException) {
-            null to "Timeout after ${job.timeoutSeconds} s"
-        } catch (e: InterruptedException) {
-            Thread.currentThread().interrupt()
-            null to "Interrupted"
-        } catch (e: Exception) {
-            null to if (e.cause is HttpTimeoutException) "Timeout after ${job.timeoutSeconds} s" else "Connection failed"
-        } finally {
-            future.cancel(true)
-        }
+        return webhook.send(job.toWebhookRequest()).let { it.httpStatus to it.error }
     }
 
     private fun alert(job: CronJob, failures: Int, error: String?) = try {
@@ -151,8 +125,8 @@ class CronJobService(
         CronJobValidator.validateSchedule(request.schedule, cron)
         if (checkUrl) CronJobValidator.validateUrl(request.url, resolve)
         require(request.headers.all { (k, v) -> k.length <= 256 && v.length <= 4096 }) { "Header name or value too long" }
-        // HttpClient rejects restricted headers (Host, Connection...) only when building: fail at 400 now, not at every run.
-        with(request) { httpRequest(method, url, headers, body, timeoutSeconds) }
+        // A request the client cannot build (restricted header...) fails at 400 now, not at every run.
+        webhook.check(with(request) { WebhookRequest(method, url, headers, body, timeoutSeconds) })
     }
 
     // compute() is atomic per key: concurrent PUTs cannot leave an untracked recurring task behind.
@@ -176,12 +150,5 @@ class CronJobService(
         timeoutSeconds = timeoutSeconds, failureThreshold = failureThreshold, isEnabled = isEnabled,
     )
 
-    private fun CronJob.toHttpRequest() = httpRequest(method, url, headers, body, timeoutSeconds)
-
-    private fun httpRequest(method: String, url: String, headers: Map<String, String>, body: String?, timeoutSeconds: Int): HttpRequest =
-        HttpRequest.newBuilder(URI(url))
-            .timeout(Duration.ofSeconds(timeoutSeconds.toLong()))
-            .method(method, body?.let { HttpRequest.BodyPublishers.ofString(it) } ?: HttpRequest.BodyPublishers.noBody())
-            .apply { headers.forEach { (k, v) -> header(k, v) } }
-            .build()
+    private fun CronJob.toWebhookRequest() = WebhookRequest(method, url, headers, body, timeoutSeconds)
 }

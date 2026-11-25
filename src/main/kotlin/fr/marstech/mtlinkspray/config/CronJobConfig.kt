@@ -11,7 +11,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ApplicationListener
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import java.net.http.HttpClient
+import fr.marstech.mtlinkspray.domain.cron.WebhookClient
 
 /** `mt.link-spray.cron.*` read by the service; `run-retention-days` is read by `MongoCronStore`. */
 @ConfigurationProperties("mt.link-spray.cron")
@@ -28,9 +28,9 @@ class CronJobConfig {
         cron: CronSchedulerPort,
         apiKeyResolver: ApiKeyResolver,
         mailSenderService: MailSenderService,
-        cronHttpClient: HttpClient,
+        webhook: WebhookClient,
         p: CronProperties,
-    ) = CronJobService(store, cron, apiKeyResolver, mailSenderService, cronHttpClient, p.maxJobsPerNamespace)
+    ) = CronJobService(store, cron, apiKeyResolver, mailSenderService, webhook, p.maxJobsPerNamespace)
 
     // A listener bean, not @EventListener: the service is a plain class built here.
     @Bean
