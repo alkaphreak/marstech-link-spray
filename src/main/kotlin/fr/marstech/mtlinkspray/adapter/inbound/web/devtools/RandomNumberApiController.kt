@@ -1,4 +1,5 @@
 package fr.marstech.mtlinkspray.adapter.inbound.web.devtools
+import fr.marstech.mtlinkspray.domain.devtools.RandomNumber
 import fr.marstech.mtlinkspray.domain.devtools.RandomNumberService
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.GetMapping
@@ -17,5 +18,5 @@ class RandomNumberApiController(
     fun getRandom(
         @RequestParam(name = "min", required = false) min: String?,
         @RequestParam(name = "max", required = false) max: String?
-    ): RandomNumberResponse = randomNumberService.generate(min, max)
+    ): RandomNumber = randomNumberService.generate(min, max)
 }

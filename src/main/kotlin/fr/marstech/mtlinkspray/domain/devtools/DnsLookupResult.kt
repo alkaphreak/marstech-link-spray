@@ -1,5 +1,5 @@
-package fr.marstech.mtlinkspray.adapter.inbound.web.devtools
-data class DnsLookupResponse(
+package fr.marstech.mtlinkspray.domain.devtools
+data class DnsLookupResult(
     val name: String,
     val type: String,
     val resolver: String,

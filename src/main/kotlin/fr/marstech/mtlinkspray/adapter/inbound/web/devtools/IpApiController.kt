@@ -1,4 +1,5 @@
 package fr.marstech.mtlinkspray.adapter.inbound.web.devtools
+import fr.marstech.mtlinkspray.domain.devtools.IpInfo
 import fr.marstech.mtlinkspray.domain.devtools.IpService
 import fr.marstech.mtlinkspray.adapter.inbound.web.common.NetworkUtils
 import jakarta.servlet.http.HttpServletRequest
@@ -15,6 +16,6 @@ class IpApiController(
 ) {
 
     @GetMapping
-    fun lookup(@Valid request: IpLookupRequest, httpServletRequest: HttpServletRequest): IpInfoResponse =
+    fun lookup(@Valid request: IpLookupRequest, httpServletRequest: HttpServletRequest): IpInfo =
         ipService.lookup(request.ip ?: NetworkUtils.getIpAddress(httpServletRequest).orEmpty())
 }

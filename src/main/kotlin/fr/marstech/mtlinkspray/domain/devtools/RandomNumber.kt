@@ -1,7 +1,7 @@
-package fr.marstech.mtlinkspray.adapter.inbound.web.devtools
+package fr.marstech.mtlinkspray.domain.devtools
 import java.time.Instant
 
-data class RandomNumberResponse(
+data class RandomNumber(
     val value: Int,
     val min: Int,
     val max: Int,

@@ -1,4 +1,6 @@
 package fr.marstech.mtlinkspray.adapter.inbound.web.devtools
+import fr.marstech.mtlinkspray.domain.devtools.DnsLookupResult
+import fr.marstech.mtlinkspray.domain.devtools.DnsPropagationResult
 import fr.marstech.mtlinkspray.domain.devtools.DnsService
 import jakarta.validation.Valid
 import org.springframework.web.bind.annotation.GetMapping
@@ -12,14 +14,14 @@ class DnsApiController(
 ) {
 
     @GetMapping
-    fun lookup(@Valid request: DnsLookupRequest): DnsLookupResponse =
+    fun lookup(@Valid request: DnsLookupRequest): DnsLookupResult =
         dnsService.lookup(request.name.orEmpty(), request.type)
 
     @GetMapping("/reverse")
-    fun reverse(@Valid request: DnsReverseRequest): DnsLookupResponse =
+    fun reverse(@Valid request: DnsReverseRequest): DnsLookupResult =
         dnsService.reverse(request.ip.orEmpty())
 
     @GetMapping("/propagation")
-    fun propagation(@Valid request: DnsLookupRequest): DnsPropagationResponse =
+    fun propagation(@Valid request: DnsLookupRequest): DnsPropagationResult =
         dnsService.propagation(request.name.orEmpty(), request.type)
 }

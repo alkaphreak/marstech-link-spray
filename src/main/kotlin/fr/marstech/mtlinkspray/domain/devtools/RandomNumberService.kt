@@ -1,5 +1,4 @@
 package fr.marstech.mtlinkspray.domain.devtools
-import fr.marstech.mtlinkspray.adapter.inbound.web.devtools.RandomNumberResponse
 
 fun interface RandomNumberService {
 
@@ -8,7 +7,7 @@ fun interface RandomNumberService {
      *
      * @param min the minimum value (nullable string; defaults to 0 if blank)
      * @param max the maximum value (required)
-     * @return a [RandomNumberResponse] containing the generated value and metadata
+     * @return a [RandomNumber] containing the generated value and metadata
      */
-    fun generate(min: String?, max: String?): RandomNumberResponse
+    fun generate(min: String?, max: String?): RandomNumber
 }

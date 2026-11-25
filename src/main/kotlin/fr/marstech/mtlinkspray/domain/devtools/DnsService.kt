@@ -1,13 +1,11 @@
 package fr.marstech.mtlinkspray.domain.devtools
-import fr.marstech.mtlinkspray.adapter.inbound.web.devtools.DnsLookupResponse
-import fr.marstech.mtlinkspray.adapter.inbound.web.devtools.DnsPropagationResponse
 
 interface DnsService {
 
-    fun lookup(name: String, type: String): DnsLookupResponse
+    fun lookup(name: String, type: String): DnsLookupResult
 
-    fun reverse(ip: String): DnsLookupResponse
+    fun reverse(ip: String): DnsLookupResult
 
-    /** The same query on every [fr.marstech.mtlinkspray.adapter.outbound.dns.PublicDnsResolver], in parallel. */
-    fun propagation(name: String, type: String): DnsPropagationResponse
+    /** The same query on every [fr.marstech.mtlinkspray.domain.devtools.PublicDnsResolver], in parallel. */
+    fun propagation(name: String, type: String): DnsPropagationResult
 }

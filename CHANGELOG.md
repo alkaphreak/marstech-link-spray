@@ -51,6 +51,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `image` domain on ports (MLS-276 step 2): `Image` model and `ImageStore` port (Mongo adapter, `insert`),
   uploads received as an `ImageUpload` (file name, size, content) and a `ClientContext` instead of
   `MultipartFile` and `HttpServletRequest`, upload size limit read by `ImageConfig`; stored images unchanged
+- `devtools` domain off the web and outbound adapters (MLS-276 step 2): DNS, IP, random number and sleep
+  cycle results live in the domain (same JSON), `DnsClient` is a domain port with `PublicDnsResolver`
+  beside it, the GeoIP databases are read by `adapter/outbound/geoip` behind a `GeoIpDatabase` port, and
+  the QR code service takes a `QrCode` value built from the validated request
 
 ### Fixed
 

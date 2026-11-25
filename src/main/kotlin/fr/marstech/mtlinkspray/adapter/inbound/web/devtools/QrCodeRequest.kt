@@ -1,4 +1,5 @@
 package fr.marstech.mtlinkspray.adapter.inbound.web.devtools
+import fr.marstech.mtlinkspray.domain.devtools.QrCode
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
@@ -26,4 +27,7 @@ data class QrCodeRequest(
     val download: Boolean = false,
 ) {
     val isSvg: Boolean get() = format.equals("svg", ignoreCase = true)
+
+    /** Call after validation: a null [text] fails with the @NotBlank message. */
+    fun toQrCode() = QrCode(requireNotNull(text) { "Text cannot be blank" }, size, fg, bg, isSvg)
 }

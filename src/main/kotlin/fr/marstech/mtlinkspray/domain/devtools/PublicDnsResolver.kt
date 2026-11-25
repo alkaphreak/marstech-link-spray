@@ -1,4 +1,4 @@
-package fr.marstech.mtlinkspray.adapter.outbound.dns
+package fr.marstech.mtlinkspray.domain.devtools
 /**
  * The only resolvers the DNS tools query: a caller never picks the server, so the API cannot be used to
  * probe hosts inside the network (MLS-104).

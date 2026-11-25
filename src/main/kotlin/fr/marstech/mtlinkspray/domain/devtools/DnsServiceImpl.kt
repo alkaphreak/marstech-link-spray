@@ -1,8 +1,4 @@
 package fr.marstech.mtlinkspray.domain.devtools
-import fr.marstech.mtlinkspray.adapter.outbound.dns.DnsClient
-import fr.marstech.mtlinkspray.adapter.inbound.web.devtools.DnsLookupResponse
-import fr.marstech.mtlinkspray.adapter.inbound.web.devtools.DnsPropagationResponse
-import fr.marstech.mtlinkspray.adapter.outbound.dns.PublicDnsResolver
 import org.springframework.stereotype.Service
 import java.net.InetAddress
 import java.net.UnknownHostException
@@ -13,30 +9,30 @@ import javax.naming.NamingException
 @Service
 class DnsServiceImpl(private val dnsClient: DnsClient) : DnsService {
 
-    override fun lookup(name: String, type: String): DnsLookupResponse =
+    override fun lookup(name: String, type: String): DnsLookupResult =
         query(PublicDnsResolver.CLOUDFLARE, name, type.uppercase())
 
-    override fun reverse(ip: String): DnsLookupResponse =
+    override fun reverse(ip: String): DnsLookupResult =
         query(PublicDnsResolver.CLOUDFLARE, ptrName(ip), "PTR")
 
-    override fun propagation(name: String, type: String): DnsPropagationResponse {
+    override fun propagation(name: String, type: String): DnsPropagationResult {
         val recordType = type.uppercase()
         val results = Executors.newVirtualThreadPerTaskExecutor().use { executor ->
             PublicDnsResolver.entries
-                .map { executor.submit<DnsLookupResponse> { query(it, name, recordType) } }
+                .map { executor.submit<DnsLookupResult> { query(it, name, recordType) } }
                 .map { it.get() }
         }
         val answers = results.filter { it.error == null || it.nxdomain }.map { if (it.nxdomain) null else it.records.toSet() }
         val complete = answers.size == results.size
-        return DnsPropagationResponse(name, recordType, results, complete, consistent = complete && answers.distinct().size == 1)
+        return DnsPropagationResult(name, recordType, results, complete, consistent = complete && answers.distinct().size == 1)
     }
 
-    private fun query(resolver: PublicDnsResolver, name: String, type: String): DnsLookupResponse {
+    private fun query(resolver: PublicDnsResolver, name: String, type: String): DnsLookupResult {
         val start = System.nanoTime()
         val response = try {
-            DnsLookupResponse(name, type, resolver.label, dnsClient.query(resolver.address, name, type), 0)
+            DnsLookupResult(name, type, resolver.label, dnsClient.query(resolver.address, name, type), 0)
         } catch (e: NamingException) {
-            DnsLookupResponse(
+            DnsLookupResult(
                 name, type, resolver.label, emptyList(), 0,
                 error = e.explanation ?: e.javaClass.simpleName,
                 nxdomain = e is NameNotFoundException,

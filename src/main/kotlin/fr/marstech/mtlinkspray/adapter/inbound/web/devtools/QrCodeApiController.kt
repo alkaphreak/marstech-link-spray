@@ -32,7 +32,7 @@ class QrCodeApiController(
                 ContentDisposition.attachment().filename("qrcode.$extension").build().toString()
             )
         }
-        return response.body(qrCodeService.render(request))
+        return response.body(qrCodeService.render(request.toQrCode()))
     }
 
     /**
@@ -53,7 +53,7 @@ class QrCodeApiController(
                     val lineRequest = request.forLine(line)
                     val violations = validator.validate(lineRequest)
                     require(violations.isEmpty()) { violations.map { it.message }.sorted().joinToString(", ") }
-                    qrCodeService.render(lineRequest)
+                    qrCodeService.render(lineRequest.toQrCode())
                 } catch (e: IllegalArgumentException) {
                     // Line number in the submitted text, blank lines included
                     throw IllegalArgumentException("Line ${textIndex + 1}: ${e.message}", e)

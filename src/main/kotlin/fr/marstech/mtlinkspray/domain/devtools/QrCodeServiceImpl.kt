@@ -4,7 +4,6 @@ import com.google.zxing.EncodeHintType
 import com.google.zxing.WriterException
 import com.google.zxing.common.BitMatrix
 import com.google.zxing.qrcode.QRCodeWriter
-import fr.marstech.mtlinkspray.adapter.inbound.web.devtools.QrCodeRequest
 import org.springframework.stereotype.Service
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
@@ -13,14 +12,12 @@ import javax.imageio.ImageIO
 @Service
 class QrCodeServiceImpl : QrCodeService {
 
-    override fun render(request: QrCodeRequest): ByteArray {
-        val text = requireNotNull(request.text) { "Text cannot be blank" }
-        return if (request.isSvg) {
-            toSvg(encode(text, 0), request).toByteArray()
+    override fun render(qrCode: QrCode): ByteArray =
+        if (qrCode.svg) {
+            toSvg(encode(qrCode.text, 0), qrCode).toByteArray()
         } else {
-            toPng(encode(text, request.size), request)
+            toPng(encode(qrCode.text, qrCode.size), qrCode)
         }
-    }
 
     // size 0 gives the minimal matrix (one cell per module), which SVG scales itself
     private fun encode(text: String, size: Int): BitMatrix = try {
@@ -29,9 +26,9 @@ class QrCodeServiceImpl : QrCodeService {
         throw IllegalArgumentException("Text is too long for a QR code", e)
     }
 
-    private fun toPng(matrix: BitMatrix, request: QrCodeRequest): ByteArray {
-        val fg = request.fg.toInt(16)
-        val bg = request.bg.toInt(16)
+    private fun toPng(matrix: BitMatrix, qrCode: QrCode): ByteArray {
+        val fg = qrCode.fg.toInt(16)
+        val bg = qrCode.bg.toInt(16)
         val image = BufferedImage(matrix.width, matrix.height, BufferedImage.TYPE_INT_RGB)
         for (x in 0 until matrix.width) {
             for (y in 0 until matrix.height) {
@@ -41,7 +38,7 @@ class QrCodeServiceImpl : QrCodeService {
         return ByteArrayOutputStream().also { ImageIO.write(image, "png", it) }.toByteArray()
     }
 
-    private fun toSvg(matrix: BitMatrix, request: QrCodeRequest): String {
+    private fun toSvg(matrix: BitMatrix, qrCode: QrCode): String {
         val path = buildString {
             for (y in 0 until matrix.height) {
                 for (x in 0 until matrix.width) {
@@ -50,9 +47,9 @@ class QrCodeServiceImpl : QrCodeService {
             }
         }
         val side = matrix.width
-        return """<svg xmlns="http://www.w3.org/2000/svg" width="${request.size}" height="${request.size}" """ +
+        return """<svg xmlns="http://www.w3.org/2000/svg" width="${qrCode.size}" height="${qrCode.size}" """ +
             """viewBox="0 0 $side $side" shape-rendering="crispEdges">""" +
-            """<rect width="$side" height="$side" fill="#${request.bg}"/>""" +
-            """<path d="$path" fill="#${request.fg}"/></svg>"""
+            """<rect width="$side" height="$side" fill="#${qrCode.bg}"/>""" +
+            """<path d="$path" fill="#${qrCode.fg}"/></svg>"""
     }
 }

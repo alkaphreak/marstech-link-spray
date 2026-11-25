@@ -1,5 +1,4 @@
 package fr.marstech.mtlinkspray.domain.devtools
-import fr.marstech.mtlinkspray.adapter.inbound.web.devtools.RandomNumberResponse
 import org.springframework.stereotype.Service
 import org.springframework.web.bind.MissingServletRequestParameterException
 import java.time.Instant
@@ -10,7 +9,7 @@ private const val MIN_AND_MAX_LENGTH = 9
 @Service
 class RandomNumberServiceImpl : RandomNumberService {
 
-    override fun generate(min: String?, max: String?): RandomNumberResponse {
+    override fun generate(min: String?, max: String?): RandomNumber {
         val inputMin = when {
             min.isNullOrBlank() -> 0
             min == "-" || (if (min.startsWith("-")) min.length - 1 else min.length) >= MIN_AND_MAX_LENGTH ->
@@ -36,7 +35,7 @@ class RandomNumberServiceImpl : RandomNumberService {
 
         require(inputMin <= inputMax) { "Min value must be less than or equal to Max value" }
 
-        return RandomNumberResponse(
+        return RandomNumber(
             value = Random.nextInt(inputMin, inputMax + 1),
             min = inputMin,
             max = inputMax,

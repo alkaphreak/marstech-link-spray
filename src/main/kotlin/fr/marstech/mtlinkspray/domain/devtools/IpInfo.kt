@@ -1,6 +1,6 @@
-package fr.marstech.mtlinkspray.adapter.inbound.web.devtools
+package fr.marstech.mtlinkspray.domain.devtools
 /** Country and ASN fields are null when the address is private or the GeoIP databases are absent. */
-data class IpInfoResponse(
+data class IpInfo(
     val ip: String,
     val version: Int,
     val countryCode: String?,

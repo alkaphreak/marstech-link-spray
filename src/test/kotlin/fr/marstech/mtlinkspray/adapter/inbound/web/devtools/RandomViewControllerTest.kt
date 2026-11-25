@@ -1,4 +1,5 @@
 package fr.marstech.mtlinkspray.adapter.inbound.web.devtools
+import fr.marstech.mtlinkspray.domain.devtools.RandomNumber
 import fr.marstech.mtlinkspray.adapter.inbound.web.common.ViewNameEnum
 import fr.marstech.mtlinkspray.domain.devtools.RandomNumberService
 import org.junit.jupiter.api.Assertions.*
@@ -27,7 +28,7 @@ class RandomViewControllerTest {
     @Test
     fun viewRandomShouldAddRandomNumberToModel() {
         // Given
-        val response = RandomNumberResponse(value = 42, min = 0, max = 100, timestamp = Instant.now())
+        val response = RandomNumber(value = 42, min = 0, max = 100, timestamp = Instant.now())
         `when`(randomNumberService.generate(RandomViewController.DEFAULT_MIN, RandomViewController.DEFAULT_MAX))
             .thenReturn(response)
 

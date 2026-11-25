@@ -3,7 +3,6 @@ import com.google.zxing.BinaryBitmap
 import com.google.zxing.client.j2se.BufferedImageLuminanceSource
 import com.google.zxing.common.HybridBinarizer
 import com.google.zxing.qrcode.QRCodeReader
-import fr.marstech.mtlinkspray.adapter.inbound.web.devtools.QrCodeRequest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -14,13 +13,16 @@ class QrCodeServiceImplTest {
 
     private val qrCodeService = QrCodeServiceImpl()
 
+    private fun qrCode(text: String, size: Int = 256, fg: String = "000000", bg: String = "ffffff", svg: Boolean = false) =
+        QrCode(text, size, fg, bg, svg)
+
     @Test
     fun shouldRenderPngThatDecodesBackToText() {
         // Given
         val text = "WIFI:T:WPA;S:Café\\;Net;P:s3cret;;"
 
         // When
-        val png = qrCodeService.render(QrCodeRequest(text = text, size = 300))
+        val png = qrCodeService.render(qrCode(text, size = 300))
 
         // Then
         val image = ImageIO.read(png.inputStream())
@@ -32,7 +34,7 @@ class QrCodeServiceImplTest {
     @Test
     fun shouldApplyColorsToPng() {
         // Given
-        val request = QrCodeRequest(text = "hello", size = 128, fg = "ff0000", bg = "00ff00")
+        val request = qrCode("hello", size = 128, fg = "ff0000", bg = "00ff00")
 
         // When
         val image = ImageIO.read(qrCodeService.render(request).inputStream())
@@ -45,7 +47,7 @@ class QrCodeServiceImplTest {
     @Test
     fun shouldRenderSvgWithSizeAndColors() {
         // Given
-        val request = QrCodeRequest(text = "hello", size = 512, fg = "112233", bg = "ffeedd", format = "SVG")
+        val request = qrCode("hello", size = 512, fg = "112233", bg = "ffeedd", svg = true)
 
         // When
         val svg = String(qrCodeService.render(request))
@@ -60,7 +62,7 @@ class QrCodeServiceImplTest {
     @Test
     fun shouldRejectTextTooLongForQrCode() {
         // Given
-        val request = QrCodeRequest(text = "é".repeat(2000))
+        val request = qrCode("é".repeat(2000))
 
         // When / Then
         assertThrows<IllegalArgumentException> { qrCodeService.render(request) }

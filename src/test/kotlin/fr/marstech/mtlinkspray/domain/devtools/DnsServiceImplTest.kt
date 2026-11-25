@@ -1,5 +1,5 @@
 package fr.marstech.mtlinkspray.domain.devtools
-import fr.marstech.mtlinkspray.adapter.outbound.dns.PublicDnsResolver
+import fr.marstech.mtlinkspray.domain.devtools.PublicDnsResolver
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNull
