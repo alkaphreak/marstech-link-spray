@@ -6,14 +6,7 @@ import fr.marstech.mtlinkspray.domain.shared.ImageTypes
 import fr.marstech.mtlinkspray.domain.shared.QuotaPort
 import java.io.IOException
 import java.io.InputStream
-import java.nio.file.Files
-import java.nio.file.Path
-import java.util.concurrent.TimeUnit
 import javax.imageio.ImageIO
-import kotlin.io.path.deleteRecursively
-import kotlin.io.path.exists
-import kotlin.io.path.readBytes
-import kotlin.io.path.writeBytes
 
 enum class ImageFormat(val mediaType: String, val extension: String) {
     WEBP("image/webp", "webp"), JPEG("image/jpeg", "jpg"), PNG("image/png", "png"),
@@ -22,8 +15,7 @@ enum class ImageFormat(val mediaType: String, val extension: String) {
 class CompressedImage(val bytes: ByteArray, val mediaType: String, val compressed: Boolean)
 
 /**
- * Compresses or converts a PNG or JPEG with the native encoders chosen in ADR 0002: `cwebp` for WebP,
- * `caesiumclt` for JPEG and PNG, each as a subprocess like tesseract in [OcrServiceImpl]. The pixel caps
+ * Compresses or converts a PNG or JPEG through an [ImageEncoder] (the native encoders of ADR 0002). The pixel caps
  * bound what the encoder decodes next to the JVM in the 512 MB instance; only the header is read here.
  * Measured 2026-11-04 (aarch64, 512 MB container, idle JVM at 275-300 MB): 7.2 MP to WebP peaks at 314 MB,
  * to JPEG at 338 MB, but to PNG at 503 MB and 2.8 MP to PNG at 368 MB, hence 3 MP for PNG output.
@@ -33,10 +25,8 @@ class ImageCompressionService(
     private val apiKeyResolver: ApiKeyResolver,
     private val permit: NativeWorkPermit,
     private val anonymous: QuotaPort,
-    private val cwebp: String,
-    private val caesium: String,
+    private val encoder: ImageEncoder,
     private val maxInputBytes: Int,
-    private val timeoutSeconds: Long,
     private val webpMaxPixels: Long,
     private val jpegMaxPixels: Long,
     private val pngMaxPixels: Long,
@@ -64,56 +54,12 @@ class ImageCompressionService(
         if (!permit.tryAcquire()) {
             throw BusyException("Another OCR or image job is running, retry in a few seconds")
         }
-        val dir = Files.createTempDirectory("img")
         try {
-            val input = dir.resolve(if (type == "image/png") "in.png" else "in.jpg").apply { writeBytes(bytes) }
-            val output = dir.resolve("out")
-            val command = if (format == ImageFormat.WEBP) {
-                cwebpCommand(input, output.resolve("in.webp"), quality, width, height, maxDimension)
-            } else {
-                caesiumCommand(input, output, format.takeIf { it.mediaType != type }, quality, maxDimension)
-            }
-            Files.createDirectories(output)
-            val result = output.resolve("in.${format.extension}")
-            return if (run(command, dir) && result.exists()) CompressedImage(result.readBytes(), format.mediaType, true)
-            else CompressedImage(bytes, type, false)
+            val encoded = encoder.encode(bytes, type, width, height, format, quality, maxDimension)
+            return if (encoded != null) CompressedImage(encoded, format.mediaType, true) else CompressedImage(bytes, type, false)
         } finally {
             permit.release()
-            @OptIn(kotlin.io.path.ExperimentalPathApi::class)
-            dir.deleteRecursively()
         }
-    }
-
-    // ponytail: cwebp ignores EXIF orientation, a rotated phone photo comes out sideways; pre-rotate if users report it
-    private fun cwebpCommand(input: Path, output: Path, quality: Int, width: Int, height: Int, maxDimension: Int?): List<String> {
-        val resize = maxDimension?.takeIf { maxOf(width, height) > it }?.let {
-            if (width >= height) listOf("-resize", "$it", "0") else listOf("-resize", "0", "$it")
-        }.orEmpty()
-        return listOf(cwebp, "-quiet", "-q", "$quality", "-metadata", "none") + resize + listOf(input.toString(), "-o", output.toString())
-    }
-
-    /** [convertTo] is null for a same-format compression: caesiumclt rejects `--format` equal to the input's, with exit code 0. */
-    private fun caesiumCommand(input: Path, output: Path, convertTo: ImageFormat?, quality: Int, maxDimension: Int?): List<String> {
-        val resize = maxDimension?.let { listOf("--long-edge", "$it", "--no-upscale") }.orEmpty()
-        val convert = convertTo?.let { listOf("--format", it.name.lowercase()) }.orEmpty()
-        return listOf(caesium, "-Q", "--threads", "1", "--keep-orientation", "-q", "$quality") + convert +
-            resize + listOf("-o", output.toString(), input.toString())
-    }
-
-    private fun run(command: List<String>, dir: Path): Boolean {
-        val process = try {
-            ProcessBuilder(command).directory(dir.toFile())
-                .redirectOutput(ProcessBuilder.Redirect.DISCARD)
-                .redirectError(ProcessBuilder.Redirect.DISCARD)
-                .start()
-        } catch (e: IOException) {
-            throw BusyException("Image encoder is not available", e)
-        }
-        if (!process.waitFor(timeoutSeconds, TimeUnit.SECONDS)) {
-            process.destroyForcibly().waitFor()
-            return false
-        }
-        return process.exitValue() == 0
     }
 
     private fun dimensions(bytes: ByteArray): Pair<Int, Int>? =

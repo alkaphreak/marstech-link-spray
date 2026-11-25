@@ -70,6 +70,7 @@ class AnonymousQuotaTest {
         val e = assertThrows<IllegalArgumentException> { quota.count("203.0.113.7", 5) }
 
         // Then: no Retry-After, waiting would never help
+        assertEquals("Write request of 5 exceeds the quota of 2", e.message)
     }
 
     @Test

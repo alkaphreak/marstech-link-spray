@@ -1,4 +1,5 @@
 package fr.marstech.mtlinkspray.domain.nativetools
+import fr.marstech.mtlinkspray.adapter.outbound.native.NativeImageEncoder
 import fr.marstech.mtlinkspray.domain.shared.BusyException
 import fr.marstech.mtlinkspray.adapter.outbound.ratelimit.AnonymousQuota
 import fr.marstech.mtlinkspray.domain.shared.PayloadTooLargeException
@@ -40,7 +41,7 @@ class ImageCompressionServiceTest {
         timeoutSeconds: Long = 5,
     ) = ImageCompressionService(
         mock(), permit, AnonymousQuota("Anonymous image compression", 10, 3_600_000),
-        cwebp, caesium, 1_000_000, timeoutSeconds, maxPixels, maxPixels, maxPixels,
+        NativeImageEncoder(cwebp, caesium, timeoutSeconds), 1_000_000, maxPixels, maxPixels, maxPixels,
     )
 
     private fun ImageCompressionService.compress(format: ImageFormat, bytes: ByteArray = png) =
@@ -89,6 +90,7 @@ class ImageCompressionServiceTest {
     @Test
     fun `a missing encoder binary returns 503`() {
         val e = assertThrows<BusyException> { service(cwebp = dir.resolve("missing").toString()).compress(ImageFormat.WEBP) }
+        kotlin.test.assertEquals("Image encoder is not available", e.message)
     }
 
     @Test
@@ -122,5 +124,6 @@ class ImageCompressionServiceTest {
         assertEquals(1, permit.availablePermits())
         permit.acquire()
         val e = assertThrows<BusyException> { service(permit = permit).compress(ImageFormat.WEBP) }
+        kotlin.test.assertEquals("Another OCR or image job is running, retry in a few seconds", e.message)
     }
 }

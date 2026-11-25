@@ -1,5 +1,7 @@
 package fr.marstech.mtlinkspray.config
 
+import fr.marstech.mtlinkspray.adapter.outbound.native.NativeImageEncoder
+import fr.marstech.mtlinkspray.adapter.outbound.native.TesseractOcrEngine
 import fr.marstech.mtlinkspray.adapter.outbound.ratelimit.AnonymousQuota
 import fr.marstech.mtlinkspray.domain.nativetools.ImageCompressionService
 import fr.marstech.mtlinkspray.domain.nativetools.NativeWorkPermit
@@ -46,13 +48,13 @@ class NativeToolsConfig {
     @Bean
     fun ocrService(apiKeyResolver: ApiKeyResolver, permit: NativeWorkPermit, p: OcrProperties): OcrService = OcrServiceImpl(
         apiKeyResolver, permit, AnonymousQuota("Anonymous OCR", p.anonymousQuota, p.anonymousWindowMs),
-        p.command, p.maxInputBytes, p.timeoutSeconds, p.maxPdfPages, p.maxPdfPixels, p.maxImagePixels,
+        TesseractOcrEngine(p.command), p.maxInputBytes, p.timeoutSeconds, p.maxPdfPages, p.maxPdfPixels, p.maxImagePixels,
     )
 
     @Bean
     fun imageCompressionService(apiKeyResolver: ApiKeyResolver, permit: NativeWorkPermit, p: ImageCompressionProperties) =
         ImageCompressionService(
             apiKeyResolver, permit, AnonymousQuota("Anonymous image compression", p.anonymousQuota, p.anonymousWindowMs),
-            p.cwebpCommand, p.caesiumCommand, p.maxInputBytes, p.timeoutSeconds, p.webpMaxPixels, p.jpegMaxPixels, p.pngMaxPixels,
+            NativeImageEncoder(p.cwebpCommand, p.caesiumCommand, p.timeoutSeconds), p.maxInputBytes, p.webpMaxPixels, p.jpegMaxPixels, p.pngMaxPixels,
         )
 }
