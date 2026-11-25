@@ -1,13 +1,10 @@
 package fr.marstech.mtlinkspray.adapter.outbound.ratelimit
+import fr.marstech.mtlinkspray.domain.shared.QuotaExceededException
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
 import fr.marstech.mtlinkspray.adapter.inbound.web.common.NetworkUtils.IP_LITERAL
 import fr.marstech.mtlinkspray.domain.shared.QuotaPort
 import io.github.bucket4j.Bucket
-import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpStatus.BAD_REQUEST
-import org.springframework.http.HttpStatus.TOO_MANY_REQUESTS
-import org.springframework.web.server.ResponseStatusException
 import java.net.InetAddress
 import java.time.Duration
 import java.util.concurrent.TimeUnit.NANOSECONDS
@@ -36,7 +33,7 @@ class AnonymousQuota(
     override fun count(clientIp: String, tokens: Long) {
         if (window.isZero || window.isNegative) return
         // Never fits, whatever the wait: a 429 would send the client into pointless retries
-        if (tokens > quota) throw ResponseStatusException(BAD_REQUEST, "$name request of $tokens exceeds the quota of $quota")
+        require(tokens <= quota) { "$name request of $tokens exceeds the quota of $quota" }
         val probe = buckets.get(clientKey(clientIp)) { newBucket() }.tryConsumeAndReturnRemaining(tokens)
         if (!probe.isConsumed) {
             throw QuotaExceededException("$name quota of $quota reached: $hint", NANOSECONDS.toSeconds(probe.nanosToWaitForRefill) + 1)
@@ -47,11 +44,6 @@ class AnonymousQuota(
         .addLimit { it.capacity(quota.toLong()).refillGreedy(quota.toLong(), window) }
         .build()
 
-    /** 429 carrying a Retry-After header, which GlobalRestExceptionHandler copies to the response. */
-    class QuotaExceededException(reason: String, val retryAfterSeconds: Long) :
-        ResponseStatusException(TOO_MANY_REQUESTS, reason) {
-        override fun getHeaders(): HttpHeaders = HttpHeaders().apply { set(HttpHeaders.RETRY_AFTER, retryAfterSeconds.toString()) }
-    }
 
     companion object {
         private const val MAX_TRACKED_CLIENTS = 10_000L

@@ -1,10 +1,9 @@
 package fr.marstech.mtlinkspray.domain.nativetools
+import fr.marstech.mtlinkspray.domain.shared.BusyException
 import fr.marstech.mtlinkspray.domain.shared.ApiKeyResolver
 import fr.marstech.mtlinkspray.domain.shared.PayloadTooLargeException
 import fr.marstech.mtlinkspray.domain.shared.ImageTypes
 import fr.marstech.mtlinkspray.domain.shared.QuotaPort
-import org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE
-import org.springframework.web.server.ResponseStatusException
 import java.io.IOException
 import java.io.InputStream
 import java.nio.file.Files
@@ -63,7 +62,7 @@ class ImageCompressionService(
         }
 
         if (!permit.tryAcquire()) {
-            throw ResponseStatusException(SERVICE_UNAVAILABLE, "Another OCR or image job is running, retry in a few seconds")
+            throw BusyException("Another OCR or image job is running, retry in a few seconds")
         }
         val dir = Files.createTempDirectory("img")
         try {
@@ -108,7 +107,7 @@ class ImageCompressionService(
                 .redirectError(ProcessBuilder.Redirect.DISCARD)
                 .start()
         } catch (e: IOException) {
-            throw ResponseStatusException(SERVICE_UNAVAILABLE, "Image encoder is not available", e)
+            throw BusyException("Image encoder is not available", e)
         }
         if (!process.waitFor(timeoutSeconds, TimeUnit.SECONDS)) {
             process.destroyForcibly().waitFor()

@@ -1,7 +1,10 @@
 package fr.marstech.mtlinkspray.adapter.inbound.web.common
 import fr.marstech.mtlinkspray.adapter.inbound.web.common.ViewNameEnum.ERROR
 import fr.marstech.mtlinkspray.domain.shared.PayloadTooLargeException
-import fr.marstech.mtlinkspray.adapter.outbound.ratelimit.AnonymousQuota
+import fr.marstech.mtlinkspray.domain.shared.BusyException
+import fr.marstech.mtlinkspray.domain.shared.ConflictException
+import fr.marstech.mtlinkspray.domain.shared.ForbiddenException
+import fr.marstech.mtlinkspray.domain.shared.QuotaExceededException
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.ConstraintViolationException
 import org.springframework.core.Ordered
@@ -172,17 +175,39 @@ class GlobalRestExceptionHandler(
 
     // Same exception twice, as for the 404 pair above: API clients (Accept */* or JSON) keep the JSON
     // body, a browser posting a form past its rate limit gets the error page; both carry Retry-After (MLS-161)
-    @ExceptionHandler(AnonymousQuota.QuotaExceededException::class)
-    fun handleQuotaExceeded(e: AnonymousQuota.QuotaExceededException, request: WebRequest): ResponseEntity<ErrorResponse> =
-        handleResponseStatus(e, request)
+    @ExceptionHandler(QuotaExceededException::class)
+    fun handleQuotaExceeded(e: QuotaExceededException, request: WebRequest): ResponseEntity<ErrorResponse> =
+        domainError(TOO_MANY_REQUESTS, e, request, HttpHeaders().apply { set(HttpHeaders.RETRY_AFTER, e.retryAfterSeconds.toString()) })
 
-    @ExceptionHandler(AnonymousQuota.QuotaExceededException::class, produces = [TEXT_HTML_VALUE])
-    fun handleQuotaExceededPage(e: AnonymousQuota.QuotaExceededException, response: HttpServletResponse): ModelAndView {
+    @ExceptionHandler(QuotaExceededException::class, produces = [TEXT_HTML_VALUE])
+    fun handleQuotaExceededPage(e: QuotaExceededException, response: HttpServletResponse): ModelAndView {
         response.setHeader(HttpHeaders.RETRY_AFTER, e.retryAfterSeconds.toString())
         return ModelAndView(ERROR.viewName, TOO_MANY_REQUESTS)
             .addObject("viewNameEnum", ERROR)
-            .addObject("errorMessage", e.reason)
+            .addObject("errorMessage", e.message)
     }
+
+    @ExceptionHandler(ForbiddenException::class)
+    fun handleForbidden(e: ForbiddenException, request: WebRequest) = domainError(FORBIDDEN, e, request)
+
+    @ExceptionHandler(ConflictException::class)
+    fun handleDomainConflict(e: ConflictException, request: WebRequest) = domainError(CONFLICT, e, request)
+
+    @ExceptionHandler(BusyException::class)
+    fun handleBusy(e: BusyException, request: WebRequest) = domainError(SERVICE_UNAVAILABLE, e, request)
+
+    // Same body as the former ResponseStatusException path: the status reason phrase and the domain message
+    private fun domainError(status: HttpStatus, e: RuntimeException, request: WebRequest, headers: HttpHeaders? = null) =
+        ResponseEntity(
+            ErrorResponse.from(
+                status = status.value(),
+                error = status.reasonPhrase,
+                message = e.message ?: status.reasonPhrase,
+                path = request.getDescription(false).removePrefix("uri="),
+            ),
+            headers,
+            status,
+        )
 
     @ExceptionHandler(NoResourceFoundException::class)
     fun handleNoResourceFound(
@@ -255,7 +280,7 @@ class GlobalRestExceptionHandler(
         return ResponseEntity(errorResponse, BAD_REQUEST)
     }
 
-    // A service's own status (429 quota, 503 busy engine, MLS-252), which the RuntimeException
+    // An adapter's own status (503 storage not configured), which the RuntimeException
     // handler would otherwise turn into a 500
     @ExceptionHandler(ResponseStatusException::class)
     fun handleResponseStatus(

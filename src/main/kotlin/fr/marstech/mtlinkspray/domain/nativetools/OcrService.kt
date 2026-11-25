@@ -9,8 +9,8 @@ interface OcrService {
      * invalid throws [IllegalAccessException]. [lang] is `fra`, `eng` or both joined by `+`.
      * Throws [IllegalArgumentException] for an unsupported language or a body that is not a
      * readable PNG/JPEG/PDF, [fr.marstech.mtlinkspray.domain.shared.PayloadTooLargeException] above the
-     * configured size or page count, and a [org.springframework.web.server.ResponseStatusException] with 429
-     * when the anonymous quota is spent or 503 when the engine is busy, missing or too slow.
+     * configured size or page count, [fr.marstech.mtlinkspray.domain.shared.QuotaExceededException] (429)
+     * when the anonymous quota is spent and [fr.marstech.mtlinkspray.domain.shared.BusyException] (503) when the engine is busy, missing or too slow.
      */
     fun recognize(rawApiKey: String?, clientIp: String?, image: InputStream, lang: String): OcrResult
 }

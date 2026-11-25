@@ -148,6 +148,38 @@ class GlobalRestExceptionHandlerTest {
     }
 
     @Test
+    fun shouldMapDomainErrorsToTheirStatus() {
+        val cases = listOf(
+            handler.handleForbidden(fr.marstech.mtlinkspray.domain.shared.ForbiddenException("not yours"), mockRequest) to HttpStatus.FORBIDDEN,
+            handler.handleDomainConflict(fr.marstech.mtlinkspray.domain.shared.ConflictException("taken"), mockRequest) to HttpStatus.CONFLICT,
+            handler.handleBusy(fr.marstech.mtlinkspray.domain.shared.BusyException("busy"), mockRequest) to HttpStatus.SERVICE_UNAVAILABLE,
+        )
+        cases.forEach { (response, status) ->
+            assertEquals(status, response.statusCode)
+            assertEquals(status.reasonPhrase, response.body?.error)
+            assertEquals("/api/test", response.body?.path)
+        }
+        assertEquals(listOf("not yours", "taken", "busy"), cases.map { it.first.body?.message })
+    }
+
+    @Test
+    fun shouldKeepAnAdapterResponseStatus() {
+        val e = org.springframework.web.server.ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Image storage not configured")
+        val response = handler.handleResponseStatus(e, mockRequest)
+        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.statusCode)
+        assertEquals("Service Unavailable", response.body?.error)
+        assertEquals("Image storage not configured", response.body?.message)
+    }
+
+    @Test
+    fun shouldAnswerQuotaExceededWithRetryAfter() {
+        val response = handler.handleQuotaExceeded(fr.marstech.mtlinkspray.domain.shared.QuotaExceededException("quota reached", 42), mockRequest)
+        assertEquals(HttpStatus.TOO_MANY_REQUESTS, response.statusCode)
+        assertEquals("quota reached", response.body?.message)
+        assertEquals("42", response.headers.getFirst(org.springframework.http.HttpHeaders.RETRY_AFTER))
+    }
+
+    @Test
     fun shouldReturn400ForMissingParameter() {
         val ex = MissingServletRequestParameterException("max", "int")
         val response = handler.handleMissingParameter(ex, mockRequest)

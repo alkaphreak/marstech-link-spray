@@ -1,4 +1,5 @@
 package fr.marstech.mtlinkspray.domain.checklist
+import fr.marstech.mtlinkspray.domain.shared.ConflictException
 import fr.marstech.mtlinkspray.domain.shared.ApiKeyResolver
 import com.mongodb.client.result.UpdateResult
 import fr.marstech.mtlinkspray.domain.shared.ApiCaller
@@ -26,8 +27,6 @@ import org.springframework.data.domain.Pageable
 import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.Update
-import org.springframework.http.HttpStatus
-import org.springframework.web.server.ResponseStatusException
 import java.util.Optional
 
 class ChecklistServiceTest {
@@ -128,10 +127,9 @@ class ChecklistServiceTest {
     @Test
     fun shouldAnswerConflictBeforeSavingAStaleVersion() {
         whenever(templateRepository.findByIdAndNamespace("tpl-1", "ns")).thenReturn(Optional.of(template))
-        val e = assertThrows<ResponseStatusException> {
+        val e = assertThrows<ConflictException> {
             service.updateTemplate("key", "tpl-1", request(ChecklistItemDraft(label = "a"), version = 1))
         }
-        assertEquals(HttpStatus.CONFLICT, e.statusCode)
         verify(templateRepository, never()).save(any<ChecklistTemplateEntity>())
     }
 
@@ -140,10 +138,9 @@ class ChecklistServiceTest {
         // Given: the caller read version 2, which still had item "gone"; version 3 removed it
         whenever(templateRepository.findByIdAndNamespace("tpl-1", "ns")).thenReturn(Optional.of(template))
         // When / Then
-        val e = assertThrows<ResponseStatusException> {
+        val e = assertThrows<ConflictException> {
             service.updateTemplate("key", "tpl-1", request(ChecklistItemDraft("gone", "a"), version = 2))
         }
-        assertEquals(HttpStatus.CONFLICT, e.statusCode)
     }
 
     @Test
@@ -171,10 +168,9 @@ class ChecklistServiceTest {
     fun shouldAnswerConflictOnStaleVersion() {
         whenever(templateRepository.findByIdAndNamespace("tpl-1", "ns")).thenReturn(Optional.of(template))
         whenever(templateRepository.save(any<ChecklistTemplateEntity>())).thenThrow(OptimisticLockingFailureException("stale"))
-        val e = assertThrows<ResponseStatusException> {
+        val e = assertThrows<ConflictException> {
             service.updateTemplate("key", "tpl-1", request(ChecklistItemDraft(label = "a"), version = 3))
         }
-        assertEquals(HttpStatus.CONFLICT, e.statusCode)
     }
 
     @Test

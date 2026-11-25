@@ -1,7 +1,7 @@
 package fr.marstech.mtlinkspray.adapter.inbound.web.dashboard
+import fr.marstech.mtlinkspray.domain.shared.ConflictException
+import fr.marstech.mtlinkspray.domain.shared.ForbiddenException
 import fr.marstech.mtlinkspray.domain.dashboard.Dashboard
-import org.springframework.web.server.ResponseStatusException
-import org.springframework.http.HttpStatus.FORBIDDEN
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import fr.marstech.mtlinkspray.adapter.inbound.web.common.GlobalRestExceptionHandler
 import fr.marstech.mtlinkspray.domain.dashboard.DashboardService
@@ -108,7 +108,7 @@ class DashboardApiControllerTest {
     fun shouldReturn403WhenUpdatingWithAnotherKey() {
         // Given
         whenever(dashboardService.updateDashboard(eq("1"), any<Dashboard>(), eq("other.key")))
-            .thenThrow(ResponseStatusException(FORBIDDEN, "Not authorized to edit this dashboard"))
+            .thenThrow(ForbiddenException("Not authorized to edit this dashboard"))
         // When / Then
         mockMvc.perform(put("/api/dashboard/1").header("X-Api-Key", "other.key").contentType(APPLICATION_JSON).content("{}"))
             .andExpect(status().isForbidden)
@@ -119,11 +119,23 @@ class DashboardApiControllerTest {
     fun shouldReturn409WhenSlugTaken() {
         // Given
         whenever(dashboardService.createDashboard(any<Dashboard>(), eq("raw-key")))
-            .thenThrow(DuplicateKeyException("Slug 'alka' is already taken"))
+            .thenThrow(ConflictException("Slug 'alka' is already taken"))
         // When / Then
         mockMvc.perform(
             post("/api/dashboard").header("X-Api-Key", "raw-key").contentType(APPLICATION_JSON).content("""{"slug":"alka"}""")
         ).andExpect(status().isConflict)
+    }
+
+    @Test
+    fun shouldReturn409WhenTheStoreRefusesADuplicateKey() {
+        // Given: an existing id, or the loser of a race on the unique slug index
+        whenever(dashboardService.createDashboard(any<Dashboard>(), eq("raw-key")))
+            .thenThrow(DuplicateKeyException("E11000 duplicate key"))
+        // When / Then
+        mockMvc.perform(post("/api/dashboard").header("X-Api-Key", "raw-key").contentType(APPLICATION_JSON).content("{}"))
+            .andExpect(status().isConflict)
+            .andExpect(jsonPath("$.error").value("Conflict"))
+            .andExpect(jsonPath("$.message").value("E11000 duplicate key"))
     }
 
     @Test

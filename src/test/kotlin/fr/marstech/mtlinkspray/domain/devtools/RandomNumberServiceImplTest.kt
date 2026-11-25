@@ -89,16 +89,18 @@ class RandomNumberServiceImplTest {
 
     @Test
     fun generateShouldThrowMissingParameterExceptionWhenMaxIsNull() {
-        // Given / When / Then
-        assertThrows(MissingServletRequestParameterException::class.java) {
+        // Given / When
+        val e = assertThrows(IllegalArgumentException::class.java) {
             service.generate("0", null)
         }
+        // Then: the message Spring MVC gives a missing @RequestParam, as before
+        assertEquals(MissingServletRequestParameterException("max", "int").message, e.message)
     }
 
     @Test
     fun generateShouldThrowMissingParameterExceptionWhenMaxIsBlank() {
         // Given / When / Then
-        assertThrows(MissingServletRequestParameterException::class.java) {
+        assertThrows(IllegalArgumentException::class.java) {
             service.generate("0", "  ")
         }
     }

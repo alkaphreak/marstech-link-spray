@@ -1,9 +1,8 @@
 package fr.marstech.mtlinkspray.domain.dashboard
+import fr.marstech.mtlinkspray.domain.shared.ConflictException
+import fr.marstech.mtlinkspray.domain.shared.ForbiddenException
 import fr.marstech.mtlinkspray.domain.shared.ApiKeyResolver
-import org.springframework.dao.DuplicateKeyException
-import org.springframework.http.HttpStatus.FORBIDDEN
 import org.springframework.stereotype.Service
-import org.springframework.web.server.ResponseStatusException
 
 @Service
 class DashboardServiceImpl(
@@ -30,8 +29,8 @@ class DashboardServiceImpl(
         val stored = findById(id)
         // Credentials first: a missing or invalid key is 401 everywhere, 403 is only for a valid key
         val caller = apiKeyResolver.resolve(rawApiKey)
-        if (stored.apiKeyId == null) throw ResponseStatusException(FORBIDDEN, "Dashboard created without an API key is read-only")
-        if (caller.apiKeyId != stored.apiKeyId) throw ResponseStatusException(FORBIDDEN, "Not authorized to edit this dashboard")
+        if (stored.apiKeyId == null) throw ForbiddenException("Dashboard created without an API key is read-only")
+        if (caller.apiKeyId != stored.apiKeyId) throw ForbiddenException("Not authorized to edit this dashboard")
         checkSlugFree(dashboard.slug, id)
         // The store replaces the content fields only: owner, enabled flag and creation data stay as stored
         return dashboardStore.update(dashboard.copy(id = id))
@@ -43,6 +42,6 @@ class DashboardServiceImpl(
     // Check-then-save gives a readable error; the store's unique slug index makes the loser of a concurrent claim fail
     private fun checkSlugFree(slug: String?, ownId: String) {
         if (slug != null && dashboardStore.findBySlug(slug)?.takeIf { it.id != ownId } != null)
-            throw DuplicateKeyException("Slug '$slug' is already taken")
+            throw ConflictException("Slug '$slug' is already taken")
     }
 }

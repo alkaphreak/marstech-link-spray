@@ -73,6 +73,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   the lookup and TTL indexes and the atomic run-result update) and a `CronSchedulerPort` (`SpringCronScheduler`: Spring
   `CronExpression` parsing and the private task scheduler, as ADR 0007 asks); the job limit is read through
   `CronJobConfig` (same `mt.link-spray.cron.*` keys and defaults); stored jobs and runs unchanged
+- Domain errors (MLS-276 step 2): domains throw `ForbiddenException` (403), `ConflictException` (409),
+  `BusyException` (503) and `QuotaExceededException` (429, with `Retry-After`) from `domain/shared` instead of
+  Spring's `ResponseStatusException`, `DuplicateKeyException` and `MissingServletRequestParameterException`;
+  `GlobalRestExceptionHandler` maps them to the same statuses, bodies and headers as before
 
 ### Fixed
 

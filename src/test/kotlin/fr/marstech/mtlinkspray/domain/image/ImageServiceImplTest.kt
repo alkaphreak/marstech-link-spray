@@ -1,12 +1,11 @@
 package fr.marstech.mtlinkspray.domain.image
+import fr.marstech.mtlinkspray.domain.shared.ForbiddenException
 import fr.marstech.mtlinkspray.domain.shared.ApiKeyResolver
 import fr.marstech.mtlinkspray.domain.shared.ApiCaller
 import fr.marstech.mtlinkspray.domain.shared.ClientContext
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.springframework.http.HttpStatus.FORBIDDEN
-import org.springframework.web.server.ResponseStatusException
 import org.mockito.Mockito.*
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
@@ -186,9 +185,9 @@ class ImageServiceImplTest {
         `when`(imageStore.findById("img-1")).thenReturn(image)
         `when`(apiKeyResolver.resolve("key123.secret")).thenReturn(apiKey)
 
-        assertEquals(FORBIDDEN, assertThrows<ResponseStatusException> {
+        assertThrows<ForbiddenException> {
             imageService.getImage("img-1", "key123.secret")
-        }.statusCode)
+        }
     }
 
     @Test
@@ -221,9 +220,9 @@ class ImageServiceImplTest {
         `when`(imageStore.findById("img-1")).thenReturn(image)
         `when`(apiKeyResolver.resolve("key123.secret")).thenReturn(apiKey)
 
-        assertEquals(FORBIDDEN, assertThrows<ResponseStatusException> {
+        assertThrows<ForbiddenException> {
             imageService.deleteImage("img-1", "key123.secret")
-        }.statusCode)
+        }
         verify(imageStorageService, never()).delete(any())
         verify(imageStore, never()).deleteById(any())
     }

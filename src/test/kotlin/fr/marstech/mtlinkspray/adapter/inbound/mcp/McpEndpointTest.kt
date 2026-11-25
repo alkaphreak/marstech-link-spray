@@ -83,6 +83,15 @@ internal class McpEndpointTest {
     }
 
     @Test
+    // The tool's JSON schema marks max required: the call is refused before the service runs
+    fun randomNumberWithoutMaxShouldBeRefusedByTheToolSchema() {
+        rpc("""{"jsonrpc":"2.0","id":5,"method":"tools/call","params":{"name":"random_number","arguments":{"min":1}}}""")
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.result.isError").value(true))
+            .andExpect(jsonPath("$.result.content[0].text").value(containsString("'max'")))
+    }
+
+    @Test
     fun toolsCallShouldReturnIsErrorWithTheRestMessageOnInvalidInput() {
         rpc("""{"jsonrpc":"2.0","id":4,"method":"tools/call","params":{"name":"dns_lookup","arguments":{"name":"not a domain"}}}""")
             .andExpect(status().isOk)

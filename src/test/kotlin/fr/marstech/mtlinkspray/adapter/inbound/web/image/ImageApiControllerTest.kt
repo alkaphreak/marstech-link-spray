@@ -1,6 +1,5 @@
 package fr.marstech.mtlinkspray.adapter.inbound.web.image
-import org.springframework.web.server.ResponseStatusException
-import org.springframework.http.HttpStatus.FORBIDDEN
+import fr.marstech.mtlinkspray.domain.shared.ForbiddenException
 import fr.marstech.mtlinkspray.MtLinkSprayApplication
 import fr.marstech.mtlinkspray.config.SecurityConfig
 import fr.marstech.mtlinkspray.adapter.inbound.web.common.GlobalRestExceptionHandler
@@ -211,7 +210,7 @@ class ImageApiControllerTest {
 
     @Test
     fun shouldReturnForbiddenWhenDeletingImageNotOwned() {
-        org.mockito.kotlin.doAnswer { throw ResponseStatusException(FORBIDDEN, "Not authorized to delete this image") }
+        org.mockito.kotlin.doAnswer { throw ForbiddenException("Not authorized to delete this image") }
             .`when`(imageService).deleteImage("img-1", "key123.secret")
 
         delete("/api/images/img-1")

@@ -1,4 +1,5 @@
 package fr.marstech.mtlinkspray.adapter.inbound.web.checklist
+import fr.marstech.mtlinkspray.domain.shared.ConflictException
 import fr.marstech.mtlinkspray.MtLinkSprayApplication
 import fr.marstech.mtlinkspray.config.SecurityConfig
 import fr.marstech.mtlinkspray.config.ValidationConfig
@@ -19,7 +20,6 @@ import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
 import org.springframework.context.annotation.Import
-import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.bean.override.mockito.MockitoBean
@@ -31,7 +31,6 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
-import org.springframework.web.server.ResponseStatusException
 
 @WebMvcTest(controllers = [ChecklistApiController::class])
 @ContextConfiguration(classes = [MtLinkSprayApplication::class])
@@ -111,7 +110,7 @@ class ChecklistApiControllerTest {
     @Test
     fun shouldReturnConflictOnStaleVersion() {
         whenever(checklistService.updateTemplate(eq("key"), eq("tpl-1"), any()))
-            .thenThrow(ResponseStatusException(HttpStatus.CONFLICT, "stale"))
+            .thenThrow(ConflictException("stale"))
         mockMvc.perform(
             put("/api/checklists/templates/tpl-1").header("X-Api-Key", "key").contentType(json)
                 .content("""{"title":"Trip","items":[{"label":"Passport"}],"version":0}"""),

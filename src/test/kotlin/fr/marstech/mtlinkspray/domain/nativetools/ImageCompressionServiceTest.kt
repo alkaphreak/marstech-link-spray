@@ -1,12 +1,11 @@
 package fr.marstech.mtlinkspray.domain.nativetools
+import fr.marstech.mtlinkspray.domain.shared.BusyException
 import fr.marstech.mtlinkspray.adapter.outbound.ratelimit.AnonymousQuota
 import fr.marstech.mtlinkspray.domain.shared.PayloadTooLargeException
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.io.TempDir
 import org.mockito.kotlin.mock
-import org.springframework.http.HttpStatus
-import org.springframework.web.server.ResponseStatusException
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import java.nio.file.Files
@@ -89,8 +88,7 @@ class ImageCompressionServiceTest {
 
     @Test
     fun `a missing encoder binary returns 503`() {
-        val e = assertThrows<ResponseStatusException> { service(cwebp = dir.resolve("missing").toString()).compress(ImageFormat.WEBP) }
-        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, e.statusCode)
+        val e = assertThrows<BusyException> { service(cwebp = dir.resolve("missing").toString()).compress(ImageFormat.WEBP) }
     }
 
     @Test
@@ -123,7 +121,6 @@ class ImageCompressionServiceTest {
         service(permit = permit).compress(ImageFormat.WEBP)
         assertEquals(1, permit.availablePermits())
         permit.acquire()
-        val e = assertThrows<ResponseStatusException> { service(permit = permit).compress(ImageFormat.WEBP) }
-        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, e.statusCode)
+        val e = assertThrows<BusyException> { service(permit = permit).compress(ImageFormat.WEBP) }
     }
 }

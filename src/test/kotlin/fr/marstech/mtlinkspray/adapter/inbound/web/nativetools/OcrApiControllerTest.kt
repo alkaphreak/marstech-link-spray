@@ -1,4 +1,6 @@
 package fr.marstech.mtlinkspray.adapter.inbound.web.nativetools
+import fr.marstech.mtlinkspray.domain.shared.BusyException
+import fr.marstech.mtlinkspray.domain.shared.QuotaExceededException
 import fr.marstech.mtlinkspray.MtLinkSprayApplication
 import fr.marstech.mtlinkspray.config.SecurityConfig
 import fr.marstech.mtlinkspray.adapter.inbound.web.common.GlobalRestExceptionHandler
@@ -16,14 +18,12 @@ import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
 import org.springframework.context.annotation.Import
-import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
-import org.springframework.web.server.ResponseStatusException
 
 @WebMvcTest(controllers = [OcrApiController::class])
 @ContextConfiguration(classes = [MtLinkSprayApplication::class])
@@ -95,23 +95,25 @@ class OcrApiControllerTest {
     @Test
     fun shouldReturnTooManyRequestsWhenQuotaIsSpent() {
         // Given
-        givenFailure(ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Anonymous OCR quota of 10 reached"))
+        givenFailure(QuotaExceededException("Anonymous OCR quota of 10 reached", 30))
 
         // When / Then
         mockMvc.perform(givenRequest())
             .andExpect(status().isTooManyRequests)
             .andExpect(jsonPath("$.message").value("Anonymous OCR quota of 10 reached"))
+            .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.header().string("Retry-After", "30"))
     }
 
     @Test
     fun shouldReturnServiceUnavailableWhenEngineIsBusy() {
         // Given
-        givenFailure(ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE))
+        givenFailure(BusyException("OCR engine is not available"))
 
         // When / Then
         mockMvc.perform(givenRequest())
             .andExpect(status().isServiceUnavailable)
-            .andExpect(jsonPath("$.message").value("Service Unavailable"))
+            .andExpect(jsonPath("$.error").value("Service Unavailable"))
+            .andExpect(jsonPath("$.message").value("OCR engine is not available"))
     }
 
     @Test

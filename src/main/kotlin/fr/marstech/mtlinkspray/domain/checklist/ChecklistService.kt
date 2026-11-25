@@ -1,7 +1,6 @@
 package fr.marstech.mtlinkspray.domain.checklist
+import fr.marstech.mtlinkspray.domain.shared.ConflictException
 import fr.marstech.mtlinkspray.domain.shared.ApiKeyResolver
-import org.springframework.http.HttpStatus
-import org.springframework.web.server.ResponseStatusException
 
 /**
  * Checklist templates and instances (MLS-222, ADR 0005), per `X-Api-Key` namespace. An instance
@@ -79,7 +78,7 @@ class ChecklistService(
     }
 
     private fun conflict(id: String, version: Long) =
-        ResponseStatusException(HttpStatus.CONFLICT, "Template $id was modified or deleted since version $version")
+        ConflictException("Template $id was modified or deleted since version $version")
 
     private fun getTemplateIn(namespace: String, id: String) =
         store.findTemplate(namespace, id) ?: throw NoSuchElementException("Checklist template $id not found")

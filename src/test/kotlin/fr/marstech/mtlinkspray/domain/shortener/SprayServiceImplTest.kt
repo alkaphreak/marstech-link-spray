@@ -101,7 +101,7 @@ internal class SprayServiceImplTest {
         val limited = SprayServiceImpl(shortenerService, quota)
 
         // When / Then
-        assertThrows(AnonymousQuota.QuotaExceededException::class.java) {
+        assertThrows(fr.marstech.mtlinkspray.domain.shared.QuotaExceededException::class.java) {
             limited.shortenAndSpray(listOf("https://example.com", "https://example.org"), client, links)
         }
         org.mockito.Mockito.verifyNoInteractions(shortenerService)
@@ -110,10 +110,9 @@ internal class SprayServiceImplTest {
     @Test
     fun shortenAndSprayShouldRejectMoreThanOneHundredUrls() {
         // When / Then
-        val e = assertThrows(org.springframework.web.server.ResponseStatusException::class.java) {
+        val e = assertThrows(IllegalArgumentException::class.java) {
             sprayService.shortenAndSpray(List(101) { "https://example.com/$it" }, client, links)
         }
-        assertEquals(org.springframework.http.HttpStatus.BAD_REQUEST, e.statusCode)
         org.mockito.Mockito.verifyNoInteractions(shortenerService)
     }
 }
