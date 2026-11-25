@@ -33,7 +33,7 @@ class AnonymousQuota(
     override fun count(clientIp: String, tokens: Long) {
         if (window.isZero || window.isNegative) return
         // Never fits, whatever the wait: a 429 would send the client into pointless retries
-        if (tokens > quota) throw IllegalArgumentException("$name request of $tokens exceeds the quota of $quota")
+        require(tokens <= quota) { "$name request of $tokens exceeds the quota of $quota" }
         val probe = buckets.get(clientKey(clientIp)) { newBucket() }.tryConsumeAndReturnRemaining(tokens)
         if (!probe.isConsumed) {
             throw QuotaExceededException("$name quota of $quota reached: $hint", NANOSECONDS.toSeconds(probe.nanosToWaitForRefill) + 1)
