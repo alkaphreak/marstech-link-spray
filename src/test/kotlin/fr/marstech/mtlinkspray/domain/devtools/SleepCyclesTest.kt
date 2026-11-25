@@ -1,5 +1,5 @@
 package fr.marstech.mtlinkspray.domain.devtools
-import fr.marstech.mtlinkspray.adapter.inbound.web.devtools.SleepMode
+import fr.marstech.mtlinkspray.domain.devtools.SleepMode
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.LocalTime

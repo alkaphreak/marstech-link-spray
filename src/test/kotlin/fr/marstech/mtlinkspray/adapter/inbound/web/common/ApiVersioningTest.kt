@@ -3,7 +3,7 @@ import fr.marstech.mtlinkspray.MtLinkSprayApplication
 import fr.marstech.mtlinkspray.config.SecurityConfig
 import fr.marstech.mtlinkspray.adapter.inbound.web.devtools.RandomNumberApiController
 import fr.marstech.mtlinkspray.adapter.inbound.web.devtools.ViewQrController
-import fr.marstech.mtlinkspray.adapter.inbound.web.devtools.RandomNumberResponse
+import fr.marstech.mtlinkspray.domain.devtools.RandomNumber
 import fr.marstech.mtlinkspray.domain.devtools.RandomNumberService
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -37,7 +37,7 @@ class ApiVersioningTest {
     @BeforeEach
     fun setup() {
         whenever(randomNumberService.generate(anyOrNull(), anyOrNull()))
-            .thenReturn(RandomNumberResponse(value = 4, min = 1, max = 6, timestamp = Instant.EPOCH))
+            .thenReturn(RandomNumber(value = 4, min = 1, max = 6, timestamp = Instant.EPOCH))
     }
 
     @Test

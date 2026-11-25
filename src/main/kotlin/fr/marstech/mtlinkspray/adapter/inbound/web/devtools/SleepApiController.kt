@@ -1,4 +1,5 @@
 package fr.marstech.mtlinkspray.adapter.inbound.web.devtools
+import fr.marstech.mtlinkspray.domain.devtools.SleepCycleResult
 import fr.marstech.mtlinkspray.domain.devtools.SleepCycles
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -24,7 +25,7 @@ class SleepApiController {
     fun getSleep(
         @RequestParam(name = "wakeAt", required = false) wakeAt: String?,
         @RequestParam(name = "sleepAt", required = false) sleepAt: String?
-    ): SleepCycleResponse {
+    ): SleepCycleResult {
         require((wakeAt == null) != (sleepAt == null)) {
             "Provide exactly one of wakeAt or sleepAt (HH:mm)"
         }

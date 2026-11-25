@@ -1,10 +1,10 @@
 package fr.marstech.mtlinkspray.adapter.inbound.mcp
 import fr.marstech.mtlinkspray.adapter.inbound.web.devtools.DnsLookupRequest
-import fr.marstech.mtlinkspray.adapter.inbound.web.devtools.DnsLookupResponse
+import fr.marstech.mtlinkspray.domain.devtools.DnsLookupResult
 import fr.marstech.mtlinkspray.adapter.inbound.web.devtools.DnsReverseRequest
-import fr.marstech.mtlinkspray.adapter.inbound.web.devtools.IpInfoResponse
+import fr.marstech.mtlinkspray.domain.devtools.IpInfo
 import fr.marstech.mtlinkspray.adapter.inbound.web.devtools.QrCodeRequest
-import fr.marstech.mtlinkspray.adapter.inbound.web.devtools.RandomNumberResponse
+import fr.marstech.mtlinkspray.domain.devtools.RandomNumber
 import fr.marstech.mtlinkspray.domain.devtools.DnsService
 import fr.marstech.mtlinkspray.domain.devtools.IpService
 import fr.marstech.mtlinkspray.domain.devtools.QrCodeService
@@ -41,13 +41,13 @@ class Sol4McpTools(
         // Nullable so a client that omits max gets the service's message, not a reflection error
         @McpToolParam(description = "Upper bound", required = true) max: Int?,
         @McpToolParam(description = "Lower bound, 0 when omitted", required = false) min: Int?,
-    ): RandomNumberResponse = randomNumberService.generate(min?.toString(), max?.toString())
+    ): RandomNumber = randomNumberService.generate(min?.toString(), max?.toString())
 
     @McpTool(name = "dns_lookup", description = "DNS records of a domain name, through Cloudflare's public resolver.")
     fun dnsLookup(
         @McpToolParam(description = "Domain name, e.g. example.com", required = true) name: String,
         @McpToolParam(description = "Record type: A, AAAA, MX, TXT, CNAME or NS (default A)", required = false) type: String?,
-    ): DnsLookupResponse {
+    ): DnsLookupResult {
         val request = valid(DnsLookupRequest(name = name, type = type ?: "A"))
         return dnsService.lookup(request.name.orEmpty(), request.type)
     }
@@ -55,7 +55,7 @@ class Sol4McpTools(
     @McpTool(name = "dns_reverse", description = "Reverse DNS (PTR record) of an IPv4 or IPv6 address.")
     fun dnsReverse(
         @McpToolParam(description = "IPv4 or IPv6 address", required = true) ip: String,
-    ): DnsLookupResponse = dnsService.reverse(valid(DnsReverseRequest(ip = ip)).ip.orEmpty())
+    ): DnsLookupResult = dnsService.reverse(valid(DnsReverseRequest(ip = ip)).ip.orEmpty())
 
     /**
      * Unlike GET /api/ip, the address is required: the MCP caller's own address means nothing to a
@@ -64,14 +64,14 @@ class Sol4McpTools(
     @McpTool(name = "ip_lookup", description = "Geolocation and network owner of an IPv4 or IPv6 address.")
     fun ipLookup(
         @McpToolParam(description = "IPv4 or IPv6 address", required = true) ip: String,
-    ): IpInfoResponse = ipService.lookup(valid(DnsReverseRequest(ip = ip)).ip.orEmpty())
+    ): IpInfo = ipService.lookup(valid(DnsReverseRequest(ip = ip)).ip.orEmpty())
 
     @McpTool(name = "qr_code", description = "QR code of a text, as a PNG image.")
     fun qrCode(
         @McpToolParam(description = "Text to encode, at most 2000 characters", required = true) text: String,
         @McpToolParam(description = "Size in pixels, 64 to 1024 (default 256)", required = false) size: Int?,
     ): CallToolResult {
-        val png = qrCodeService.render(valid(QrCodeRequest(text = text, size = size ?: 256, format = "png")))
+        val png = qrCodeService.render(valid(QrCodeRequest(text = text, size = size ?: 256, format = "png")).toQrCode())
         return CallToolResult.builder()
             .addContent(ImageContent(null, Base64.getEncoder().encodeToString(png), "image/png"))
             .build()

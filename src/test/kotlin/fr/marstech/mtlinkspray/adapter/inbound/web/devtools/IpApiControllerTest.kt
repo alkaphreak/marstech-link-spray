@@ -1,4 +1,5 @@
 package fr.marstech.mtlinkspray.adapter.inbound.web.devtools
+import fr.marstech.mtlinkspray.domain.devtools.IpInfo
 import fr.marstech.mtlinkspray.MtLinkSprayApplication
 import fr.marstech.mtlinkspray.config.SecurityConfig
 import fr.marstech.mtlinkspray.adapter.inbound.web.common.GlobalRestExceptionHandler
@@ -58,7 +59,7 @@ class IpApiControllerTest {
         mockMvc.perform(get(IP_PATH).param("ip", ip)).andExpect(status().isBadRequest)
     }
 
-    private fun info(ip: String) = IpInfoResponse(ip, 4, "FR", "France", 3215L, "Orange", datacenter = false)
+    private fun info(ip: String) = IpInfo(ip, 4, "FR", "France", 3215L, "Orange", datacenter = false)
 
     companion object {
         const val IP_PATH = "/api/ip"

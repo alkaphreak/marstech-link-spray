@@ -1,18 +1,9 @@
 package fr.marstech.mtlinkspray.adapter.outbound.dns
+import fr.marstech.mtlinkspray.domain.devtools.DnsClient
 import org.springframework.stereotype.Component
 import java.util.*
 import javax.naming.Context
 import javax.naming.directory.InitialDirContext
-
-fun interface DnsClient {
-
-    /**
-     * Query one record type of [name] on the DNS server at [server] (host, optionally host:port).
-     *
-     * @throws javax.naming.NamingException when the name does not exist or the server does not answer
-     */
-    fun query(server: String, name: String, type: String): List<String>
-}
 
 /** JDK DNS provider (module jdk.naming.dns): no extra dependency. */
 @Component

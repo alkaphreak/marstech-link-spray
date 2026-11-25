@@ -6,7 +6,7 @@
 ### Validation: Manual validation - max is required, min defaults to 0
 ###            Length validation: max 9 characters (digits) for both min and max
 ###            Numeric validation: min < max
-### Response: Returns RandomNumberResponse JSON with value, min, max, timestamp
+### Response: Returns RandomNumber JSON with value, min, max, timestamp
 ### Error format: JSON {"error": "message"} for validation errors
 ###
 

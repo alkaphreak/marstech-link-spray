@@ -1,7 +1,4 @@
 package fr.marstech.mtlinkspray.domain.devtools
-import fr.marstech.mtlinkspray.adapter.inbound.web.devtools.SleepCycleOption
-import fr.marstech.mtlinkspray.adapter.inbound.web.devtools.SleepCycleResponse
-import fr.marstech.mtlinkspray.adapter.inbound.web.devtools.SleepMode
 import java.time.LocalTime
 
 /**
@@ -15,14 +12,14 @@ object SleepCycles {
     private val CYCLE_COUNTS = 6 downTo 4
 
     /** Bedtimes for a wake-up time. */
-    fun bedtimes(wakeAt: LocalTime): SleepCycleResponse =
-        SleepCycleResponse(SleepMode.WAKE_AT, wakeAt, CYCLE_COUNTS.map {
+    fun bedtimes(wakeAt: LocalTime): SleepCycleResult =
+        SleepCycleResult(SleepMode.WAKE_AT, wakeAt, CYCLE_COUNTS.map {
             option(wakeAt.minusMinutes(inBedMinutes(it)), it)
         })
 
     /** Wake-up times for a bedtime. */
-    fun wakeTimes(sleepAt: LocalTime): SleepCycleResponse =
-        SleepCycleResponse(SleepMode.SLEEP_AT, sleepAt, CYCLE_COUNTS.map {
+    fun wakeTimes(sleepAt: LocalTime): SleepCycleResult =
+        SleepCycleResult(SleepMode.SLEEP_AT, sleepAt, CYCLE_COUNTS.map {
             option(sleepAt.plusMinutes(inBedMinutes(it)), it)
         })
 

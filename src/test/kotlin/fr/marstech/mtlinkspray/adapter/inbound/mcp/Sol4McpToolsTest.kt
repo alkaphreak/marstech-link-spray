@@ -1,10 +1,10 @@
 package fr.marstech.mtlinkspray.adapter.inbound.mcp
-import fr.marstech.mtlinkspray.adapter.inbound.web.devtools.DnsLookupResponse
-import fr.marstech.mtlinkspray.adapter.inbound.web.devtools.IpInfoResponse
-import fr.marstech.mtlinkspray.adapter.inbound.web.devtools.QrCodeRequest
-import fr.marstech.mtlinkspray.adapter.inbound.web.devtools.RandomNumberResponse
+import fr.marstech.mtlinkspray.domain.devtools.DnsLookupResult
+import fr.marstech.mtlinkspray.domain.devtools.IpInfo
+import fr.marstech.mtlinkspray.domain.devtools.RandomNumber
 import fr.marstech.mtlinkspray.domain.devtools.DnsService
 import fr.marstech.mtlinkspray.domain.devtools.IpService
+import fr.marstech.mtlinkspray.domain.devtools.QrCode
 import fr.marstech.mtlinkspray.domain.devtools.QrCodeService
 import fr.marstech.mtlinkspray.domain.devtools.RandomNumberService
 import io.modelcontextprotocol.spec.McpSchema.ImageContent
@@ -41,7 +41,7 @@ class Sol4McpToolsTest {
 
     @Test
     fun randomNumberShouldPassBoundsAsStringsAndDefaultMinToNull() {
-        val response: RandomNumberResponse = mock()
+        val response: RandomNumber = mock()
         whenever(randomNumberService.generate(null, "10")).thenReturn(response)
 
         assertSame(response, tools.randomNumber(10, null))
@@ -49,7 +49,7 @@ class Sol4McpToolsTest {
 
     @Test
     fun randomNumberShouldPassAGivenMin() {
-        val response: RandomNumberResponse = mock()
+        val response: RandomNumber = mock()
         whenever(randomNumberService.generate("3", "10")).thenReturn(response)
 
         assertSame(response, tools.randomNumber(10, 3))
@@ -57,7 +57,7 @@ class Sol4McpToolsTest {
 
     @Test
     fun randomNumberShouldLetTheServiceRefuseAMissingMax() {
-        val response: RandomNumberResponse = mock()
+        val response: RandomNumber = mock()
         whenever(randomNumberService.generate(null, null)).thenReturn(response)
 
         assertSame(response, tools.randomNumber(null, null))
@@ -65,7 +65,7 @@ class Sol4McpToolsTest {
 
     @Test
     fun dnsLookupShouldDefaultTypeToA() {
-        val response: DnsLookupResponse = mock()
+        val response: DnsLookupResult = mock()
         whenever(dnsService.lookup("example.com", "A")).thenReturn(response)
 
         assertSame(response, tools.dnsLookup("example.com", null))
@@ -87,7 +87,7 @@ class Sol4McpToolsTest {
 
     @Test
     fun dnsReverseShouldQueryAValidIp() {
-        val response: DnsLookupResponse = mock()
+        val response: DnsLookupResult = mock()
         whenever(dnsService.reverse("1.1.1.1")).thenReturn(response)
 
         assertSame(response, tools.dnsReverse("1.1.1.1"))
@@ -101,7 +101,7 @@ class Sol4McpToolsTest {
 
     @Test
     fun ipLookupShouldQueryAValidIpv6() {
-        val response: IpInfoResponse = mock()
+        val response: IpInfo = mock()
         whenever(ipService.lookup("2606:4700::1111")).thenReturn(response)
 
         assertSame(response, tools.ipLookup("2606:4700::1111"))
@@ -123,9 +123,8 @@ class Sol4McpToolsTest {
         val image = result.content().single() as ImageContent
         assertEquals("image/png", image.mimeType())
         assertTrue(png.contentEquals(Base64.getDecoder().decode(image.data())))
-        val request = argumentCaptor<QrCodeRequest>().apply { verify(qrCodeService).render(capture()) }.firstValue
-        assertEquals(256, request.size)
-        assertEquals("png", request.format)
+        val qrCode = argumentCaptor<QrCode>().apply { verify(qrCodeService).render(capture()) }.firstValue
+        assertEquals(QrCode("hello", 256, "000000", "ffffff", svg = false), qrCode)
     }
 
     @Test

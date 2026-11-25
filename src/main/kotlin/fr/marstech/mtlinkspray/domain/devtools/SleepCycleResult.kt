@@ -1,4 +1,4 @@
-package fr.marstech.mtlinkspray.adapter.inbound.web.devtools
+package fr.marstech.mtlinkspray.domain.devtools
 import java.time.LocalTime
 
 enum class SleepMode { WAKE_AT, SLEEP_AT }
@@ -9,7 +9,7 @@ data class SleepCycleOption(
     val sleepMinutes: Long
 )
 
-data class SleepCycleResponse(
+data class SleepCycleResult(
     val mode: SleepMode,
     val reference: LocalTime,
     val options: List<SleepCycleOption>

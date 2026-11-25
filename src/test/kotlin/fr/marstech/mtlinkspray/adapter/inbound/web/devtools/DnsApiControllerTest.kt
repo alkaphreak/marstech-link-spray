@@ -1,4 +1,6 @@
 package fr.marstech.mtlinkspray.adapter.inbound.web.devtools
+import fr.marstech.mtlinkspray.domain.devtools.DnsLookupResult
+import fr.marstech.mtlinkspray.domain.devtools.DnsPropagationResult
 import fr.marstech.mtlinkspray.MtLinkSprayApplication
 import fr.marstech.mtlinkspray.config.SecurityConfig
 import fr.marstech.mtlinkspray.adapter.inbound.web.common.GlobalRestExceptionHandler
@@ -92,7 +94,7 @@ class DnsApiControllerTest {
     fun shouldReturnPropagationResults() {
         // Given
         `when`(dnsService.propagation(EXAMPLE, "A"))
-            .thenReturn(DnsPropagationResponse(EXAMPLE, "A", listOf(response(EXAMPLE, "A")), complete = true, consistent = true))
+            .thenReturn(DnsPropagationResult(EXAMPLE, "A", listOf(response(EXAMPLE, "A")), complete = true, consistent = true))
 
         // When / Then
         mockMvc.perform(get("$DNS_PATH/propagation").param("name", EXAMPLE))
@@ -102,7 +104,7 @@ class DnsApiControllerTest {
     }
 
     private fun response(name: String, type: String) =
-        DnsLookupResponse(name, type, "Cloudflare", listOf("1.2.3.4"), timeMs = 12)
+        DnsLookupResult(name, type, "Cloudflare", listOf("1.2.3.4"), timeMs = 12)
 
     companion object {
         private const val DNS_PATH = "/api/dns"
