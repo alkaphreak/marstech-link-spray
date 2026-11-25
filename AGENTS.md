@@ -148,6 +148,11 @@ See `.local/llm/README.md` for complete conventions.
   `MongoTemplate`) is the one exception to constructor injection, to keep subclasses free of constructors
 - **Architecture rules** (ADR 0007, MLS-276): `ArchitectureTest` checks the hexagonal boundaries with no
   freeze: any violation fails the build. New code goes where the ADR says
+- **Settings**: a group of `mt.link-spray.*` keys is a `@ConfigurationProperties` data class next to the
+  config that uses it, with the defaults in the class; `@Value` is left for single keys in adapters and
+  for the S3 keys (required only when `S3Config` is active) and the admin credentials (`@Value` fails
+  startup on an unresolved `${...}`, the properties binder would keep it as a literal). The API key header name is
+  `API_KEY_HEADER` (`adapter/inbound/web/common`)
 - **DTOs for all API responses** — never return raw entities from controllers
 - **Schema-first**: data classes with validation annotations are the contract, not comments
 - **ADRs**: architecture decisions live in `docs/adr/` (MADR; create it from the Marstech-Configs

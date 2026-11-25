@@ -1,4 +1,5 @@
 package fr.marstech.mtlinkspray.adapter.inbound.web.nativetools
+import fr.marstech.mtlinkspray.adapter.inbound.web.common.API_KEY_HEADER
 import fr.marstech.mtlinkspray.domain.nativetools.OcrResult
 import fr.marstech.mtlinkspray.domain.nativetools.OcrService
 import fr.marstech.mtlinkspray.adapter.inbound.web.common.NetworkUtils
@@ -22,7 +23,7 @@ class OcrApiController(private val ocrService: OcrService) {
 
     @PostMapping(consumes = [MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.APPLICATION_PDF_VALUE])
     fun ocr(
-        @RequestHeader("X-Api-Key", required = false) apiKey: String?,
+        @RequestHeader(API_KEY_HEADER, required = false) apiKey: String?,
         @RequestParam(defaultValue = "fra") lang: String,
         httpServletRequest: HttpServletRequest,
     ): ResponseEntity<OcrResult> = ResponseEntity.ok(

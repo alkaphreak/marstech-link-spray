@@ -6,7 +6,8 @@ import jakarta.servlet.ServletInputStream
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletRequestWrapper
 import jakarta.servlet.http.HttpServletResponse
-import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.http.HttpStatus.CONTENT_TOO_LARGE
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
@@ -29,11 +30,15 @@ import java.nio.charset.Charset
  *   chunked body is read here first, at most one byte past its small dedicated cap, answered 413
  *   before dispatch when it overflows, and replayed otherwise.
  */
+@ConfigurationProperties("mt.link-spray.json")
+data class JsonLimitProperties(val maxBodyBytes: Long = 8_388_608, val mcpMaxBodyBytes: Int = 65_536)
+
 @Component
-class JsonBodySizeLimitFilter(
-    @Value("\${mt.link-spray.json.max-body-bytes:8388608}") private val maxBodyBytes: Long,
-    @Value("\${mt.link-spray.json.mcp-max-body-bytes:65536}") private val mcpMaxBodyBytes: Int,
-) : OncePerRequestFilter() {
+@EnableConfigurationProperties(JsonLimitProperties::class)
+class JsonBodySizeLimitFilter(p: JsonLimitProperties) : OncePerRequestFilter() {
+
+    private val maxBodyBytes = p.maxBodyBytes
+    private val mcpMaxBodyBytes = p.mcpMaxBodyBytes
 
     override fun doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain) {
         val length = request.contentLengthLong

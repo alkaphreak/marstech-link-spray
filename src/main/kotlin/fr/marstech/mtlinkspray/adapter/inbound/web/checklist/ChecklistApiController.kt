@@ -1,4 +1,5 @@
 package fr.marstech.mtlinkspray.adapter.inbound.web.checklist
+import fr.marstech.mtlinkspray.adapter.inbound.web.common.API_KEY_HEADER
 import fr.marstech.mtlinkspray.domain.checklist.ChecklistService
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Max
@@ -19,7 +20,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
-private const val API_KEY = "X-Api-Key"
 private const val TEMPLATE_PATH = "/templates/{id}"
 private const val INSTANCE_PATH = "/instances/{id}"
 
@@ -31,45 +31,45 @@ class ChecklistApiController(private val checklistService: ChecklistService) {
 
     @PostMapping("/templates")
     fun createTemplate(
-        @RequestHeader(API_KEY, required = false) apiKey: String?,
+        @RequestHeader(API_KEY_HEADER, required = false) apiKey: String?,
         @Valid @RequestBody request: ChecklistTemplateRequest,
     ): ResponseEntity<ChecklistTemplateDto> =
         ResponseEntity.status(HttpStatus.CREATED).body(ChecklistTemplateDto.from(checklistService.createTemplate(apiKey, request.toDraft())))
 
     @GetMapping("/templates")
     fun listTemplates(
-        @RequestHeader(API_KEY, required = false) apiKey: String?,
+        @RequestHeader(API_KEY_HEADER, required = false) apiKey: String?,
         @RequestParam(defaultValue = "0") @Min(0) page: Int,
         @RequestParam(defaultValue = "20") @Min(1) @Max(100) size: Int,
     ): List<ChecklistTemplateDto> = checklistService.listTemplates(apiKey, page, size).map(ChecklistTemplateDto::from)
 
     @GetMapping(TEMPLATE_PATH)
-    fun getTemplate(@RequestHeader(API_KEY, required = false) apiKey: String?, @PathVariable id: String): ChecklistTemplateDto =
+    fun getTemplate(@RequestHeader(API_KEY_HEADER, required = false) apiKey: String?, @PathVariable id: String): ChecklistTemplateDto =
         ChecklistTemplateDto.from(checklistService.getTemplate(apiKey, id))
 
     @PutMapping(TEMPLATE_PATH)
     fun updateTemplate(
-        @RequestHeader(API_KEY, required = false) apiKey: String?,
+        @RequestHeader(API_KEY_HEADER, required = false) apiKey: String?,
         @PathVariable id: String,
         @Valid @RequestBody request: ChecklistTemplateRequest,
     ): ChecklistTemplateDto = ChecklistTemplateDto.from(checklistService.updateTemplate(apiKey, id, request.toDraft()))
 
     @DeleteMapping(TEMPLATE_PATH)
-    fun deleteTemplate(@RequestHeader(API_KEY, required = false) apiKey: String?, @PathVariable id: String): ResponseEntity<Void> {
+    fun deleteTemplate(@RequestHeader(API_KEY_HEADER, required = false) apiKey: String?, @PathVariable id: String): ResponseEntity<Void> {
         checklistService.deleteTemplate(apiKey, id)
         return ResponseEntity.noContent().build()
     }
 
     @PostMapping("/instances")
     fun createInstance(
-        @RequestHeader(API_KEY, required = false) apiKey: String?,
+        @RequestHeader(API_KEY_HEADER, required = false) apiKey: String?,
         @Valid @RequestBody request: ChecklistInstanceRequest,
     ): ResponseEntity<ChecklistInstanceDto> =
         ResponseEntity.status(HttpStatus.CREATED).body(ChecklistInstanceDto.from(checklistService.createInstance(apiKey, request.templateId, request.context)))
 
     @GetMapping("/instances")
     fun listInstances(
-        @RequestHeader(API_KEY, required = false) apiKey: String?,
+        @RequestHeader(API_KEY_HEADER, required = false) apiKey: String?,
         @RequestParam(required = false) @Size(max = 36) templateId: String?,
         @RequestParam(required = false) @Size(max = 200) context: String?,
         @RequestParam(defaultValue = "0") @Min(0) page: Int,
@@ -78,18 +78,18 @@ class ChecklistApiController(private val checklistService: ChecklistService) {
         checklistService.listInstances(apiKey, templateId, context, page, size).map(ChecklistInstanceDto::from)
 
     @GetMapping(INSTANCE_PATH)
-    fun getInstance(@RequestHeader(API_KEY, required = false) apiKey: String?, @PathVariable id: String): ChecklistInstanceDto =
+    fun getInstance(@RequestHeader(API_KEY_HEADER, required = false) apiKey: String?, @PathVariable id: String): ChecklistInstanceDto =
         ChecklistInstanceDto.from(checklistService.getInstance(apiKey, id))
 
     @DeleteMapping(INSTANCE_PATH)
-    fun deleteInstance(@RequestHeader(API_KEY, required = false) apiKey: String?, @PathVariable id: String): ResponseEntity<Void> {
+    fun deleteInstance(@RequestHeader(API_KEY_HEADER, required = false) apiKey: String?, @PathVariable id: String): ResponseEntity<Void> {
         checklistService.deleteInstance(apiKey, id)
         return ResponseEntity.noContent().build()
     }
 
     @PatchMapping("/instances/{id}/items/{itemId}")
     fun updateItemStatus(
-        @RequestHeader(API_KEY, required = false) apiKey: String?,
+        @RequestHeader(API_KEY_HEADER, required = false) apiKey: String?,
         @PathVariable id: String,
         @PathVariable itemId: String,
         @Valid @RequestBody request: ChecklistItemStatusRequest,

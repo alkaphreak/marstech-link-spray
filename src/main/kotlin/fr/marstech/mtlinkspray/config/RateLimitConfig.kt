@@ -3,7 +3,8 @@ import fr.marstech.mtlinkspray.adapter.outbound.ratelimit.AnonymousQuota
 import fr.marstech.mtlinkspray.adapter.inbound.web.common.NetworkUtils
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.web.servlet.HandlerInterceptor
@@ -15,19 +16,22 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
  * (abuse reports), API and form alike (MLS-161, ADR 0006). A shortened spray pays one token per
  * link in SprayService instead. A 429 goes through GlobalRestExceptionHandler with Retry-After.
  */
-@Configuration
-class RateLimitConfig(
-    @Value("\${mt.link-spray.rate-limit.writes.quota:200}") private val writesQuota: Int,
-    @Value("\${mt.link-spray.rate-limit.writes.window-ms:600000}") private val writesWindowMillis: Long,
-    @Value("\${mt.link-spray.rate-limit.abuse.quota:5}") abuseQuota: Int,
-    @Value("\${mt.link-spray.rate-limit.abuse.window-ms:3600000}") abuseWindowMillis: Long,
-) : WebMvcConfigurer {
+@ConfigurationProperties("mt.link-spray.rate-limit")
+data class RateLimitProperties(val writes: Writes = Writes(), val abuse: Abuse = Abuse()) {
+    // One class per budget so that setting a single key (tests set only window-ms) keeps the other default.
+    data class Writes(val quota: Int = 200, val windowMs: Long = 600_000)
+    data class Abuse(val quota: Int = 5, val windowMs: Long = 3_600_000)
+}
 
-    private val abuse = AnonymousQuota("Abuse report", abuseQuota, abuseWindowMillis, "retry later")
+@Configuration
+@EnableConfigurationProperties(RateLimitProperties::class)
+class RateLimitConfig(private val p: RateLimitProperties) : WebMvcConfigurer {
+
+    private val abuse = AnonymousQuota("Abuse report", p.abuse.quota, p.abuse.windowMs, "retry later")
 
     /** One budget per IP shared by every write route, so switching routes does not reset it. */
     @Bean
-    fun writeQuota() = AnonymousQuota("Write", writesQuota, writesWindowMillis, "retry later")
+    fun writeQuota() = AnonymousQuota("Write", p.writes.quota, p.writes.windowMs, "retry later")
 
     override fun addInterceptors(registry: InterceptorRegistry) {
         val writes = writeQuota()

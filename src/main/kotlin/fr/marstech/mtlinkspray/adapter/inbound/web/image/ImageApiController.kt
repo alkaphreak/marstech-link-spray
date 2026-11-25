@@ -1,4 +1,5 @@
 package fr.marstech.mtlinkspray.adapter.inbound.web.image
+import fr.marstech.mtlinkspray.adapter.inbound.web.common.API_KEY_HEADER
 import fr.marstech.mtlinkspray.adapter.inbound.web.common.NetworkUtils.clientContext
 import fr.marstech.mtlinkspray.domain.image.ImageService
 import fr.marstech.mtlinkspray.domain.image.ImageUpload
@@ -27,7 +28,7 @@ class ImageApiController(private val imageService: ImageService) {
 
     @PostMapping
     fun uploadImage(
-        @RequestHeader("X-Api-Key") apiKey: String?,
+        @RequestHeader(API_KEY_HEADER) apiKey: String?,
         @RequestParam file: MultipartFile,
         @RequestParam(defaultValue = "false") isPrivate: Boolean,
         httpServletRequest: HttpServletRequest,
@@ -36,7 +37,7 @@ class ImageApiController(private val imageService: ImageService) {
             .let { ResponseEntity.status(HttpStatus.CREATED).body(ImageUploadResponse.from(it)) }
 
     @GetMapping
-    fun listImages(@RequestHeader("X-Api-Key") apiKey: String?): ResponseEntity<List<ImageMetadataDto>> =
+    fun listImages(@RequestHeader(API_KEY_HEADER) apiKey: String?): ResponseEntity<List<ImageMetadataDto>> =
         imageService.listImages(apiKey)
             .map { ImageMetadataDto.from(it) }
             .let { ResponseEntity.ok(it) }
@@ -44,7 +45,7 @@ class ImageApiController(private val imageService: ImageService) {
     @GetMapping("/{id}")
     fun getImage(
         @PathVariable id: String,
-        @RequestHeader("X-Api-Key", required = false) apiKey: String?,
+        @RequestHeader(API_KEY_HEADER, required = false) apiKey: String?,
     ): ResponseEntity<InputStreamResource> {
         val (image, stream) = imageService.downloadImage(id, apiKey)
         // Only verified raster types render inline; anything else (e.g. rows stored before the
@@ -68,7 +69,7 @@ class ImageApiController(private val imageService: ImageService) {
     @DeleteMapping("/{id}")
     fun deleteImage(
         @PathVariable id: String,
-        @RequestHeader("X-Api-Key") apiKey: String?,
+        @RequestHeader(API_KEY_HEADER) apiKey: String?,
     ): ResponseEntity<Void> {
         imageService.deleteImage(id, apiKey)
         return ResponseEntity.noContent().build()

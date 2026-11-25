@@ -1,4 +1,5 @@
 package fr.marstech.mtlinkspray.adapter.inbound.web.nativetools
+import fr.marstech.mtlinkspray.adapter.inbound.web.common.API_KEY_HEADER
 import fr.marstech.mtlinkspray.domain.nativetools.ImageCompressionService
 import fr.marstech.mtlinkspray.domain.nativetools.ImageFormat
 import fr.marstech.mtlinkspray.adapter.inbound.web.common.NetworkUtils
@@ -23,7 +24,7 @@ class ImageCompressionApiController(private val imageCompressionService: ImageCo
 
     @PostMapping("/compress", consumes = [MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE])
     fun compress(
-        @RequestHeader("X-Api-Key", required = false) apiKey: String?,
+        @RequestHeader(API_KEY_HEADER, required = false) apiKey: String?,
         @RequestParam(defaultValue = "webp") format: String,
         @RequestParam(defaultValue = "75") quality: Int,
         @RequestParam(required = false) maxDimension: Int?,
