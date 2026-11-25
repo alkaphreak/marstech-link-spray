@@ -7,6 +7,20 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- Short links, pastes, dashboards, images and abuse reports stored by 2025 releases load again: their
+  documents have no `author`, which the entities now default to the creation date instead of failing with a 500
+  (MLS-282)
+- A 500 answer no longer carries the exception message, which exposed class and constructor internals; the error
+  is logged at ERROR with its stack trace instead of leaving no trace, except when the client hung up (MLS-282)
+
+### Changed
+
+- Since 0.17.0, short-link redirects answer `303 See Other` instead of `302` in production: Boot 4.2 turns on relative
+  redirects in the forwarded-header filter, which applies only behind the proxy. Browsers and HTTP clients follow
+  both the same way (MLS-282)
+
 ---
 
 ## [0.17.0] - 2026-11-25

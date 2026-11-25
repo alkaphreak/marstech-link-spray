@@ -9,11 +9,11 @@ class GlobalExceptionHandlerTest {
     private val handler = GlobalExceptionHandler()
 
     @Test
-    fun handleExceptionShouldAddErrorMessageToModel() {
-        val ex = Exception("Something went wrong")
+    fun handleExceptionShouldShowAGenericMessage() {
+        val ex = Exception("Failed to instantiate fr.marstech.Secret using constructor ...")
         val mav: ModelAndView = handler.handleException(ex)
         assertEquals(ERROR.viewName, mav.viewName)
-        assertEquals("Something went wrong", mav.model["errorMessage"])
+        assertEquals("An unexpected error occurred", mav.model["errorMessage"])
     }
 
     @Test

@@ -61,7 +61,7 @@ class GlobalRestExceptionHandlerTest {
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.statusCode)
         assertNotNull(response.body)
         assertEquals(500, response.body?.status)
-        assertEquals("runtime error", response.body?.message)
+        assertEquals("Internal server error", response.body?.message)
     }
 
     @Test
@@ -71,7 +71,7 @@ class GlobalRestExceptionHandlerTest {
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.statusCode)
         assertNotNull(response.body)
         assertEquals(500, response.body?.status)
-        assertEquals("general error", response.body?.message)
+        assertEquals("Internal server error", response.body?.message)
     }
 
     @Test

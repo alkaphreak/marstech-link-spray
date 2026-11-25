@@ -17,6 +17,6 @@ data class AbuseReportEntity(
     override var isEnabled: Boolean = true,
     override var description: String? = null,
     override var metadata: MutableMap<String, String> = mutableMapOf(),
-    override var author: HistoryItem,
+    override var author: HistoryItem = HistoryItem(dateTime = creationDate),
     override var historyItems: MutableList<HistoryItem> = mutableListOf(),
 ) : StandardEntity
