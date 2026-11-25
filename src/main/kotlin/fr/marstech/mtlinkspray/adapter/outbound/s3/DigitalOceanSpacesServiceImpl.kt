@@ -1,5 +1,5 @@
 package fr.marstech.mtlinkspray.adapter.outbound.s3
-import fr.marstech.mtlinkspray.domain.image.ImageStorageService
+import fr.marstech.mtlinkspray.domain.image.ImageStoragePort
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
@@ -16,7 +16,7 @@ import java.time.format.DateTimeFormatter
 import java.util.*
 
 /**
- * [ImageStorageService] implementation backed by Digital Ocean Spaces (S3-compatible object
+ * [ImageStoragePort] implementation backed by Digital Ocean Spaces (S3-compatible object
  * storage). Bucket: mt-mls-img-storage (region tor1) - see MLS-203 tracking doc for provisioning
  * details.
  *
@@ -26,7 +26,7 @@ import java.util.*
 class DigitalOceanSpacesServiceImpl(
     private val s3Client: S3Client?,
     @Value("\${mt.link-spray.storage.do-spaces.bucket}") private val bucket: String,
-) : ImageStorageService {
+) : ImageStoragePort {
 
     init {
         if (s3Client == null) log.warn("Image storage disabled: LINK_SPRAY_DO_SPACES_ENDPOINT is not set")

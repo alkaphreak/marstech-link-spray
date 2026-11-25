@@ -10,7 +10,7 @@ import java.io.InputStream
  * Images are served by proxying/streaming through MLS (no direct redirect to the storage
  * provider URL), hence [download] rather than a presigned-URL-only API.
  */
-interface ImageStorageService {
+interface ImageStoragePort {
 
     /**
      * Uploads [data] under the given [namespace] (per-app isolation) and returns the resulting

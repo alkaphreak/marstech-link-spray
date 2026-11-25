@@ -2,7 +2,7 @@ package fr.marstech.mtlinkspray.domain.nativetools
 import fr.marstech.mtlinkspray.domain.shared.BusyException
 import fr.marstech.mtlinkspray.domain.shared.ApiKeyResolver
 import fr.marstech.mtlinkspray.domain.shared.PayloadTooLargeException
-import fr.marstech.mtlinkspray.domain.shared.ImageTypes
+import fr.marstech.mtlinkspray.domain.shared.ImageType
 import fr.marstech.mtlinkspray.domain.shared.QuotaPort
 import java.io.IOException
 import java.io.InputStream
@@ -43,7 +43,7 @@ class ImageCompressionService(
         if (bytes.size > maxInputBytes) {
             throw PayloadTooLargeException("Image exceeds the maximum allowed size of $maxInputBytes bytes")
         }
-        val type = ImageTypes.detect(bytes)
+        val type = ImageType.detect(bytes)?.mediaType
         require(type == "image/png" || type == "image/jpeg") { "Body is not a PNG or JPEG" }
         val (width, height) = requireNotNull(dimensions(bytes)) { "Body is not a readable PNG or JPEG" }
         val maxPixels = when (format) { ImageFormat.WEBP -> webpMaxPixels; ImageFormat.JPEG -> jpegMaxPixels; ImageFormat.PNG -> pngMaxPixels }

@@ -13,15 +13,15 @@ import org.junit.jupiter.api.Assertions.assertTrue
  * Property-based checks of the image upload gate (MARSTECH-847): invariants that must hold for
  * any byte sequence, not just a few hand-picked fixtures.
  */
-class ImageTypesPropertyTest {
+class ImageTypePropertyTest {
 
     @Property(seed = "847")
     fun shouldOnlyEverDetectAllowedTypes(@ForAll @Size(max = 64) bytes: ByteArray) {
         // Given any byte sequence
         // When
-        val detected = ImageTypes.detect(bytes)
+        val detected = ImageType.detect(bytes)?.mediaType
         // Then
-        assertTrue(detected == null || detected in ImageTypes.ALLOWED, "detected $detected")
+        assertTrue(detected == null || detected in ImageType.MEDIA_TYPES, "detected $detected")
     }
 
     @Property(seed = "847")
@@ -32,7 +32,7 @@ class ImageTypesPropertyTest {
         // Given content starting like an SVG or XML document
         val bytes = prefix.toByteArray() + suffix
         // When / Then
-        assertNull(ImageTypes.detect(bytes))
+        assertNull(ImageType.detect(bytes)?.mediaType)
     }
 
     @Property(seed = "847")
@@ -43,7 +43,7 @@ class ImageTypesPropertyTest {
         // Given a valid magic-byte header followed by arbitrary bytes
         val bytes = header.first + suffix
         // When / Then
-        assertEquals(header.second, ImageTypes.detect(bytes))
+        assertEquals(header.second, ImageType.detect(bytes)?.mediaType)
     }
 
     @Provide
