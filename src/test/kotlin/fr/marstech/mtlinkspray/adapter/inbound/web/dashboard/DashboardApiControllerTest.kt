@@ -1,4 +1,5 @@
 package fr.marstech.mtlinkspray.adapter.inbound.web.dashboard
+import fr.marstech.mtlinkspray.domain.dashboard.Dashboard
 import org.springframework.web.server.ResponseStatusException
 import org.springframework.http.HttpStatus.FORBIDDEN
 import tools.jackson.module.kotlin.jacksonObjectMapper
@@ -38,7 +39,7 @@ class DashboardApiControllerTest {
     @Test
     fun shouldGetDashboard() {
         val dashboard = DashboardDto()
-        whenever(dashboardService.getDashboard("1")).thenReturn(dashboard)
+        whenever(dashboardService.getDashboard("1")).thenReturn(dashboard.toDashboard())
 
         mockMvc.perform(get("/api/dashboard/1")).andExpect(status().isOk)
             .andExpect(content().json(objectMapper.writeValueAsString(dashboard)))
@@ -47,7 +48,7 @@ class DashboardApiControllerTest {
     @Test
     fun shouldCreateDashboard() {
         val dashboard = DashboardDto()
-        whenever(dashboardService.createDashboard(any<DashboardDto>(), eq(null))).thenReturn(dashboard)
+        whenever(dashboardService.createDashboard(any<Dashboard>(), eq(null))).thenReturn(dashboard.toDashboard())
 
         mockMvc.perform(
             post("/api/dashboard").contentType(APPLICATION_JSON).content(objectMapper.writeValueAsString(dashboard))
@@ -57,7 +58,7 @@ class DashboardApiControllerTest {
     @Test
     fun shouldUpdateDashboard() {
         val dashboard = DashboardDto()
-        whenever(dashboardService.updateDashboard(eq("1"), any<DashboardDto>(), eq("raw-key"))).thenReturn(dashboard)
+        whenever(dashboardService.updateDashboard(eq("1"), any<Dashboard>(), eq("raw-key"))).thenReturn(dashboard.toDashboard())
 
         mockMvc.perform(
             put("/api/dashboard/1").header("X-Api-Key", "raw-key").contentType(APPLICATION_JSON).content(objectMapper.writeValueAsString(dashboard))
@@ -96,7 +97,7 @@ class DashboardApiControllerTest {
     @Test
     fun shouldReturn401WhenUpdatingWithoutOwnerKey() {
         // Given
-        whenever(dashboardService.updateDashboard(eq("1"), any<DashboardDto>(), eq(null)))
+        whenever(dashboardService.updateDashboard(eq("1"), any<Dashboard>(), eq(null)))
             .thenAnswer { throw IllegalAccessException("read-only") } // checked: thenThrow refuses it
         // When / Then
         mockMvc.perform(put("/api/dashboard/1").contentType(APPLICATION_JSON).content("{}"))
@@ -106,7 +107,7 @@ class DashboardApiControllerTest {
     @Test
     fun shouldReturn403WhenUpdatingWithAnotherKey() {
         // Given
-        whenever(dashboardService.updateDashboard(eq("1"), any<DashboardDto>(), eq("other.key")))
+        whenever(dashboardService.updateDashboard(eq("1"), any<Dashboard>(), eq("other.key")))
             .thenThrow(ResponseStatusException(FORBIDDEN, "Not authorized to edit this dashboard"))
         // When / Then
         mockMvc.perform(put("/api/dashboard/1").header("X-Api-Key", "other.key").contentType(APPLICATION_JSON).content("{}"))
@@ -117,7 +118,7 @@ class DashboardApiControllerTest {
     @Test
     fun shouldReturn409WhenSlugTaken() {
         // Given
-        whenever(dashboardService.createDashboard(any<DashboardDto>(), eq("raw-key")))
+        whenever(dashboardService.createDashboard(any<Dashboard>(), eq("raw-key")))
             .thenThrow(DuplicateKeyException("Slug 'alka' is already taken"))
         // When / Then
         mockMvc.perform(
@@ -148,11 +149,18 @@ class DashboardApiControllerTest {
     @Test
     fun shouldDeserializeLinkItems() {
         // Given
-        whenever(dashboardService.createDashboard(any<DashboardDto>(), eq(null))).thenAnswer { it.arguments[0] }
+        whenever(dashboardService.createDashboard(any<Dashboard>(), eq(null))).thenAnswer { it.arguments[0] }
         // When / Then
         mockMvc.perform(
             post("/api/dashboard").contentType(APPLICATION_JSON)
                 .content("""{"items":[{"name":"Site","url":"https://example.com"}]}""")
         ).andExpect(status().isCreated).andExpect(jsonPath("$.items[0].url").value("https://example.com"))
+    }
+
+    @Test
+    fun shouldRejectANullItem() {
+        // Jackson's Kotlin module refuses a null element in the non-null item list, as it did for the Mongo item type
+        mockMvc.perform(post("/api/dashboard").contentType(APPLICATION_JSON).content("""{"items":[null]}"""))
+            .andExpect(status().isBadRequest)
     }
 }

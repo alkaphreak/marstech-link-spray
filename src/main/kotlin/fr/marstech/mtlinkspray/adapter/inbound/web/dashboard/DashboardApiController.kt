@@ -17,14 +17,14 @@ class DashboardApiController(
     @Validated
     fun getDashboard(
         @PathVariable @NotBlank(message = "ID cannot be blank") id: String
-    ): DashboardDto = dashboardService.getDashboard(id)
+    ): DashboardDto = DashboardDto.from(dashboardService.getDashboard(id))
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     fun createDashboard(
         @RequestBody @Valid dashboardDto: DashboardDto,
         @RequestHeader("X-Api-Key", required = false) apiKey: String?,
-    ): DashboardDto = dashboardService.createDashboard(dashboardDto, apiKey)
+    ): DashboardDto = DashboardDto.from(dashboardService.createDashboard(dashboardDto.toDashboard(), apiKey))
 
     @PutMapping("/{id}")
     @Validated
@@ -32,5 +32,5 @@ class DashboardApiController(
         @PathVariable @NotBlank(message = "ID cannot be blank") id: String,
         @RequestBody @Valid dashboardDto: DashboardDto,
         @RequestHeader("X-Api-Key", required = false) apiKey: String?,
-    ): DashboardDto = dashboardService.updateDashboard(id, dashboardDto, apiKey)
+    ): DashboardDto = DashboardDto.from(dashboardService.updateDashboard(id, dashboardDto.toDashboard(), apiKey))
 }

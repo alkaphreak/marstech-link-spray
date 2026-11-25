@@ -49,7 +49,7 @@ src/main/kotlin/fr/marstech/mtlinkspray/
 │   └── mcp/         # MCP server tools on /mcp (Sol4McpTools, MLS-266, ADR 0004)
 ├── adapter/outbound/
 │   ├── mongo/<name>/ # @Document classes (with @TypeAlias = pre-move class name), repositories and
-│   │               #   port implementations (MongoApiKeyStore, MongoPasteStore, MongoAbuseReportStore, MongoWriteSignatureStore
+│   │               #   port implementations (MongoApiKeyStore, MongoPasteStore, MongoAbuseReportStore, MongoShortLinkStore, MongoDashboardStore, MongoWriteSignatureStore
 │   │               #   with its TTL index)
 │   ├── security/    # BCryptPasswordHasher
 │   ├── s3/ dns/ geoip/ botagents/ mail/ ratelimit/ scheduler/ web/  # DigitalOcean Spaces, JNDI DNS,
@@ -69,7 +69,7 @@ src/main/kotlin/fr/marstech/mtlinkspray/
 - `ShortenerApiController` → `ShortenerService` → `ShortLinkStore` (`MongoShortLinkStore` over `LinkItemRepository`, core URL shortener flow)
 - `SprayApiController` → `SprayService` — multi-URL spray
 - `PasteApiController` → `PasteService` → `PasteStore` (`MongoPasteStore` → `PasteRepository`) — paste CRUD
-- `DashboardApiController` → `DashboardService` — collection management
+- `DashboardApiController` → `DashboardService` → `DashboardStore` (`MongoDashboardStore`, which also creates the unique slug index) — collection management
 - `ImageApiController` → `ImageService` → `ImageStore` (`MongoImageStore`) and `ImageStorageService` (`DigitalOceanSpacesServiceImpl`) — image storage (MLS-203)
 - `AdminApiKeyViewController` → `ApiKeyService` → `ApiKeyStore` (`MongoApiKeyStore` → `ApiKeyRepository`) — admin page to create/list/enable-disable per-app API keys (`/admin/api-keys`, HTTP Basic protected)
 - `Md2PdfApiController` → `MarkdownToPdfService` — raw Markdown body to PDF, `X-Api-Key` (MLS-223)

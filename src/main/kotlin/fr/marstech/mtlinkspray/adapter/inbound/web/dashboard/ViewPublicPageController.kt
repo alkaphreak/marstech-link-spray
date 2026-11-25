@@ -14,7 +14,7 @@ class ViewPublicPageController(val dashboardService: DashboardService) : Thymele
 
     @GetMapping("/p/{slug}")
     fun getPage(@PathVariable slug: String, httpServletRequest: HttpServletRequest): ModelAndView =
-        getModelAndView(DASHBOARD, httpServletRequest).addObject("dashboard", dashboardService.getDashboardBySlug(slug))
+        getModelAndView(DASHBOARD, httpServletRequest).addObject("dashboard", DashboardDto.from(dashboardService.getDashboardBySlug(slug)))
 
     override fun getModelAndView(): ModelAndView = getModelAndView(DASHBOARD)
 }

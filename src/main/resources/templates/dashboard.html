@@ -64,7 +64,7 @@
     <div class="container">
         <div class="row">
             <div class="col-md-6 mx-auto d-grid gap-2" id="dashboard-links">
-                <!--/*@thymesVar id="item" type="fr.marstech.mtlinkspray.adapter.outbound.mongo.dashboard.DashboardLink"*/-->
+                <!--/*@thymesVar id="item" type="fr.marstech.mtlinkspray.adapter.inbound.web.dashboard.DashboardLinkDto"*/-->
                 <a class="btn btn-outline-primary" rel="noopener nofollow" target="_blank"
                    th:each="item : ${dashboard.items}" th:href="${item.url}" th:title="${item.description}">
                     <span th:text="${item.name}">Name</span>

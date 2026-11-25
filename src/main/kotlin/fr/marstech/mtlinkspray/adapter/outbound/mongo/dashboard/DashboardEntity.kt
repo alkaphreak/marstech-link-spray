@@ -22,11 +22,13 @@ data class DashboardEntity(
     override var author: HistoryItem,
     override var historyItems: MutableList<HistoryItem> = mutableListOf(),
     val name: String? = null,
-    val items: MutableList<DashboardItem> = mutableListOf(),
+    val items: MutableList<DashboardItemEntity> = mutableListOf(),
     @Indexed(unique = true, sparse = true) val slug: String? = null,
     val bio: String? = null,
     val avatarUrl: String? = null,
     val theme: DashboardTheme = DashboardTheme.DARK,
     // Key that created the dashboard; only it can edit. Null = created anonymously, read-only (MLS-115).
     @Indexed val apiKeyId: String? = null,
-) : StandardEntity
+) : StandardEntity {
+    companion object
+}
