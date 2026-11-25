@@ -74,9 +74,9 @@ class ViewSprayControllerTest {
         val shortenedUrl = "http://localhost/abc123"
         val childUrl = "http://localhost/child1"
         val fp = "ab".repeat(32)
-        whenever(sprayService.shortenAndSpray(eq(listOf("https://example.com")), eq(request), any()))
+        whenever(sprayService.shortenAndSpray(eq(listOf("https://example.com")), eq(clientContext(request)), any(), any()))
             .thenAnswer { invocation ->
-                invocation.getArgument<(String) -> Unit>(2).invoke(childUrl)
+                invocation.getArgument<(String) -> Unit>(3).invoke(childUrl)
                 shortenedUrl
             }
 

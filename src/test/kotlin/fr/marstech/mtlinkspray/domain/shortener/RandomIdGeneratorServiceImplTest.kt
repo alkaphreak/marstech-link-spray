@@ -1,4 +1,5 @@
 package fr.marstech.mtlinkspray.domain.shortener
+import fr.marstech.mtlinkspray.adapter.outbound.mongo.shortener.MongoShortLinkStore
 import fr.marstech.mtlinkspray.adapter.outbound.web.ReservedPaths
 import fr.marstech.mtlinkspray.adapter.outbound.mongo.shortener.LinkItemRepository
 import org.junit.jupiter.api.Assertions.*
@@ -50,7 +51,7 @@ class RandomIdGeneratorServiceImplTest {
         val id = randomIdGeneratorService.generateRandomId()
 
         // Then
-        assertEquals(randomIdGeneratorService.length, id.length)
+        assertEquals(randomIdGeneratorService.settings.length, id.length)
     }
 
     @Test
@@ -83,7 +84,7 @@ class RandomIdGeneratorServiceImplTest {
         val ids = randomIdGeneratorService.generateRandomIds(5)
 
         // Then
-        ids.forEach { assertEquals(randomIdGeneratorService.length, it.length) }
+        ids.forEach { assertEquals(randomIdGeneratorService.settings.length, it.length) }
     }
 
     @Test
@@ -96,7 +97,7 @@ class RandomIdGeneratorServiceImplTest {
 
         // Then
         assertNotNull(id)
-        assertEquals(randomIdGeneratorService.length, id.length)
+        assertEquals(randomIdGeneratorService.settings.length, id.length)
     }
 
     @Test
@@ -109,7 +110,7 @@ class RandomIdGeneratorServiceImplTest {
 
         // Then
         assertNotNull(id)
-        assertEquals(randomIdGeneratorService.length, id.length)
+        assertEquals(randomIdGeneratorService.settings.length, id.length)
     }
 
     @Test
@@ -150,7 +151,7 @@ class RandomIdGeneratorServiceImplTest {
 
         // Then
         assertNotNull(id)
-        assertEquals(randomIdGeneratorService.length, id.length)
+        assertEquals(randomIdGeneratorService.settings.length, id.length)
         assertFalse(randomIdGeneratorService.cacheIds.contains(id))
     }
 
@@ -164,13 +165,13 @@ class RandomIdGeneratorServiceImplTest {
 
         // Then — repository was consulted to build the cache
         verify(linkItemRepository, atLeastOnce()).findAllIds()
-        assertTrue(randomIdGeneratorService.cacheIds.size >= randomIdGeneratorService.cacheTreshold - 1)
+        assertTrue(randomIdGeneratorService.cacheIds.size >= randomIdGeneratorService.settings.cacheThreshold - 1)
     }
 
     @Test
     fun getGeneratedFreeIdWithCacheShouldNotRefillCacheWhenAboveThreshold() {
         // Given — pre-fill cache above a threshold, so no refill is needed
-        val preFilledIds = (1..randomIdGeneratorService.cacheTreshold + 5)
+        val preFilledIds = (1..randomIdGeneratorService.settings.cacheThreshold + 5)
             .mapTo(LinkedHashSet()) { randomIdGeneratorService.generateRandomId() }
         randomIdGeneratorService.cacheIds.addAll(preFilledIds)
 
@@ -198,7 +199,7 @@ class RandomIdGeneratorServiceImplTest {
     @Test
     fun getGeneratedFreeIdWithCacheShouldDecreaseCacheSizeByOne() {
         // Given — pre-fill cache above threshold
-        repeat(randomIdGeneratorService.cacheTreshold + 5) {
+        repeat(randomIdGeneratorService.settings.cacheThreshold + 5) {
             randomIdGeneratorService.cacheIds.add(randomIdGeneratorService.generateRandomId())
         }
         val cacheSizeBefore = randomIdGeneratorService.cacheIds.size
@@ -222,7 +223,9 @@ class RandomIdGeneratorServiceImplTest {
         isCacheEnabled: Boolean = true,
     ): RandomIdGeneratorServiceImpl {
         whenever(tinyRepository.findAllIds()).thenReturn(takenIds)
-        return RandomIdGeneratorServiceImpl(tinyRepository, tinyReservedPaths, 1, isCacheEnabled, 10, 3, "", charset)
+        return RandomIdGeneratorServiceImpl(
+            MongoShortLinkStore(tinyRepository), tinyReservedPaths, RandomIdSettings(1, "", charset, isCacheEnabled, 10, 3),
+        )
     }
 
     @Test
@@ -286,7 +289,7 @@ class RandomIdGeneratorServiceImplTest {
         val pool = Executors.newFixedThreadPool(8)
 
         // When: stay within one refill (depth - threshold), the repository stub cannot see IDs already handed out (MLS-246)
-        val calls = randomIdGeneratorService.cacheDepth - randomIdGeneratorService.cacheTreshold
+        val calls = randomIdGeneratorService.settings.cacheDepth - randomIdGeneratorService.settings.cacheThreshold
         val ids = try {
             (1..calls).map { pool.submit<String> { randomIdGeneratorService.getGeneratedFreeIdWithCache() } }
                 .map { it.get() }
@@ -324,8 +327,8 @@ class RandomIdGeneratorServiceImplTest {
                 withoutCache,
                 withoutCache - withCache,
                 testRange,
-                randomIdGeneratorService.cacheDepth,
-                randomIdGeneratorService.cacheTreshold
+                randomIdGeneratorService.settings.cacheDepth,
+                randomIdGeneratorService.settings.cacheThreshold
             )
         )
     }

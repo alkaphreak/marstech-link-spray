@@ -1,4 +1,5 @@
 package fr.marstech.mtlinkspray.adapter.inbound.web.shortener
+import fr.marstech.mtlinkspray.adapter.inbound.web.common.NetworkUtils.clientContext
 import fr.marstech.mtlinkspray.domain.shortener.SprayService
 import jakarta.servlet.http.HttpServletRequest
 import fr.marstech.mtlinkspray.adapter.inbound.web.common.NotEmptyNotBlank
@@ -28,8 +29,8 @@ class SprayApiController(
         shorten: Boolean = false,
     ): String =
         if (shorten) {
-            sprayService.shortenAndSpray(inputLinkList, httpServletRequest)
+            sprayService.shortenAndSpray(inputLinkList, clientContext(httpServletRequest), RequestLinkUrls(httpServletRequest))
         } else {
-            SprayService.getLinkSpray(httpServletRequest, inputLinkList)
+            RequestLinkUrls(httpServletRequest).spray(inputLinkList)
         }
 }

@@ -33,7 +33,7 @@ class ViewShortenerController(
         @RequestParam(required = false) fp: String?,
         httpServletRequest: HttpServletRequest
     ): ModelAndView {
-        val shortenedLink = shortenerService.shorten(inputLink, httpServletRequest)
+        val shortenedLink = shortenerService.shorten(inputLink, RequestLinkUrls(httpServletRequest))
         writeSignatureService.record(ResourceType.SHORT_LINK, shortenedLink, fp, clientContext(httpServletRequest))
         return getModelAndView()
             .addObject("inputLink", inputLink)

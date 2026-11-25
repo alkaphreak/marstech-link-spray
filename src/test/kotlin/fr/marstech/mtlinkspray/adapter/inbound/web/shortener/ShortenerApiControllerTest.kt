@@ -1,4 +1,5 @@
 package fr.marstech.mtlinkspray.adapter.inbound.web.shortener
+import fr.marstech.mtlinkspray.domain.shortener.LinkStats
 import fr.marstech.mtlinkspray.MtLinkSprayApplication
 import fr.marstech.mtlinkspray.config.SecurityConfig
 import fr.marstech.mtlinkspray.config.ValidationConfig
@@ -122,7 +123,7 @@ class ShortenerApiControllerTest {
     }
     @Test
     fun shouldReturnLinkStats() {
-        whenever(shortenerService.getStats("abc123")).thenReturn(LinkStatsResponse(3, null, 2))
+        whenever(shortenerService.getStats("abc123")).thenReturn(LinkStats(3, null, 2))
 
         mockMvc.perform(get("/api/url-shortener/abc123/stats"))
             .andExpect(status().isOk)

@@ -1,4 +1,5 @@
 package fr.marstech.mtlinkspray.adapter.inbound.web.shortener
+import fr.marstech.mtlinkspray.domain.shortener.LinkStats
 import fr.marstech.mtlinkspray.domain.shortener.ShortenerService
 import fr.marstech.mtlinkspray.adapter.inbound.web.common.ValidUrl
 import jakarta.servlet.http.HttpServletRequest
@@ -46,12 +47,12 @@ class ShortenerApiController(
 
     /** Click count of a short link: anonymous, no IP or fingerprint behind it (MLS-261). */
     @GetMapping("/{uid}/stats")
-    fun getStats(@PathVariable uid: String): LinkStatsResponse = shortenerService.getStats(uid)
+    fun getStats(@PathVariable uid: String): LinkStats = shortenerService.getStats(uid)
 
     private fun shorten(inputUrl: String, httpServletRequest: HttpServletRequest): String = when {
         // In some case the validation may be bypassed
         inputUrl.isNotBlank() ->
-            shortenerService.shorten(inputUrl, httpServletRequest)
+            shortenerService.shorten(inputUrl, RequestLinkUrls(httpServletRequest))
                 ?: throw IllegalStateException("Failed to shorten URL")
 
         else -> throw IllegalArgumentException("URL cannot be blank")

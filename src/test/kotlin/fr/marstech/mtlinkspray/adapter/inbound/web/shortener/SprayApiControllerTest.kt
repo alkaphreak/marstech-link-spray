@@ -1,4 +1,5 @@
 package fr.marstech.mtlinkspray.adapter.inbound.web.shortener
+import fr.marstech.mtlinkspray.domain.shortener.LinkUrls
 import fr.marstech.mtlinkspray.config.SecurityConfig
 import fr.marstech.mtlinkspray.domain.shortener.SprayService
 import org.junit.jupiter.api.Test
@@ -79,7 +80,7 @@ class SprayApiControllerTest {
     fun shouldReturnShortenedSprayLinkWhenShortenIsTrue() {
         // Given
         val expectedShortUrl = "http://localhost/xyz789"
-        whenever(sprayService.shortenAndSpray(any(), any())).thenReturn(expectedShortUrl)
+        whenever(sprayService.shortenAndSpray(any(), any(), any<LinkUrls>())).thenReturn(expectedShortUrl)
 
         // When / Then
         get("/api/spray")

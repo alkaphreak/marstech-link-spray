@@ -24,4 +24,6 @@ data class LinkItem(
     val lastClickedAt: LocalDateTime? = null,
     /** Redirects requested by robots, kept out of [clickCount] (MLS-273). */
     val botClickCount: Long = 0,
-) : StandardEntity
+) : StandardEntity {
+    companion object
+}

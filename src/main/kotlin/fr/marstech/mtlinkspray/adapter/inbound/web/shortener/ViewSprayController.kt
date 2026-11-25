@@ -7,7 +7,6 @@ import fr.marstech.mtlinkspray.domain.shortener.SprayService
 import fr.marstech.mtlinkspray.domain.signature.WriteSignatureService
 import fr.marstech.mtlinkspray.domain.shortener.SprayService.Companion.getLinkList
 import fr.marstech.mtlinkspray.domain.shortener.SprayService.Companion.getLinkListText
-import fr.marstech.mtlinkspray.domain.shortener.SprayService.Companion.getLinkSpray
 import fr.marstech.mtlinkspray.adapter.inbound.web.common.NetworkUtils.getHeadersAsMap
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.stereotype.Controller
@@ -34,7 +33,7 @@ class ViewSprayController(
     ): ModelAndView = getLinkList(inputLinkList).let { linkList ->
         getModelAndView().addObject("linkList", linkList)
             .addObject("linkListText", getLinkListText(linkList))
-            .addObject("linkSpray", getLinkSpray(httpServletRequest, linkList))
+            .addObject("linkSpray", RequestLinkUrls(httpServletRequest).spray(linkList))
     }
 
     @PostMapping("/shorten")
@@ -44,10 +43,11 @@ class ViewSprayController(
         httpServletRequest: HttpServletRequest
     ): ModelAndView {
         val linkList = getLinkList(inputLinkList)
-        val shortenedSprayUrl = sprayService.shortenAndSpray(linkList, httpServletRequest) { child ->
-            writeSignatureService.record(ResourceType.SHORT_LINK, child, fp, clientContext(httpServletRequest))
+        val client = clientContext(httpServletRequest)
+        val shortenedSprayUrl = sprayService.shortenAndSpray(linkList, client, RequestLinkUrls(httpServletRequest)) { child ->
+            writeSignatureService.record(ResourceType.SHORT_LINK, child, fp, client)
         }
-        writeSignatureService.record(ResourceType.SPRAY, shortenedSprayUrl, fp, clientContext(httpServletRequest))
+        writeSignatureService.record(ResourceType.SPRAY, shortenedSprayUrl, fp, client)
         return getModelAndView()
             .addObject("linkList", linkList)
             .addObject("linkListText", getLinkListText(linkList))
