@@ -49,8 +49,8 @@ class ApiKeyService(
      * already taken by another app.
      */
     fun createApiKey(name: String, namespace: String): ApiKeyCreationResult {
-        if (name.isBlank()) throw IllegalArgumentException("Name cannot be blank")
-        if (namespace.isBlank()) throw IllegalArgumentException("Namespace cannot be blank")
+        require(name.isNotBlank()) { "Name cannot be blank" }
+        require(namespace.isNotBlank()) { "Namespace cannot be blank" }
         require(apiKeyStore.findByNamespace(namespace) == null) { "Namespace '$namespace' is already in use" }
 
         val keyId = generateKeyId()

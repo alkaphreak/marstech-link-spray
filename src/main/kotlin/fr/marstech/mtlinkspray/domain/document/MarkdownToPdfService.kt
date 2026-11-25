@@ -62,7 +62,7 @@ class MarkdownToPdfService(
             throw PayloadTooLargeException("Markdown exceeds the maximum allowed size of $maxInputBytes bytes")
         }
         val text = bytes.toString(UTF_8)
-        if (text.isBlank()) throw IllegalArgumentException("Markdown body is empty")
+        require(text.isNotBlank()) { "Markdown body is empty" }
 
         val body = htmlRenderer.render(parser.parse(text))
         val html = """<!DOCTYPE html><html><head><meta charset="UTF-8"/><style>$css</style></head><body>$body</body></html>"""
@@ -94,10 +94,11 @@ class MarkdownToPdfService(
     private data class EmbeddedFont(val file: String, val family: String, val weight: Int, val style: FontStyle)
 
     private companion object {
+        const val SANS = "DejaVu Sans"
         val FONTS = listOf(
-            EmbeddedFont("DejaVuSans.ttf", "DejaVu Sans", 400, FontStyle.NORMAL),
-            EmbeddedFont("DejaVuSans-Bold.ttf", "DejaVu Sans", 700, FontStyle.NORMAL),
-            EmbeddedFont("DejaVuSans-Oblique.ttf", "DejaVu Sans", 400, FontStyle.ITALIC),
+            EmbeddedFont("DejaVuSans.ttf", SANS, 400, FontStyle.NORMAL),
+            EmbeddedFont("DejaVuSans-Bold.ttf", SANS, 700, FontStyle.NORMAL),
+            EmbeddedFont("DejaVuSans-Oblique.ttf", SANS, 400, FontStyle.ITALIC),
             EmbeddedFont("DejaVuSansMono.ttf", "DejaVu Sans Mono", 400, FontStyle.NORMAL),
         )
     }
