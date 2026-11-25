@@ -113,6 +113,7 @@ internal class SprayServiceImplTest {
         val e = assertThrows(IllegalArgumentException::class.java) {
             sprayService.shortenAndSpray(List(101) { "https://example.com/$it" }, client, links)
         }
+        org.junit.jupiter.api.Assertions.assertEquals("A spray holds at most 100 URLs", e.message)
         org.mockito.Mockito.verifyNoInteractions(shortenerService)
     }
 }

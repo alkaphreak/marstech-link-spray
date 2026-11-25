@@ -1,4 +1,5 @@
 package fr.marstech.mtlinkspray.domain.nativetools
+import fr.marstech.mtlinkspray.adapter.outbound.native.TesseractOcrEngine
 import fr.marstech.mtlinkspray.domain.shared.BusyException
 import fr.marstech.mtlinkspray.domain.shared.QuotaExceededException
 import fr.marstech.mtlinkspray.adapter.outbound.ratelimit.AnonymousQuota
@@ -63,7 +64,7 @@ class OcrServiceImplTest {
         maxImagePixels: Long = 12_000_000,
     ) = OcrServiceImpl(
         apiKeyResolver, NativeWorkPermit(), AnonymousQuota("Anonymous OCR", anonymousQuota, anonymousWindowMillis),
-        command, maxInputBytes, timeoutSeconds, maxPdfPages, maxPdfPixels, maxImagePixels,
+        TesseractOcrEngine(command), maxInputBytes, timeoutSeconds, maxPdfPages, maxPdfPixels, maxImagePixels,
     )
 
     /** A PDF with one page per image, or blank pages when [images] is empty and [pages] is given. */
@@ -197,6 +198,7 @@ class OcrServiceImplTest {
         }
 
         // Then
+        assertEquals("OCR took longer than 0 s", e.message)
         assertEquals(false, marker.exists())
     }
 
@@ -217,6 +219,7 @@ class OcrServiceImplTest {
         Files.delete(gate)
 
         // Then
+        assertEquals("Another OCR or image job is running, retry in a few seconds", e.message)
         first.get()
     }
 
@@ -254,6 +257,7 @@ class OcrServiceImplTest {
         val e = assertThrows<BusyException> { service.anonymous(image = pdfOf(pages = 2)) }
 
         // Then
+        assertEquals("OCR took longer than 1 s", e.message)
     }
 
     @Test
@@ -278,6 +282,7 @@ class OcrServiceImplTest {
         val e = assertThrows<QuotaExceededException> { service.anonymous() }
 
         // Then
+        kotlin.test.assertTrue(e.message!!.startsWith("Anonymous OCR quota of "), e.message)
     }
 
     @Test
@@ -318,6 +323,7 @@ class OcrServiceImplTest {
         val e = assertThrows<BusyException> { service(command = dir.resolve("absent").toString()).anonymous() }
 
         // Then
+        assertEquals("OCR engine is not available", e.message)
     }
 
     @Test
@@ -334,6 +340,7 @@ class OcrServiceImplTest {
         }
 
         // Then
+        assertEquals("OCR took longer than 1 s", e.message)
     }
 
     @Test
@@ -350,6 +357,7 @@ class OcrServiceImplTest {
         Files.delete(gate)
 
         // Then
+        assertEquals("Another OCR or image job is running, retry in a few seconds", e.message)
         first.get()
         verify(apiKeyResolver, never()).resolve(org.mockito.kotlin.any())
     }

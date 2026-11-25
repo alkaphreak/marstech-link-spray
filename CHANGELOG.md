@@ -77,6 +77,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `BusyException` (503) and `QuotaExceededException` (429, with `Retry-After`) from `domain/shared` instead of
   Spring's `ResponseStatusException`, `DuplicateKeyException` and `MissingServletRequestParameterException`;
   `GlobalRestExceptionHandler` maps them to the same statuses, bodies and headers as before
+- Native subprocesses behind ports (MLS-276 step 2): OCR runs `tesseract` through `OcrEngine`
+  (`TesseractOcrEngine`) and image compression runs `cwebp` and `caesiumclt` through `ImageEncoder`
+  (`NativeImageEncoder`), both in `adapter/outbound/native/`; commands, limits and messages unchanged
 
 ### Fixed
 

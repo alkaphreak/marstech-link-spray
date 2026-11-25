@@ -12,15 +12,13 @@ import org.apache.pdfbox.rendering.PDFRenderer
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.InputStream
-import java.nio.file.Files
 import java.util.concurrent.TimeUnit
 import javax.imageio.ImageIO
 import kotlin.math.floor
 import kotlin.math.max
 
 /**
- * Runs the `tesseract` binary as a subprocess (image on stdin, text on stdout) rather than
- * through a JNI binding: no extra dependency, and a native crash cannot take the JVM down.
+ * OCR through an [OcrEngine] (tesseract in production).
  * An A4 page at 300 dpi takes about 5 s and 80 MB of RSS per language, 110 MB for fra+eng
  * (tesseract 4.1.1 in the production image, 2026-10-29): with the 512 MB instance only one OCR
  * runs at a time, the API defaults to fra alone, and anonymous callers get a quota.
@@ -31,7 +29,7 @@ class OcrServiceImpl(
     private val apiKeyResolver: ApiKeyResolver,
     private val running: NativeWorkPermit,
     private val anonymous: QuotaPort,
-    private val command: String,
+    private val engine: OcrEngine,
     private val maxInputBytes: Int,
     private val timeoutSeconds: Long,
     private val maxPdfPages: Int,
@@ -126,33 +124,7 @@ class OcrServiceImpl(
 
     private fun runTesseract(bytes: ByteArray, languages: String, deadline: Long): String {
         checkDeadline(deadline)
-        val output = Files.createTempFile("ocr", ".txt")
-        try {
-            val process = try {
-                // OpenMP sizes its pool on the host cores, not the 1 vCPU quota: one thread is twice as fast
-                // under --cpus=1 (20.5 s vs 11.1 s for an A4 page, 2026-10-29)
-                ProcessBuilder(command, "stdin", "stdout", "-l", languages)
-                    .apply { environment()["OMP_THREAD_LIMIT"] = "1" }
-                    .redirectOutput(output.toFile())
-                    .redirectError(ProcessBuilder.Redirect.DISCARD)
-                    .start()
-            } catch (e: IOException) {
-                throw BusyException("OCR engine is not available", e)
-            }
-            try {
-                process.outputStream.use { it.write(bytes) }
-            } catch (_: IOException) {
-                // The process exited before reading the whole image: its exit code says why
-            }
-            if (!process.waitFor(deadline - System.nanoTime(), TimeUnit.NANOSECONDS)) {
-                process.destroyForcibly()
-                throw BusyException("OCR took longer than $timeoutSeconds s")
-            }
-            require(process.exitValue() == 0) { "The OCR engine could not read the image" }
-            return Files.readString(output).trim()
-        } finally {
-            Files.deleteIfExists(output)
-        }
+        return engine.recognize(bytes, languages, deadline) ?: throw BusyException("OCR took longer than $timeoutSeconds s")
     }
 
     /** Same mapping as the `document` domain's loader, kept apart since domains share only `domain/shared`. */

@@ -130,6 +130,7 @@ class ChecklistServiceTest {
         val e = assertThrows<ConflictException> {
             service.updateTemplate("key", "tpl-1", request(ChecklistItemDraft(label = "a"), version = 1))
         }
+        assertEquals("Template tpl-1 was modified or deleted since version 1", e.message)
         verify(templateRepository, never()).save(any<ChecklistTemplateEntity>())
     }
 
@@ -141,6 +142,7 @@ class ChecklistServiceTest {
         val e = assertThrows<ConflictException> {
             service.updateTemplate("key", "tpl-1", request(ChecklistItemDraft("gone", "a"), version = 2))
         }
+        assertEquals("Template tpl-1 was modified or deleted since version 2", e.message)
     }
 
     @Test
@@ -171,6 +173,7 @@ class ChecklistServiceTest {
         val e = assertThrows<ConflictException> {
             service.updateTemplate("key", "tpl-1", request(ChecklistItemDraft(label = "a"), version = 3))
         }
+        assertEquals("Template tpl-1 was modified or deleted since version 3", e.message)
     }
 
     @Test
