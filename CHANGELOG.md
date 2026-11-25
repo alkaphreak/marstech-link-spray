@@ -55,6 +55,12 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   cycle results live in the domain (same JSON), `DnsClient` is a domain port with `PublicDnsResolver`
   beside it, the GeoIP databases are read by `adapter/outbound/geoip` behind a `GeoIpDatabase` port, and
   the QR code service takes a `QrCode` value built from the validated request
+- `shortener` domain on ports (MLS-276 step 2): `ShortLink` model and `ShortLinkStore` port (Mongo adapter, same
+  documents, `insert` with the same duplicate-id retry and 409), short and spray URLs built by the web adapter
+  behind `LinkUrls` (same encoding), spray quota through `QuotaPort` and a `ClientContext`, reserved paths behind
+  `ReservedPathsPort`, random id settings read by `ShortenerConfig` (same keys), bot User-Agent lists read by
+  `adapter/outbound/botagents` (patterns now compiled at startup, same fallback when they fail to load);
+  `LinkStats` replaces `LinkStatsResponse` (same JSON)
 
 ### Fixed
 

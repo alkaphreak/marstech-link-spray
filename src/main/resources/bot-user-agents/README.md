@@ -1,6 +1,6 @@
 # Bot User-Agent patterns (MLS-273)
 
-Vendored data read by `BotUserAgents` to keep robots out of `clickCount`. All files are copied unchanged
+Vendored data read by `ClasspathBotUserAgentSource` for `BotUserAgents` to keep robots out of `clickCount`. All files are copied unchanged
 from upstream with their MIT licence notices (`LICENSE-*`), so a refresh is a plain download; check that
 `BotUserAgentsTest` still passes after it.
 

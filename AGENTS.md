@@ -52,11 +52,13 @@ src/main/kotlin/fr/marstech/mtlinkspray/
 │   │               #   port implementations (MongoApiKeyStore, MongoPasteStore, MongoAbuseReportStore, MongoWriteSignatureStore
 │   │               #   with its TTL index)
 │   ├── security/    # BCryptPasswordHasher
-│   ├── s3/ dns/ geoip/ mail/ ratelimit/ scheduler/ web/  # DigitalOcean Spaces, JNDI DNS, DB-IP
-│   │               #   GeoIP, SMTP, Bucket4j AnonymousQuota, CronConfig, ReservedPaths
+│   ├── s3/ dns/ geoip/ botagents/ mail/ ratelimit/ scheduler/ web/  # DigitalOcean Spaces, JNDI DNS,
+│   │               #   DB-IP GeoIP, bot User-Agent lists, SMTP, Bucket4j AnonymousQuota, CronConfig,
+│   │               #   ReservedPaths (ReservedPathsPort)
 └── config/          # Security, CSP, rate limit, S3, JSON body cap, DocumentConfig (md2pdf/pdf2md
                      #   services with their limits), NativeToolsConfig (OCR and image compression
                      #   services with their limits and quotas), ImageConfig (image upload limit),
+                     #   ShortenerConfig (random id generator with mt.link-spray.random-id.*),
                      #   MongoConfig (managed types for
                     #   @TypeAlias resolution of polymorphic items, ADR 0007)
 ```
@@ -64,7 +66,7 @@ src/main/kotlin/fr/marstech/mtlinkspray/
 **Key entry points**:
 
 - `MtLinkSprayApplication.kt` — Spring Boot main
-- `ShortenerApiController` → `ShortenerService` → `LinkItemRepository` (core URL shortener flow)
+- `ShortenerApiController` → `ShortenerService` → `ShortLinkStore` (`MongoShortLinkStore` over `LinkItemRepository`, core URL shortener flow)
 - `SprayApiController` → `SprayService` — multi-URL spray
 - `PasteApiController` → `PasteService` → `PasteStore` (`MongoPasteStore` → `PasteRepository`) — paste CRUD
 - `DashboardApiController` → `DashboardService` — collection management
@@ -80,7 +82,7 @@ src/main/kotlin/fr/marstech/mtlinkspray/
 
 **Critical flows**:
 
-- Shorten URL: `GET /api/url-shortener/shorten?url=` (or `POST /api/url-shortener`, 201 Created, MLS-258) → `ShortenerApiController` → `ShortenerServiceImpl` → `LinkItemRepository` (MongoDB)
+- Shorten URL: `GET /api/url-shortener/shorten?url=` (or `POST /api/url-shortener`, 201 Created, MLS-258) → `ShortenerApiController` → `ShortenerServiceImpl` → `ShortLinkStore` (MongoDB)
 - Resolve short code: `GET /{code}` → `UrlRedirectController` → `ShortenerServiceImpl` → redirect; the User-Agent is matched in memory by `BotUserAgents` (vendored patterns in `resources/bot-user-agents/`, refresh steps in its README): robots bump `botClickCount`, people `clickCount` and `lastClickedAt` (MLS-273)
 - Create paste: `POST /api/paste` → `PasteApiController` (`PasteRequest.toDraft()`, `ClientContext`) → `PasteServiceImpl` → `PasteStore`
 - Abuse report: `POST /abuse` (form) → `ViewAbuseController` (`ClientContext`) → `ReportAbuseServiceImpl` → `AbuseReportStore` (`MongoAbuseReportStore`), then `MailSenderServiceImpl`

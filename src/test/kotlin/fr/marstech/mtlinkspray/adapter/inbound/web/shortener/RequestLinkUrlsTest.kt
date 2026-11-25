@@ -1,12 +1,11 @@
-package fr.marstech.mtlinkspray.domain.shortener
-import fr.marstech.mtlinkspray.domain.shortener.ShortenerService.Companion.getShortenedLink
+package fr.marstech.mtlinkspray.adapter.inbound.web.shortener
 import jakarta.servlet.http.HttpServletRequest
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
 
-internal class ShortenerServiceUnitTest {
+internal class RequestLinkUrlsTest {
 
     @Test
     fun getShortenedLink() {
@@ -18,10 +17,7 @@ internal class ShortenerServiceUnitTest {
         val uid = "abc123"
 
         // Act
-        val result = getShortenedLink(
-            uid = uid,
-            httpServletRequest = mockRequest
-        )
+        val result = RequestLinkUrls(mockRequest).shortLink(uid)
 
         // Assert
         Assertions.assertNotNull(result)
@@ -39,10 +35,7 @@ internal class ShortenerServiceUnitTest {
         val uid = "def605"
 
         // Act
-        val result = getShortenedLink(
-            uid = uid,
-            httpServletRequest = mockRequest
-        )
+        val result = RequestLinkUrls(mockRequest).shortLink(uid)
 
         // Assert
         Assertions.assertNotNull(result)
@@ -56,10 +49,7 @@ internal class ShortenerServiceUnitTest {
         `when`(mockRequest.serverName).thenReturn("localhost")
         `when`(mockRequest.serverPort).thenReturn(8080)
         `when`(mockRequest.scheme).thenReturn("http")
-        getShortenedLink(
-            uid = "   ",
-            httpServletRequest = mockRequest
-        )
+        RequestLinkUrls(mockRequest).shortLink("   ")
         // TODO test exception
     }
 
@@ -70,10 +60,7 @@ internal class ShortenerServiceUnitTest {
         `when`(mockRequest.serverPort).thenReturn(8080)
         `when`(mockRequest.scheme).thenReturn("http")
         val uid = "abc 123"
-        val result = getShortenedLink(
-            uid = uid,
-            httpServletRequest = mockRequest
-        )
+        val result = RequestLinkUrls(mockRequest).shortLink(uid)
         Assertions.assertTrue(result.contains("abc%20123"))
     }
 }

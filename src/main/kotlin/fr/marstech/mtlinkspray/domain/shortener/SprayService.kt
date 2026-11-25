@@ -1,10 +1,5 @@
 package fr.marstech.mtlinkspray.domain.shortener
-import fr.marstech.mtlinkspray.adapter.inbound.web.common.NetworkUtils.filterDefaultPort
-import fr.marstech.mtlinkspray.adapter.inbound.web.common.NetworkUtils.getHost
-import fr.marstech.mtlinkspray.adapter.inbound.web.common.NetworkUtils.getPort
-import fr.marstech.mtlinkspray.adapter.inbound.web.common.NetworkUtils.getScheme
-import jakarta.servlet.http.HttpServletRequest
-import org.springframework.web.util.UriComponentsBuilder
+import fr.marstech.mtlinkspray.domain.shared.ClientContext
 
 interface SprayService {
 
@@ -12,12 +7,13 @@ interface SprayService {
      * Shortens each URL in the list, builds a spray link from the shortened URLs,
      * then shortens the resulting spray link into a single short URL.
      *
-     * @param urls               the list of raw target URLs
-     * @param httpServletRequest the current HTTP request (used to build absolute URLs)
+     * @param urls   the list of raw target URLs
+     * @param client the caller, whose IP pays the write quota
+     * @param links  builds the absolute short and spray URLs
      * @return a single shortened URL that redirects to a spray page of shortened links
      */
-    fun shortenAndSpray(urls: List<String>, httpServletRequest: HttpServletRequest): String =
-        shortenAndSpray(urls, httpServletRequest) {}
+    fun shortenAndSpray(urls: List<String>, client: ClientContext, links: LinkUrls): String =
+        shortenAndSpray(urls, client, links) {}
 
     /**
      * Same as [shortenAndSpray], calling [onChildShortened] with each per-URL short link, which is
@@ -25,7 +21,8 @@ interface SprayService {
      */
     fun shortenAndSpray(
         urls: List<String>,
-        httpServletRequest: HttpServletRequest,
+        client: ClientContext,
+        links: LinkUrls,
         onChildShortened: (String) -> Unit,
     ): String
 
@@ -48,22 +45,5 @@ interface SprayService {
         @JvmStatic
         fun getLinkListText(linkList: List<String>?): String? =
             linkList?.takeIf { it.isNotEmpty() }?.joinToString("\n")
-
-        /**
-         * Builds a spray page URL with the provided links or returns null if the list is empty/null.
-         */
-        @JvmStatic
-        fun getLinkSpray(
-            httpServletRequest: HttpServletRequest,
-            linkList: List<String>
-        ): String = UriComponentsBuilder.newInstance()
-            .scheme(getScheme(httpServletRequest))
-            .host(getHost(httpServletRequest))
-            .port(filterDefaultPort(getPort(httpServletRequest)))
-            .path("/spray/open")
-            .queryParam("spray", *linkList.toTypedArray())
-            .build()
-            .encode()
-            .toString()
     }
 }

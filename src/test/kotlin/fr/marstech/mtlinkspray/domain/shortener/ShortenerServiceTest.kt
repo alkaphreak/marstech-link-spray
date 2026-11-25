@@ -1,5 +1,7 @@
 package fr.marstech.mtlinkspray.domain.shortener
-import fr.marstech.mtlinkspray.adapter.inbound.web.shortener.LinkStatsResponse
+import fr.marstech.mtlinkspray.adapter.inbound.web.shortener.RequestLinkUrls
+import fr.marstech.mtlinkspray.adapter.outbound.botagents.ClasspathBotUserAgentSource
+import fr.marstech.mtlinkspray.adapter.outbound.mongo.shortener.MongoShortLinkStore
 import fr.marstech.mtlinkspray.adapter.outbound.mongo.shared.HistoryItem
 import fr.marstech.mtlinkspray.adapter.outbound.mongo.shortener.LinkItem
 import fr.marstech.mtlinkspray.adapter.outbound.mongo.shortener.LinkItemTarget
@@ -31,7 +33,9 @@ internal class ShortenerServiceTest {
     private val linkItemRepository = mock<LinkItemRepository>()
     private val httpServletRequest = mock<HttpServletRequest>()
     private val randomIdGeneratorService = mock<RandomIdGeneratorService>()
-    private val shortenerService = ShortenerServiceImpl(linkItemRepository, randomIdGeneratorService)
+    private val shortenerService = ShortenerServiceImpl(
+        MongoShortLinkStore(linkItemRepository), randomIdGeneratorService, BotUserAgents(ClasspathBotUserAgentSource()),
+    )
 
     @BeforeEach
     fun setUp() {
@@ -86,7 +90,7 @@ internal class ShortenerServiceTest {
         whenever(linkItemRepository.insert(any<LinkItem>())).thenReturn(linkItem)
         whenever(linkItemRepository.findById(id)).thenReturn(Optional.of(linkItem))
         whenever(randomIdGeneratorService.getGeneratedFreeId()).thenReturn(id)
-        shortenerService.shorten("https://www.example.com", httpServletRequest).let {
+        shortenerService.shorten("https://www.example.com", RequestLinkUrls(httpServletRequest)).let {
             Assertions.assertNotNull(it)
             val shortenedUrl = it!!
             Assertions.assertTrue(shortenedUrl.contains("http://localhost:8080/"))
@@ -100,7 +104,7 @@ internal class ShortenerServiceTest {
         whenever(linkItemRepository.insert(any<LinkItem>())).thenReturn(null)
         val exception: Exception? = Assertions.assertThrows(
             NullPointerException::class.java
-        ) { shortenerService.shorten("invalid-url", httpServletRequest) }
+        ) { shortenerService.shorten("invalid-url", RequestLinkUrls(httpServletRequest)) }
         Assertions.assertInstanceOf(NullPointerException::class.java, exception)
     }
 
@@ -122,7 +126,7 @@ internal class ShortenerServiceTest {
         whenever(linkItemRepository.insert(any<LinkItem>())).thenReturn(linkItem)
         whenever(linkItemRepository.findById(id)).thenReturn(Optional.of(linkItem))
         whenever(randomIdGeneratorService.getGeneratedFreeId()).thenReturn(id)
-        val shortened = shortenerService.shorten(url, httpServletRequest)
+        val shortened = shortenerService.shorten(url, RequestLinkUrls(httpServletRequest))
         val uid = shortened!!.substring(shortened.lastIndexOf('/') + 1)
         val target = shortenerService.getTarget(uid, BROWSER_UA)
         Assertions.assertEquals(url, target)
@@ -155,7 +159,7 @@ internal class ShortenerServiceTest {
         whenever(linkItemRepository.insert(any<LinkItem>())).thenReturn(linkItem)
         whenever(linkItemRepository.findById(id)).thenReturn(Optional.of(linkItem))
         whenever(randomIdGeneratorService.getGeneratedFreeId()).thenReturn(id)
-        val shortened = shortenerService.shorten(url, httpServletRequest)
+        val shortened = shortenerService.shorten(url, RequestLinkUrls(httpServletRequest))
         val uid = shortened!!.substring(shortened.lastIndexOf('/') + 1)
         val item = linkItemRepository.findById(uid)
         Assertions.assertTrue(item.isPresent)
@@ -170,7 +174,7 @@ internal class ShortenerServiceTest {
             if (item.id == "taken") throw DuplicateKeyException("E11000 duplicate key") else item
         }
 
-        val shortened = shortenerService.shorten("https://www.example.com", httpServletRequest)
+        val shortened = shortenerService.shorten("https://www.example.com", RequestLinkUrls(httpServletRequest))
 
         Assertions.assertTrue(shortened!!.endsWith("/free"))
         verify(linkItemRepository, never()).save(any<LinkItem>())
@@ -181,7 +185,7 @@ internal class ShortenerServiceTest {
         whenever(linkItemRepository.insert(any<LinkItem>())).thenThrow(DuplicateKeyException("E11000 duplicate key"))
 
         Assertions.assertThrows(DuplicateKeyException::class.java) {
-            shortenerService.shorten("https://www.example.com", httpServletRequest)
+            shortenerService.shorten("https://www.example.com", RequestLinkUrls(httpServletRequest))
         }
         verify(linkItemRepository, times(3)).insert(argThat<LinkItem> { id == "test-id" })
     }
@@ -229,6 +233,6 @@ internal class ShortenerServiceTest {
         val lastClick = LocalDateTime.of(2026, 11, 9, 12, 0)
         whenever(linkItemRepository.findById("abc")).thenReturn(Optional.of(storedLink("abc", 42, lastClick, 7)))
 
-        Assertions.assertEquals(LinkStatsResponse(42, lastClick, 7), shortenerService.getStats("abc"))
+        Assertions.assertEquals(LinkStats(42, lastClick, 7), shortenerService.getStats("abc"))
     }
 }

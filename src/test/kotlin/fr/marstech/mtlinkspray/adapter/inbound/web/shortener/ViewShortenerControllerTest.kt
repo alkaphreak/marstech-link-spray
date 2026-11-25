@@ -26,7 +26,7 @@ class ViewShortenerControllerTest {
         // Given
         val inputLink = "https://example.com"
         val shortenedLink = "https://short.ly/abc123"
-        `when`(shortenerService.shorten(inputLink, httpServletRequest)).thenReturn(shortenedLink)
+        `when`(shortenerService.shorten(org.mockito.kotlin.eq(inputLink), org.mockito.kotlin.any())).thenReturn(shortenedLink)
 
         // When
         val modelAndView = controller.createShortenedLink(inputLink, null, httpServletRequest)
@@ -41,7 +41,7 @@ class ViewShortenerControllerTest {
     fun postViewShouldReturnViewWithoutShortenedLinkWhenInputIsBlank() {
         // Given
         val blankInput = "   "
-        `when`(shortenerService.shorten(blankInput, httpServletRequest)).thenReturn(null)
+        `when`(shortenerService.shorten(org.mockito.kotlin.eq(blankInput), org.mockito.kotlin.any())).thenReturn(null)
 
         // When
         val modelAndView = controller.createShortenedLink(blankInput, null, httpServletRequest)

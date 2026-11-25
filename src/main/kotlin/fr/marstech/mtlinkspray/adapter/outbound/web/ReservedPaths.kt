@@ -1,4 +1,5 @@
 package fr.marstech.mtlinkspray.adapter.outbound.web
+import fr.marstech.mtlinkspray.domain.shortener.ReservedPathsPort
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
@@ -15,7 +16,7 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 class ReservedPaths(
     @Qualifier("requestMappingHandlerMapping") private val handlerMapping: ObjectProvider<RequestMappingHandlerMapping>,
     @Value($$"${mt.link-spray.random-id.reserved}") private val extraPaths: Set<String>,
-) {
+) : ReservedPathsPort {
 
     val segments: Set<String> by lazy {
         handlerMapping.getObject().handlerMethods.keys
@@ -25,5 +26,5 @@ class ReservedPaths(
             .toSet() + extraPaths
     }
 
-    operator fun contains(id: String): Boolean = id in segments
+    override operator fun contains(id: String): Boolean = id in segments
 }

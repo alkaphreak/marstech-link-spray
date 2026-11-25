@@ -1,4 +1,5 @@
 package fr.marstech.mtlinkspray.domain.shortener
+import fr.marstech.mtlinkspray.adapter.outbound.botagents.ClasspathBotUserAgentSource
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -7,6 +8,8 @@ import org.junit.jupiter.params.provider.NullAndEmptySource
 import org.junit.jupiter.params.provider.ValueSource
 
 class BotUserAgentsTest {
+
+    private val bots = BotUserAgents(ClasspathBotUserAgentSource())
 
     @ParameterizedTest
     @ValueSource(
@@ -25,7 +28,7 @@ class BotUserAgentsTest {
     )
     fun shouldTreatBrowsersAsPeople(userAgent: String) {
         // Given a browser User-Agent / When classified / Then it is a person
-        assertFalse(BotUserAgents.isBot(userAgent))
+        assertFalse(bots.isBot(userAgent))
     }
 
     @ParameterizedTest
@@ -51,7 +54,7 @@ class BotUserAgentsTest {
     )
     fun shouldTreatPreviewsCrawlersAgentsAndHttpClientsAsRobots(userAgent: String) {
         // Given a robot User-Agent / When classified / Then it is a robot
-        assertTrue(BotUserAgents.isBot(userAgent))
+        assertTrue(bots.isBot(userAgent))
     }
 
     @Test
@@ -61,8 +64,8 @@ class BotUserAgentsTest {
 
         // When classified / Then it is a robot, and the scan stays bounded by the length cap
         val start = System.nanoTime()
-        assertTrue(BotUserAgents.isBot(oversized))
-        assertFalse(BotUserAgents.isBot("Mozilla/5.0 " + "x".repeat(8 * 1024) + " Twitterbot/1.0"))
+        assertTrue(bots.isBot(oversized))
+        assertFalse(bots.isBot("Mozilla/5.0 " + "x".repeat(8 * 1024) + " Twitterbot/1.0"))
         assertTrue(System.nanoTime() - start < 1_000_000_000, "classification of 8 KB headers took over 1 s")
     }
 
@@ -79,6 +82,14 @@ class BotUserAgentsTest {
     @ValueSource(strings = ["   "])
     fun shouldTreatAMissingUserAgentAsARobot(userAgent: String?) {
         // Given no User-Agent / When classified / Then it is a robot, since every browser sends one
-        assertTrue(BotUserAgents.isBot(userAgent))
+        assertTrue(bots.isBot(userAgent))
+    }
+
+    @Test
+    fun aFailingSourceShouldNotBreakStartupAndCountsEveryVisit() {
+        val broken = BotUserAgents { error("unreadable bot lists") }
+
+        assertFalse(broken.isBot("Twitterbot/1.0"))
+        assertFalse(broken.isBot(null))
     }
 }

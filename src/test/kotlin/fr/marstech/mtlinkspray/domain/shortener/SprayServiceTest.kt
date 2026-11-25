@@ -1,4 +1,5 @@
 package fr.marstech.mtlinkspray.domain.shortener
+import fr.marstech.mtlinkspray.adapter.inbound.web.shortener.RequestLinkUrls
 import fr.marstech.mtlinkspray.domain.shortener.SprayService.Companion.getLinkList
 import jakarta.servlet.http.HttpServletRequest
 import org.junit.jupiter.api.Assertions
@@ -61,7 +62,7 @@ internal class SprayServiceTest {
                 https://www.twitter.com
                 """.trimIndent()
         val linkList: List<String> = getLinkList(inputLinkList)
-        val linkSpray = SprayService.getLinkSpray(httpServletRequest, linkList)
+        val linkSpray = RequestLinkUrls(httpServletRequest).spray(linkList)
         Assertions.assertEquals(
             "http://localhost:8080/spray/open?spray=https://www.google.com&spray=https://www.facebook.com&spray=https://www.twitter.com",
             linkSpray
