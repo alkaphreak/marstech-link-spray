@@ -22,13 +22,13 @@ import java.util.concurrent.Executors
 import java.util.stream.IntStream
 
 @SpringBootTest
-class RandomIdGeneratorServiceImplTest {
+class RandomIdGeneratorServiceTest {
 
     @MockitoBean
     private lateinit var linkItemRepository: LinkItemRepository
 
     @Autowired
-    private lateinit var randomIdGeneratorService: RandomIdGeneratorServiceImpl
+    private lateinit var randomIdGeneratorService: RandomIdGeneratorService
 
     @BeforeEach
     fun setUp() {
@@ -221,9 +221,9 @@ class RandomIdGeneratorServiceImplTest {
         charset: String,
         takenIds: List<String>,
         isCacheEnabled: Boolean = true,
-    ): RandomIdGeneratorServiceImpl {
+    ): RandomIdGeneratorService {
         whenever(tinyRepository.findAllIds()).thenReturn(takenIds)
-        return RandomIdGeneratorServiceImpl(
+        return RandomIdGeneratorService(
             MongoShortLinkStore(tinyRepository), tinyReservedPaths, RandomIdSettings(1, "", charset, isCacheEnabled, 10, 3),
         )
     }

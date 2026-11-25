@@ -1,6 +1,6 @@
 package fr.marstech.mtlinkspray.domain.cron
 import fr.marstech.mtlinkspray.domain.shared.ApiKeyResolver
-import fr.marstech.mtlinkspray.domain.shared.MailSenderService
+import fr.marstech.mtlinkspray.domain.shared.MailPort
 import org.slf4j.LoggerFactory
 import java.net.InetAddress
 import java.time.Duration
@@ -18,7 +18,7 @@ class CronJobService(
     private val store: CronStore,
     private val cron: CronSchedulerPort,
     private val apiKeyResolver: ApiKeyResolver,
-    private val mailSenderService: MailSenderService,
+    private val mailPort: MailPort,
     private val webhook: WebhookClient,
     private val maxJobsPerNamespace: Int,
 ) {
@@ -113,7 +113,7 @@ class CronJobService(
     }
 
     private fun alert(job: CronJob, failures: Int, error: String?) = try {
-        mailSenderService.sendMail(
+        mailPort.sendMail(
             "[sol4.space cron] ${job.name} failed $failures times",
             "Job ${job.id} (${job.namespace}): ${job.method} ${job.url}\nLast error: $error\nNo new alert until it succeeds again.",
         )

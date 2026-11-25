@@ -7,13 +7,13 @@ import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
-class DnsServiceImplTest {
+class DnsServiceTest {
 
     @Test
     fun shouldReturnRecordsFromCloudflareWithUppercasedType() {
         // Given
         val calls = mutableListOf<Triple<String, String, String>>()
-        val service = DnsServiceImpl { server, name, type -> calls += Triple(server, name, type); listOf("93.184.215.14") }
+        val service = DnsService { server, name, type -> calls += Triple(server, name, type); listOf("93.184.215.14") }
 
         // When
         val response = service.lookup(EXAMPLE, "a")
@@ -28,7 +28,7 @@ class DnsServiceImplTest {
     @Test
     fun shouldReportNamingErrorInsteadOfThrowing() {
         // Given
-        val service = DnsServiceImpl { _, _, _ -> throw DnsQueryException("DNS name not found", nxdomain = true) }
+        val service = DnsService { _, _, _ -> throw DnsQueryException("DNS name not found", nxdomain = true) }
 
         // When
         val response = service.lookup("nope.example", "MX")
@@ -42,7 +42,7 @@ class DnsServiceImplTest {
     @Test
     fun shouldQueryEveryPublicResolverAndReportConsistency() {
         // Given
-        val service = DnsServiceImpl { _, _, _ -> listOf("b", "a") }
+        val service = DnsService { _, _, _ -> listOf("b", "a") }
 
         // When
         val response = service.propagation(EXAMPLE, "txt")
@@ -57,7 +57,7 @@ class DnsServiceImplTest {
     @Test
     fun shouldReportInconsistentWhenOneResolverStillAnswersNxdomain() {
         // Given
-        val service = DnsServiceImpl { server, _, _ ->
+        val service = DnsService { server, _, _ ->
             if (server == PublicDnsResolver.QUAD9.address) throw DnsQueryException("DNS name not found", nxdomain = true)
             listOf("new")
         }
@@ -73,7 +73,7 @@ class DnsServiceImplTest {
     @Test
     fun shouldReportConsistentWhenEveryResolverAnswersNxdomain() {
         // Given
-        val service = DnsServiceImpl { _, _, _ -> throw DnsQueryException("DNS name not found", nxdomain = true) }
+        val service = DnsService { _, _, _ -> throw DnsQueryException("DNS name not found", nxdomain = true) }
 
         // When / Then
         assertTrue(service.propagation(EXAMPLE, "A").consistent)
@@ -82,7 +82,7 @@ class DnsServiceImplTest {
     @Test
     fun shouldReportIncompleteWhenAResolverFails() {
         // Given
-        val service = DnsServiceImpl { server, _, _ ->
+        val service = DnsService { server, _, _ ->
             if (server == PublicDnsResolver.GOOGLE.address) throw DnsQueryException("timeout", nxdomain = false)
             listOf("same")
         }
@@ -99,7 +99,7 @@ class DnsServiceImplTest {
     @Test
     fun shouldQueryPtrRecordOfReversedIpv4() {
         // Given
-        val service = DnsServiceImpl { _, name, type -> listOf("$type $name") }
+        val service = DnsService { _, name, type -> listOf("$type $name") }
 
         // When
         val response = service.reverse("8.8.4.4")
@@ -112,7 +112,7 @@ class DnsServiceImplTest {
     @Test
     fun shouldBuildIp6ArpaNameFromIpv6() {
         // Given / When
-        val name = DnsServiceImpl.ptrName("2001:db8::1")
+        val name = DnsService.ptrName("2001:db8::1")
 
         // Then
         assertEquals("1." + "0.".repeat(23) + "8.b.d.0.1.0.0.2.ip6.arpa", name)
@@ -121,7 +121,7 @@ class DnsServiceImplTest {
     @Test
     fun shouldRejectInvalidIpLiteral() {
         // Given / When / Then
-        assertThrows(IllegalArgumentException::class.java) { DnsServiceImpl.ptrName("2001:::zz") }
+        assertThrows(IllegalArgumentException::class.java) { DnsService.ptrName("2001:::zz") }
     }
 
     companion object {

@@ -29,7 +29,7 @@ class DashboardServiceTest {
     private val apiKeyResolver = mock<ApiKeyResolver>()
     private val mongoTemplate = mock<MongoTemplate>()
     private val store = MongoDashboardStore(dashboardRepository, mongoTemplate)
-    private val dashboardService = DashboardServiceImpl(store, apiKeyResolver)
+    private val dashboardService = DashboardService(store, apiKeyResolver)
 
     private val ownerKey = ApiCaller(apiKeyId = "owner", namespace = "ns1")
     private val otherKey = ApiCaller(apiKeyId = "other", namespace = "ns2")

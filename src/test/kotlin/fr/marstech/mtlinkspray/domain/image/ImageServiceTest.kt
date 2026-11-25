@@ -12,7 +12,7 @@ import org.mockito.kotlin.eq
 import org.mockito.kotlin.whenever
 import java.io.ByteArrayInputStream
 
-class ImageServiceImplTest {
+class ImageServiceTest {
 
     private val imageStore = mock(ImageStore::class.java)
     private val apiKeyResolver = mock(ApiKeyResolver::class.java)
@@ -22,7 +22,7 @@ class ImageServiceImplTest {
     private fun upload(filename: String, bytes: ByteArray) = ImageUpload(filename, bytes.size.toLong()) { bytes.inputStream() }
 
     private val maxFileSizeBytes = 25L * 1024 * 1024 // 25 MB, same default as production config
-    private val imageService = ImageServiceImpl(
+    private val imageService = ImageService(
         imageStore, apiKeyResolver, imageStorage, maxFileSizeBytes
     )
 

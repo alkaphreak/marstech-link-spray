@@ -6,7 +6,6 @@ import fr.marstech.mtlinkspray.adapter.outbound.ratelimit.AnonymousQuota
 import fr.marstech.mtlinkspray.domain.nativetools.ImageCompressionService
 import fr.marstech.mtlinkspray.domain.nativetools.NativeWorkPermit
 import fr.marstech.mtlinkspray.domain.nativetools.OcrService
-import fr.marstech.mtlinkspray.domain.nativetools.OcrServiceImpl
 import fr.marstech.mtlinkspray.domain.shared.ApiKeyResolver
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -46,7 +45,7 @@ data class ImageCompressionProperties(
 class NativeToolsConfig {
 
     @Bean
-    fun ocrService(apiKeyResolver: ApiKeyResolver, permit: NativeWorkPermit, p: OcrProperties): OcrService = OcrServiceImpl(
+    fun ocrService(apiKeyResolver: ApiKeyResolver, permit: NativeWorkPermit, p: OcrProperties): OcrService = OcrService(
         apiKeyResolver, permit, AnonymousQuota("Anonymous OCR", p.anonymousQuota, p.anonymousWindowMs),
         TesseractOcrEngine(p.command), p.maxInputBytes, p.timeoutSeconds, p.maxPdfPages, p.maxPdfPixels, p.maxImagePixels,
     )

@@ -1,5 +1,5 @@
 package fr.marstech.mtlinkspray.adapter.outbound.mail
-import fr.marstech.mtlinkspray.domain.shared.MailSenderService
+import fr.marstech.mtlinkspray.domain.shared.MailPort
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.mail.SimpleMailMessage
@@ -11,12 +11,12 @@ import org.springframework.stereotype.Service
  * skipped with a warning, so the calling feature (abuse report) still succeeds.
  */
 @Service
-class MailSenderServiceImpl(
+class SmtpMailSender(
     private val mailSender: JavaMailSender,
     @param:Value($$"${mt.link-spray.notification.mail.receiver:}") private val receiver: String,
     @param:Value($$"${mt.link-spray.notification.mail.sender:}") private val sender: String,
     @param:Value($$"${spring.mail.username:}") smtpUser: String,
-) : MailSenderService {
+) : MailPort {
 
     private val enabled = smtpUser.isNotBlank()
 
@@ -41,6 +41,6 @@ class MailSenderServiceImpl(
     }
 
     companion object {
-        private val log = LoggerFactory.getLogger(MailSenderServiceImpl::class.java)
+        private val log = LoggerFactory.getLogger(SmtpMailSender::class.java)
     }
 }

@@ -1,9 +1,7 @@
 package fr.marstech.mtlinkspray.config
 
 import fr.marstech.mtlinkspray.domain.document.MarkdownToPdfService
-import fr.marstech.mtlinkspray.domain.document.MarkdownToPdfServiceImpl
 import fr.marstech.mtlinkspray.domain.document.PdfToMarkdownService
-import fr.marstech.mtlinkspray.domain.document.PdfToMarkdownServiceImpl
 import fr.marstech.mtlinkspray.domain.shared.ApiKeyResolver
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
@@ -17,12 +15,12 @@ class DocumentConfig {
     fun markdownToPdfService(
         apiKeyResolver: ApiKeyResolver,
         @Value("\${mt.link-spray.md2pdf.max-input-bytes:1048576}") maxInputBytes: Int,
-    ): MarkdownToPdfService = MarkdownToPdfServiceImpl(apiKeyResolver, maxInputBytes)
+    ): MarkdownToPdfService = MarkdownToPdfService(apiKeyResolver, maxInputBytes)
 
     @Bean
     fun pdfToMarkdownService(
         apiKeyResolver: ApiKeyResolver,
         @Value("\${mt.link-spray.pdf2md.max-input-bytes:10485760}") maxInputBytes: Int,
         @Value("\${mt.link-spray.pdf2md.max-pages:200}") maxPages: Int,
-    ): PdfToMarkdownService = PdfToMarkdownServiceImpl(apiKeyResolver, maxInputBytes, maxPages)
+    ): PdfToMarkdownService = PdfToMarkdownService(apiKeyResolver, maxInputBytes, maxPages)
 }

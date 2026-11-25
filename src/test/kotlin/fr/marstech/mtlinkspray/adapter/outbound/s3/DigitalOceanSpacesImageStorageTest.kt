@@ -16,10 +16,10 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse
 import software.amazon.awssdk.services.s3.model.PutObjectRequest
 import java.io.ByteArrayInputStream
 
-class DigitalOceanSpacesServiceImplTest {
+class DigitalOceanSpacesImageStorageTest {
 
     private val s3Client = mock(S3Client::class.java)
-    private val storageService = DigitalOceanSpacesServiceImpl(s3Client, "mt-mls-img-storage")
+    private val storageService = DigitalOceanSpacesImageStorage(s3Client, "mt-mls-img-storage")
 
     @Test
     fun uploadShouldStoreObjectUnderNamespacePrefix() {
@@ -84,7 +84,7 @@ class DigitalOceanSpacesServiceImplTest {
 
     @Test
     fun callsShouldAnswer503WhenSpacesIsNotConfigured() {
-        val unconfigured = DigitalOceanSpacesServiceImpl(null, "mt-mls-img-storage")
+        val unconfigured = DigitalOceanSpacesImageStorage(null, "mt-mls-img-storage")
 
         listOf(
             { unconfigured.upload("ns", "a.jpg", "image/jpeg", byteArrayOf(1)) },

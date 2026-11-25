@@ -23,7 +23,7 @@ import java.util.*
  * The client is absent when Spaces is not configured (MLS-263): every call then answers 503.
  */
 @Service
-class DigitalOceanSpacesServiceImpl(
+class DigitalOceanSpacesImageStorage(
     private val s3Client: S3Client?,
     @Value("\${mt.link-spray.storage.do-spaces.bucket}") private val bucket: String,
 ) : ImageStoragePort {
@@ -79,6 +79,6 @@ class DigitalOceanSpacesServiceImpl(
     }
 
     companion object {
-        private val log = LoggerFactory.getLogger(DigitalOceanSpacesServiceImpl::class.java)
+        private val log = LoggerFactory.getLogger(DigitalOceanSpacesImageStorage::class.java)
     }
 }

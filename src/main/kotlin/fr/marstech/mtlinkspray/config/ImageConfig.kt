@@ -1,7 +1,6 @@
 package fr.marstech.mtlinkspray.config
 
 import fr.marstech.mtlinkspray.domain.image.ImageService
-import fr.marstech.mtlinkspray.domain.image.ImageServiceImpl
 import fr.marstech.mtlinkspray.domain.image.ImageStoragePort
 import fr.marstech.mtlinkspray.domain.image.ImageStore
 import fr.marstech.mtlinkspray.domain.shared.ApiKeyResolver
@@ -19,5 +18,5 @@ class ImageConfig {
         apiKeyResolver: ApiKeyResolver,
         imageStorage: ImageStoragePort,
         @Value("\${mt.link-spray.storage.max-file-size-bytes:26214400}") maxFileSizeBytes: Long,
-    ): ImageService = ImageServiceImpl(imageStore, apiKeyResolver, imageStorage, maxFileSizeBytes)
+    ): ImageService = ImageService(imageStore, apiKeyResolver, imageStorage, maxFileSizeBytes)
 }

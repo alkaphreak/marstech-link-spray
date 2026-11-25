@@ -15,13 +15,13 @@ import java.io.ByteArrayOutputStream
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
 
-class PdfToMarkdownServiceImplTest {
+class PdfToMarkdownServiceTest {
 
     private val apiKeyResolver: ApiKeyResolver = mock()
-    private val service = PdfToMarkdownServiceImpl(apiKeyResolver, maxInputBytes = 1024 * 1024, maxPages = 5)
+    private val service = PdfToMarkdownService(apiKeyResolver, maxInputBytes = 1024 * 1024, maxPages = 5)
 
     // md2pdf renders the fixtures, so the round trip covers both directions with real fonts
-    private val markdownToPdf = MarkdownToPdfServiceImpl(apiKeyResolver, maxInputBytes = 1024 * 1024)
+    private val markdownToPdf = MarkdownToPdfService(apiKeyResolver, maxInputBytes = 1024 * 1024)
 
     private fun pdfOf(markdown: String) = markdownToPdf.render("key.secret", markdown.byteInputStream())
 
@@ -128,7 +128,7 @@ class PdfToMarkdownServiceImplTest {
     @Test
     fun shouldRejectPdfOverMaxSize() {
         // Given
-        val smallLimit = PdfToMarkdownServiceImpl(apiKeyResolver, maxInputBytes = 100, maxPages = 5)
+        val smallLimit = PdfToMarkdownService(apiKeyResolver, maxInputBytes = 100, maxPages = 5)
 
         // When / Then
         assertThrows<PayloadTooLargeException> { smallLimit.convert("key.secret", ByteArray(101).inputStream()) }

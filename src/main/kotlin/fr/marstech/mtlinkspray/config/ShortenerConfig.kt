@@ -1,6 +1,6 @@
 package fr.marstech.mtlinkspray.config
 
-import fr.marstech.mtlinkspray.domain.shortener.RandomIdGeneratorServiceImpl
+import fr.marstech.mtlinkspray.domain.shortener.RandomIdGeneratorService
 import fr.marstech.mtlinkspray.domain.shortener.RandomIdSettings
 import fr.marstech.mtlinkspray.domain.shortener.ReservedPathsPort
 import fr.marstech.mtlinkspray.domain.shortener.ShortLinkStore
@@ -30,7 +30,7 @@ class ShortenerConfig {
 
     @Bean
     fun randomIdGeneratorService(store: ShortLinkStore, reservedPaths: ReservedPathsPort, p: RandomIdProperties) =
-        RandomIdGeneratorServiceImpl(
+        RandomIdGeneratorService(
             store, reservedPaths,
             RandomIdSettings(p.length, p.prefix, p.charset, p.cache.enabled, p.cache.depth, p.cache.treshold),
         )

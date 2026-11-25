@@ -1,7 +1,7 @@
 package fr.marstech.mtlinkspray.config
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
-import fr.marstech.mtlinkspray.adapter.outbound.s3.DigitalOceanSpacesServiceImpl
+import fr.marstech.mtlinkspray.adapter.outbound.s3.DigitalOceanSpacesImageStorage
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -33,13 +33,13 @@ class S3ConfigTest {
 
     @Test
     fun storageServiceStartsWithoutClientAndAnswers503() {
-        runner.withUserConfiguration(DigitalOceanSpacesServiceImpl::class.java)
+        runner.withUserConfiguration(DigitalOceanSpacesImageStorage::class.java)
             .withPropertyValues(
                 "mt.link-spray.storage.do-spaces.endpoint=",
                 "mt.link-spray.storage.do-spaces.bucket=b",
             )
             .run {
-                val service = it.getBean(DigitalOceanSpacesServiceImpl::class.java)
+                val service = it.getBean(DigitalOceanSpacesImageStorage::class.java)
                 val ex = assertThrows<ResponseStatusException> { service.delete("k") }
                 assertEquals(503, ex.statusCode.value())
             }

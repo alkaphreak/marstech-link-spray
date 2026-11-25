@@ -20,7 +20,7 @@ These rules apply to all AI assistants working in this repository, regardless of
 
 | Element             | Convention                            | Example                               |
 |---------------------|---------------------------------------|---------------------------------------|
-| Classes             | PascalCase                            | `ShortenerServiceImpl`                |
+| Classes             | PascalCase                            | `ShortenerService`                    |
 | Functions/variables | camelCase                             | `findByShortCode()`                   |
 | Constants           | SCREAMING_SNAKE_CASE                  | `MAX_RETRY_COUNT`                     |
 | Test methods        | camelCase, descriptive, no backticks  | `shouldReturn404WhenCodeNotFound()`   |
