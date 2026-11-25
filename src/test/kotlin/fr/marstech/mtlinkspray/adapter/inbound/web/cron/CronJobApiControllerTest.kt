@@ -3,7 +3,7 @@ import fr.marstech.mtlinkspray.MtLinkSprayApplication
 import fr.marstech.mtlinkspray.config.SecurityConfig
 import fr.marstech.mtlinkspray.config.ValidationConfig
 import fr.marstech.mtlinkspray.adapter.inbound.web.common.GlobalRestExceptionHandler
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.cron.CronJobEntity
+import fr.marstech.mtlinkspray.domain.cron.CronJob
 import fr.marstech.mtlinkspray.domain.cron.CronJobService
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -36,7 +36,7 @@ class CronJobApiControllerTest {
     @MockitoBean
     lateinit var cronJobService: CronJobService
 
-    private val job = CronJobEntity(
+    private val job = CronJob(
         id = "job-1", namespace = "ns", name = "ping", schedule = "0 */5 * * * *", method = "GET",
         url = "https://example.com/health", timeoutSeconds = 5, failureThreshold = 3,
     )

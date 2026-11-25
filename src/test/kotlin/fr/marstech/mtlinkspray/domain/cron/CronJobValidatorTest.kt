@@ -1,37 +1,40 @@
 package fr.marstech.mtlinkspray.domain.cron
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import fr.marstech.mtlinkspray.adapter.outbound.scheduler.SpringCronScheduler
 import java.net.InetAddress
 
 class CronJobValidatorTest {
+
+    private val cron = SpringCronScheduler()
 
     private fun resolvingTo(ip: String): (String) -> Array<InetAddress> = { arrayOf(InetAddress.getByName(ip)) }
 
     @Test
     fun shouldAcceptFiveMinuteSchedule() {
         // Given / When
-        val cron = CronJobValidator.validateSchedule("0 */5 * * * *")
         // Then
-        assertEquals("0 */5 * * * *", cron.toString())
+        assertDoesNotThrow { CronJobValidator.validateSchedule("0 */5 * * * *", cron) }
     }
 
     @Test
     fun shouldRejectInvalidCronExpression() {
-        assertThrows<IllegalArgumentException> { CronJobValidator.validateSchedule("not a cron") }
+        assertThrows<IllegalArgumentException> { CronJobValidator.validateSchedule("not a cron", cron) }
     }
 
     @Test
     fun shouldRejectScheduleFiringMoreThanOncePerMinute() {
-        assertThrows<IllegalArgumentException> { CronJobValidator.validateSchedule("*/30 * * * * *") }
+        assertThrows<IllegalArgumentException> { CronJobValidator.validateSchedule("*/30 * * * * *", cron) }
     }
 
     @Test
     fun shouldRejectScheduleWithShortGapInsideTheHour() {
         // Given: seconds 0 to 5 of minute 0, six runs one second apart
-        assertThrows<IllegalArgumentException> { CronJobValidator.validateSchedule("0-5 0 * * * *") }
+        assertThrows<IllegalArgumentException> { CronJobValidator.validateSchedule("0-5 0 * * * *", cron) }
     }
 
     @Test

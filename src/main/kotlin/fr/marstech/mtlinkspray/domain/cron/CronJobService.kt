@@ -1,30 +1,7 @@
 package fr.marstech.mtlinkspray.domain.cron
 import fr.marstech.mtlinkspray.domain.shared.ApiKeyResolver
 import fr.marstech.mtlinkspray.domain.shared.MailSenderService
-import fr.marstech.mtlinkspray.adapter.inbound.web.cron.CronJobRequest
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.cron.CronJobEntity
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.cron.CronRunEntity
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.cron.CronRunStatus
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.cron.CronJobRepository
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.cron.CronRunRepository
-import jakarta.annotation.PreDestroy
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.context.event.ApplicationReadyEvent
-import org.springframework.context.event.EventListener
-import org.springframework.data.domain.PageRequest
-import org.springframework.data.domain.Sort.Direction.ASC
-import org.springframework.data.domain.Sort.Direction.DESC
-import org.springframework.data.mongodb.core.FindAndModifyOptions
-import org.springframework.data.mongodb.core.MongoTemplate
-import org.springframework.data.mongodb.core.index.Index
-import org.springframework.data.mongodb.core.query.Criteria.where
-import org.springframework.data.mongodb.core.query.Query
-import org.springframework.data.mongodb.core.query.Update
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler
-import org.springframework.scheduling.support.CronExpression
-import org.springframework.scheduling.support.CronTrigger
-import org.springframework.stereotype.Service
 import java.net.InetAddress
 import java.net.URI
 import java.net.http.HttpClient
@@ -41,100 +18,76 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 
 /**
- * Cron jobs (MLS-220, ADR 0003): stored in MongoDB, scheduled in memory on a private
- * [ThreadPoolTaskScheduler], re-registered at startup. Single instance only: a second one would run
- * every job twice.
+ * Cron jobs (MLS-220, ADR 0003): stored through [CronStore], scheduled in memory by [CronSchedulerPort],
+ * re-registered at startup ([start]). Single instance only: a second one would run every job twice.
  */
-@Service
 class CronJobService(
-    private val jobRepository: CronJobRepository,
-    private val runRepository: CronRunRepository,
+    private val store: CronStore,
+    private val cron: CronSchedulerPort,
     private val apiKeyResolver: ApiKeyResolver,
     private val mailSenderService: MailSenderService,
     private val cronHttpClient: HttpClient,
-    private val mongoTemplate: MongoTemplate,
-    @param:Value($$"${mt.link-spray.cron.max-jobs-per-namespace:20}") private val maxJobsPerNamespace: Int,
-    @param:Value($$"${mt.link-spray.cron.run-retention-days:30}") private val runRetentionDays: Long,
+    private val maxJobsPerNamespace: Int,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
     private val futures = ConcurrentHashMap<String, ScheduledFuture<*>>()
     internal var resolve: (String) -> Array<InetAddress> = InetAddress::getAllByName
 
-    // Not a bean: an Executor bean would switch off Boot's applicationTaskExecutor.
-    // ponytail: one shared pool, each run is capped by its timeout (10 s max); per-namespace limits if namespaces grow
-    private val scheduler = ThreadPoolTaskScheduler().apply {
-        poolSize = 4
-        setThreadNamePrefix("cron-")
-        initialize()
-    }
-
-    @PreDestroy
-    fun stop() = scheduler.shutdown()
-
-    @EventListener(ApplicationReadyEvent::class)
+    /** Schedules every enabled job; called once the application is ready. */
     fun start() {
-        // Separate tries: a missing index must not stop the jobs from running.
-        // ponytail: no retry, and a changed retention conflicts with the existing TTL index (drop it by hand)
         try {
-            mongoTemplate.indexOps(CronRunEntity::class.java).createIndex(Index().on("jobId", ASC).on("startedAt", DESC))
-            mongoTemplate.indexOps(CronJobEntity::class.java).createIndex(Index().on("namespace", ASC))
-        } catch (e: RuntimeException) {
-            log.error("Cron lookup indexes not created", e)
-        }
-        try {
-            mongoTemplate.indexOps(CronRunEntity::class.java)
-                .createIndex(Index().on("startedAt", ASC).expire(Duration.ofDays(runRetentionDays)))
-        } catch (e: RuntimeException) {
-            log.error("Cron run TTL index not created: runs will not expire", e)
-        }
-        try {
-            jobRepository.findByIsEnabledTrue().forEach(::schedule)
+            store.findEnabledJobs().forEach(::schedule)
             log.info("Cron: {} job(s) scheduled", futures.size)
         } catch (e: RuntimeException) {
             log.error("Cron jobs not scheduled at startup", e)
         }
     }
 
-    fun list(apiKey: String?): List<CronJobEntity> = jobRepository.findByNamespace(namespaceOf(apiKey))
+    /**
+     * Stops the scheduler when the service bean is destroyed, before the store it depends on: a running
+     * job never meets a closed MongoDB client.
+     */
+    fun stop() = cron.shutdown()
 
-    fun get(apiKey: String?, id: String): CronJobEntity =
-        jobRepository.findByIdAndNamespace(id, namespaceOf(apiKey)).orElseThrow { NoSuchElementException("Cron job $id not found") }
+    fun list(apiKey: String?): List<CronJob> = store.findJobs(namespaceOf(apiKey))
 
-    fun create(apiKey: String?, request: CronJobRequest): CronJobEntity {
+    fun get(apiKey: String?, id: String): CronJob =
+        store.findJob(namespaceOf(apiKey), id) ?: throw NoSuchElementException("Cron job $id not found")
+
+    fun create(apiKey: String?, request: CronJobDraft): CronJob {
         val namespace = namespaceOf(apiKey)
         // ponytail: count then save is not atomic, concurrent POSTs can pass the limit by a few
-        require(jobRepository.countByNamespace(namespace) < maxJobsPerNamespace) { "Limit of $maxJobsPerNamespace cron jobs reached" }
+        require(store.countJobs(namespace) < maxJobsPerNamespace) { "Limit of $maxJobsPerNamespace cron jobs reached" }
         validate(request)
         val job = with(request) {
-            CronJobEntity(
+            CronJob(
                 namespace = namespace, name = name, schedule = schedule, method = method, url = url, headers = headers,
                 body = body, timeoutSeconds = timeoutSeconds, failureThreshold = failureThreshold, isEnabled = isEnabled,
             )
         }
-        return jobRepository.save(job).also(::reschedule)
+        return store.saveJob(job).also(::reschedule)
     }
 
-    fun update(apiKey: String?, id: String, request: CronJobRequest): CronJobEntity {
+    fun update(apiKey: String?, id: String, request: CronJobDraft): CronJob {
         val existing = get(apiKey, id)
         // Same URL: no DNS check now (each run checks it), so a job whose host stopped resolving can still be paused.
         validate(request, checkUrl = request.url != existing.url)
         // A changed target starts a fresh failure count.
-        return jobRepository.save(request.toEntity(existing).copy(consecutiveFailures = 0)).also(::reschedule)
+        return store.saveJob(request.applyTo(existing).copy(consecutiveFailures = 0)).also(::reschedule)
     }
 
     fun delete(apiKey: String?, id: String) {
         val job = get(apiKey, id)
         futures.compute(job.id) { _, old -> old?.cancel(false); null }
-        jobRepository.deleteById(job.id)
-        runRepository.deleteByJobId(job.id)
+        store.deleteJob(job.id)
+        store.deleteRuns(job.id)
     }
 
-    fun runs(apiKey: String?, id: String, limit: Int): List<CronRunEntity> =
-        runRepository.findByJobIdOrderByStartedAtDesc(get(apiKey, id).id, PageRequest.of(0, limit))
+    fun runs(apiKey: String?, id: String, limit: Int): List<CronRun> = store.findRuns(get(apiKey, id).id, limit)
 
-    fun nextRunAt(job: CronJobEntity): Instant? =
+    fun nextRunAt(job: CronJob): Instant? =
         if (job.isEnabled && futures.containsKey(job.id))
-            CronExpression.parse(job.schedule).next(LocalDateTime.now(ZoneOffset.UTC))?.toInstant(ZoneOffset.UTC)
+            cron.next(job.schedule, LocalDateTime.now(ZoneOffset.UTC))?.toInstant(ZoneOffset.UTC)
         else null
 
     /**
@@ -142,20 +95,16 @@ class CronJobService(
      * Skipped, without a run record, while the namespace's API key is disabled.
      */
     fun execute(jobId: String) {
-        val job = jobRepository.findById(jobId).orElse(null)?.takeIf { it.isEnabled } ?: return
+        val job = store.findJob(jobId)?.takeIf { it.isEnabled } ?: return
         // A disabled or deleted key stops its jobs, and re-enabling it resumes them.
         if (!apiKeyResolver.isNamespaceEnabled(job.namespace)) return
         val startedAt = Instant.now()
         val (httpStatus, error) = call(job)
         val status = if (error == null) CronRunStatus.OK else CronRunStatus.FAILED
-        runRepository.save(CronRunEntity(jobId = job.id, startedAt = startedAt, durationMs = Duration.between(startedAt, Instant.now()).toMillis(), status = status, httpStatus = httpStatus, error = error))
-        // Atomic $inc: an update resetting the counter during the call is not overwritten by a stale value.
-        val update = Update().set("lastRunAt", startedAt).set("lastStatus", status)
-            .let { if (status == CronRunStatus.OK) it.set("consecutiveFailures", 0) else it.inc("consecutiveFailures", 1) }
+        store.saveRun(CronRun(jobId = job.id, startedAt = startedAt, durationMs = Duration.between(startedAt, Instant.now()).toMillis(), status = status, httpStatus = httpStatus, error = error))
+        // Atomic: an update resetting the counter during the call is not overwritten by a stale value.
         // Threshold read from the stored job too: a PUT during the call may have changed it.
-        val stored = mongoTemplate.findAndModify(
-            Query(where("_id").`is`(job.id)), update, FindAndModifyOptions.options().returnNew(true), CronJobEntity::class.java,
-        ) ?: return
+        val stored = store.recordRunResult(job.id, startedAt, status) ?: return
         if (status == CronRunStatus.FAILED && stored.consecutiveFailures == stored.failureThreshold) alert(stored, stored.consecutiveFailures, error)
     }
 
@@ -163,7 +112,7 @@ class CronJobService(
      * One HTTP call, bounded by the job timeout end to end (headers and body), the body itself is
      * never read. Errors are kept generic so the run history does not describe internal hosts.
      */
-    private fun call(job: CronJobEntity): Pair<Int?, String?> {
+    private fun call(job: CronJob): Pair<Int?, String?> {
         val future = try {
             // Again at run time: DNS may have changed since creation.
             // ponytail: this lookup is outside the job timeout, and HttpClient resolves again (DNS rebinding); pin the IP with a custom resolver if the oracle matters
@@ -189,7 +138,7 @@ class CronJobService(
         }
     }
 
-    private fun alert(job: CronJobEntity, failures: Int, error: String?) = try {
+    private fun alert(job: CronJob, failures: Int, error: String?) = try {
         mailSenderService.sendMail(
             "[sol4.space cron] ${job.name} failed $failures times",
             "Job ${job.id} (${job.namespace}): ${job.method} ${job.url}\nLast error: $error\nNo new alert until it succeeds again.",
@@ -198,8 +147,8 @@ class CronJobService(
         log.warn("Cron alert mail not sent for job {}: {}", job.id, e.toString())
     }
 
-    private fun validate(request: CronJobRequest, checkUrl: Boolean = true) {
-        CronJobValidator.validateSchedule(request.schedule)
+    private fun validate(request: CronJobDraft, checkUrl: Boolean = true) {
+        CronJobValidator.validateSchedule(request.schedule, cron)
         if (checkUrl) CronJobValidator.validateUrl(request.url, resolve)
         require(request.headers.all { (k, v) -> k.length <= 256 && v.length <= 4096 }) { "Header name or value too long" }
         // HttpClient rejects restricted headers (Host, Connection...) only when building: fail at 400 now, not at every run.
@@ -207,28 +156,27 @@ class CronJobService(
     }
 
     // compute() is atomic per key: concurrent PUTs cannot leave an untracked recurring task behind.
-    private fun reschedule(job: CronJobEntity) {
+    private fun reschedule(job: CronJob) {
         futures.compute(job.id) { _, old ->
             old?.cancel(false)
             if (job.isEnabled) trigger(job) else null
         }
     }
 
-    private fun schedule(job: CronJobEntity) {
+    private fun schedule(job: CronJob) {
         futures.compute(job.id) { _, old -> old ?: trigger(job) }
     }
 
-    private fun trigger(job: CronJobEntity): ScheduledFuture<*>? =
-        scheduler.schedule({ execute(job.id) }, CronTrigger(job.schedule, ZoneOffset.UTC))
+    private fun trigger(job: CronJob): ScheduledFuture<*>? = cron.schedule(job.schedule) { execute(job.id) }
 
     private fun namespaceOf(apiKey: String?) = apiKeyResolver.resolve(apiKey).namespace
 
-    private fun CronJobRequest.toEntity(base: CronJobEntity) = base.copy(
+    private fun CronJobDraft.applyTo(base: CronJob) = base.copy(
         name = name, schedule = schedule, method = method, url = url, headers = headers, body = body,
         timeoutSeconds = timeoutSeconds, failureThreshold = failureThreshold, isEnabled = isEnabled,
     )
 
-    private fun CronJobEntity.toHttpRequest() = httpRequest(method, url, headers, body, timeoutSeconds)
+    private fun CronJob.toHttpRequest() = httpRequest(method, url, headers, body, timeoutSeconds)
 
     private fun httpRequest(method: String, url: String, headers: Map<String, String>, body: String?, timeoutSeconds: Int): HttpRequest =
         HttpRequest.newBuilder(URI(url))
