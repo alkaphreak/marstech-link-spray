@@ -3,8 +3,8 @@ import fr.marstech.mtlinkspray.domain.apikey.ApiKeyService
 import fr.marstech.mtlinkspray.domain.shared.ApiKeyResolver
 import fr.marstech.mtlinkspray.domain.signature.WriteSignatureService
 import org.hamcrest.Matchers.containsString
-import fr.marstech.mtlinkspray.adapter.inbound.web.dashboard.DashboardDto
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.dashboard.DashboardLink
+import fr.marstech.mtlinkspray.domain.dashboard.Dashboard
+import fr.marstech.mtlinkspray.domain.dashboard.DashboardLink
 import fr.marstech.mtlinkspray.domain.dashboard.DashboardTheme
 import fr.marstech.mtlinkspray.domain.dashboard.DashboardService
 import org.junit.jupiter.api.Test
@@ -88,9 +88,9 @@ internal class ViewRenderingTest {
     fun shouldRenderPublicLinkPage() {
         // Given
         whenever(dashboardService.getDashboardBySlug("me")).thenReturn(
-            DashboardDto(
+            Dashboard(
                 name = "Me", slug = "me", bio = "Hello", avatarUrl = "https://img.example/a.png", theme = DashboardTheme.DARK,
-                items = mutableListOf(DashboardLink(name = "Site", url = "https://example.com"))
+                items = listOf(DashboardLink(name = "Site", url = "https://example.com"))
             )
         )
         // When / Then
