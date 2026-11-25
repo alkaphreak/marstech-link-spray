@@ -1,4 +1,5 @@
 package fr.marstech.mtlinkspray.adapter.inbound.web.document
+import fr.marstech.mtlinkspray.adapter.inbound.web.common.API_KEY_HEADER
 import fr.marstech.mtlinkspray.domain.document.MarkdownToPdfService
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.ContentDisposition
@@ -21,7 +22,7 @@ class Md2PdfApiController(private val markdownToPdfService: MarkdownToPdfService
 
     @PostMapping(consumes = ["text/markdown", MediaType.TEXT_PLAIN_VALUE])
     fun md2pdf(
-        @RequestHeader("X-Api-Key") apiKey: String?,
+        @RequestHeader(API_KEY_HEADER) apiKey: String?,
         httpServletRequest: HttpServletRequest,
     ): ResponseEntity<ByteArray> {
         val pdf = markdownToPdfService.render(apiKey, httpServletRequest.inputStream)

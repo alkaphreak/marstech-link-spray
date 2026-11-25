@@ -47,7 +47,7 @@ class JsonBodySizeLimitFilterTest {
         override fun getContentLength() = -1
     }
 
-    private val filter = JsonBodySizeLimitFilter(LIMIT, MCP_LIMIT)
+    private val filter = JsonBodySizeLimitFilter(JsonLimitProperties(LIMIT, MCP_LIMIT))
     private val mockMvc = MockMvcBuilders.standaloneSetup(EchoController())
         .setControllerAdvice(GlobalRestExceptionHandler())
         .addFilters<StandaloneMockMvcBuilder>(filter)

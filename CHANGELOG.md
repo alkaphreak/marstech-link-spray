@@ -89,6 +89,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `XxxService`, `MailSenderService` becomes `MailPort` (implemented by `SmtpMailSender`), the S3 adapter
   becomes `DigitalOceanSpacesImageStorage`, and the unused `MtLinkSprayCollection*` document and repository
   are deleted; behaviour unchanged
+- The rate limit, upload size, md2pdf/pdf2md limits, and JSON body caps are read through
+  `@ConfigurationProperties` classes instead of `@Value` (MLS-276); same keys and defaults. Controllers
+  share one `API_KEY_HEADER` constant
 
 ### Fixed
 

@@ -1,4 +1,5 @@
 package fr.marstech.mtlinkspray.adapter.inbound.web.dashboard
+import fr.marstech.mtlinkspray.adapter.inbound.web.common.API_KEY_HEADER
 import fr.marstech.mtlinkspray.domain.dashboard.DashboardService
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
@@ -23,7 +24,7 @@ class DashboardApiController(
     @ResponseStatus(HttpStatus.CREATED)
     fun createDashboard(
         @RequestBody @Valid dashboardDto: DashboardDto,
-        @RequestHeader("X-Api-Key", required = false) apiKey: String?,
+        @RequestHeader(API_KEY_HEADER, required = false) apiKey: String?,
     ): DashboardDto = DashboardDto.from(dashboardService.createDashboard(dashboardDto.toDashboard(), apiKey))
 
     @PutMapping("/{id}")
@@ -31,6 +32,6 @@ class DashboardApiController(
     fun updateDashboard(
         @PathVariable @NotBlank(message = "ID cannot be blank") id: String,
         @RequestBody @Valid dashboardDto: DashboardDto,
-        @RequestHeader("X-Api-Key", required = false) apiKey: String?,
+        @RequestHeader(API_KEY_HEADER, required = false) apiKey: String?,
     ): DashboardDto = DashboardDto.from(dashboardService.updateDashboard(id, dashboardDto.toDashboard(), apiKey))
 }

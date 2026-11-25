@@ -1,4 +1,5 @@
 package fr.marstech.mtlinkspray.adapter.inbound.web.cron
+import fr.marstech.mtlinkspray.adapter.inbound.web.common.API_KEY_HEADER
 import fr.marstech.mtlinkspray.domain.cron.CronJob
 import fr.marstech.mtlinkspray.domain.cron.CronJobService
 import jakarta.validation.Valid
@@ -17,35 +18,35 @@ class CronJobApiController(private val cronJobService: CronJobService) {
 
     @PostMapping
     fun createJob(
-        @RequestHeader("X-Api-Key", required = false) apiKey: String?,
+        @RequestHeader(API_KEY_HEADER, required = false) apiKey: String?,
         @Valid @RequestBody request: CronJobRequest,
     ): ResponseEntity<CronJobDto> =
         ResponseEntity.status(HttpStatus.CREATED).body(toDto(cronJobService.create(apiKey, request.toDraft())))
 
     @GetMapping
-    fun listJobs(@RequestHeader("X-Api-Key", required = false) apiKey: String?): List<CronJobDto> =
+    fun listJobs(@RequestHeader(API_KEY_HEADER, required = false) apiKey: String?): List<CronJobDto> =
         cronJobService.list(apiKey).map(::toDto)
 
     @GetMapping("/{id}")
-    fun getJob(@RequestHeader("X-Api-Key", required = false) apiKey: String?, @PathVariable id: String): CronJobDto =
+    fun getJob(@RequestHeader(API_KEY_HEADER, required = false) apiKey: String?, @PathVariable id: String): CronJobDto =
         toDto(cronJobService.get(apiKey, id))
 
     @PutMapping("/{id}")
     fun updateJob(
-        @RequestHeader("X-Api-Key", required = false) apiKey: String?,
+        @RequestHeader(API_KEY_HEADER, required = false) apiKey: String?,
         @PathVariable id: String,
         @Valid @RequestBody request: CronJobRequest,
     ): CronJobDto = toDto(cronJobService.update(apiKey, id, request.toDraft()))
 
     @DeleteMapping("/{id}")
-    fun deleteJob(@RequestHeader("X-Api-Key", required = false) apiKey: String?, @PathVariable id: String): ResponseEntity<Void> {
+    fun deleteJob(@RequestHeader(API_KEY_HEADER, required = false) apiKey: String?, @PathVariable id: String): ResponseEntity<Void> {
         cronJobService.delete(apiKey, id)
         return ResponseEntity.noContent().build()
     }
 
     @GetMapping("/{id}/runs")
     fun listRuns(
-        @RequestHeader("X-Api-Key", required = false) apiKey: String?,
+        @RequestHeader(API_KEY_HEADER, required = false) apiKey: String?,
         @PathVariable id: String,
         @RequestParam(defaultValue = "50") @Min(1) @Max(500) limit: Int,
     ): List<CronRunDto> = cronJobService.runs(apiKey, id, limit).map(CronRunDto::from)
