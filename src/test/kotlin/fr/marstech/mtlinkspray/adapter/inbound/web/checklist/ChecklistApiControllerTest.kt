@@ -3,11 +3,11 @@ import fr.marstech.mtlinkspray.MtLinkSprayApplication
 import fr.marstech.mtlinkspray.config.SecurityConfig
 import fr.marstech.mtlinkspray.config.ValidationConfig
 import fr.marstech.mtlinkspray.adapter.inbound.web.common.GlobalRestExceptionHandler
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.checklist.ChecklistInstanceEntity
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.checklist.ChecklistInstanceItem
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.checklist.ChecklistItemStatus
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.checklist.ChecklistTemplateEntity
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.checklist.ChecklistTemplateItem
+import fr.marstech.mtlinkspray.domain.checklist.ChecklistInstance
+import fr.marstech.mtlinkspray.domain.checklist.ChecklistInstanceItem
+import fr.marstech.mtlinkspray.domain.checklist.ChecklistItemStatus
+import fr.marstech.mtlinkspray.domain.checklist.ChecklistTemplate
+import fr.marstech.mtlinkspray.domain.checklist.ChecklistTemplateItem
 import fr.marstech.mtlinkspray.domain.checklist.ChecklistService
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -44,10 +44,10 @@ class ChecklistApiControllerTest {
     @MockitoBean
     lateinit var checklistService: ChecklistService
 
-    private val template = ChecklistTemplateEntity(
+    private val template = ChecklistTemplate(
         id = "tpl-1", namespace = "ns", title = "Trip", items = listOf(ChecklistTemplateItem("i1", "Passport")), version = 0,
     )
-    private val instance = ChecklistInstanceEntity(
+    private val instance = ChecklistInstance(
         id = "ins-1", namespace = "ns", templateId = "tpl-1", templateVersion = 0, title = "Trip",
         items = listOf(
             ChecklistInstanceItem("i1", "Passport", status = ChecklistItemStatus.DONE),
@@ -126,7 +126,7 @@ class ChecklistApiControllerTest {
 
     @Test
     fun shouldCreateInstanceWithProgress() {
-        whenever(checklistService.createInstance(eq("key"), any())).thenReturn(instance)
+        whenever(checklistService.createInstance(eq("key"), eq("tpl-1"), eq("Lisbon"))).thenReturn(instance)
         mockMvc.perform(
             post("/api/checklists/instances").header("X-Api-Key", "key").contentType(json).content("""{"templateId":"tpl-1","context":"Lisbon"}"""),
         )

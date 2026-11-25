@@ -1,4 +1,4 @@
-package fr.marstech.mtlinkspray.adapter.outbound.mongo.checklist
+package fr.marstech.mtlinkspray.domain.checklist
 import net.jqwik.api.ForAll
 import net.jqwik.api.Property
 import net.jqwik.api.constraints.IntRange
@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 
 class ChecklistProgressPropertyTest {
 
-    private fun instance(todo: Int, done: Int, skipped: Int) = ChecklistInstanceEntity(
+    private fun instance(todo: Int, done: Int, skipped: Int) = ChecklistInstance(
         namespace = "ns", templateId = "t", templateVersion = 0, title = "t",
         items = List(todo) { ChecklistInstanceItem("t$it", "x") } +
             List(done) { ChecklistInstanceItem("d$it", "x", status = ChecklistItemStatus.DONE) } +

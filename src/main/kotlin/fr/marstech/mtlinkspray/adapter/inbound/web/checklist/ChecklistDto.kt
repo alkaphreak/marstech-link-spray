@@ -1,7 +1,9 @@
 package fr.marstech.mtlinkspray.adapter.inbound.web.checklist
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.checklist.ChecklistInstanceEntity
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.checklist.ChecklistItemStatus
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.checklist.ChecklistTemplateEntity
+import fr.marstech.mtlinkspray.domain.checklist.ChecklistInstance
+import fr.marstech.mtlinkspray.domain.checklist.ChecklistItemDraft
+import fr.marstech.mtlinkspray.domain.checklist.ChecklistItemStatus
+import fr.marstech.mtlinkspray.domain.checklist.ChecklistTemplate
+import fr.marstech.mtlinkspray.domain.checklist.ChecklistTemplateDraft
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
@@ -25,7 +27,14 @@ data class ChecklistTemplateRequest(
     @field:NotBlank @field:Size(max = 200) val title: String,
     @field:NotEmpty @field:Size(max = 1000) @field:Valid val items: List<ChecklistItemRequest>,
     val version: Long? = null,
-)
+) {
+    // A JSON null item stays null: the service refuses it after the key, 404, 409 and limit checks, as before.
+    @Suppress("UNCHECKED_CAST")
+    fun toDraft() = ChecklistTemplateDraft(
+        title, items.map { (it as ChecklistItemRequest?)?.let { i -> ChecklistItemDraft(i.itemId, i.label, i.note) } } as List<ChecklistItemDraft>,
+        version,
+    )
+}
 
 data class ChecklistInstanceRequest(
     @field:NotBlank @field:Size(max = 36) val templateId: String,
@@ -44,9 +53,9 @@ data class ChecklistTemplateDto(
     val creationDate: Instant,
 ) {
     companion object {
-        fun fromEntity(entity: ChecklistTemplateEntity) = ChecklistTemplateDto(
-            entity.id, entity.title, entity.items.map { ChecklistTemplateItemDto(it.itemId, it.label, it.note) },
-            entity.version ?: 0, entity.creationDate,
+        fun from(checklist: ChecklistTemplate) = ChecklistTemplateDto(
+            checklist.id, checklist.title, checklist.items.map { ChecklistTemplateItemDto(it.itemId, it.label, it.note) },
+            checklist.version ?: 0, checklist.creationDate,
         )
     }
 }
@@ -64,10 +73,10 @@ data class ChecklistInstanceDto(
     val creationDate: Instant,
 ) {
     companion object {
-        fun fromEntity(entity: ChecklistInstanceEntity) = ChecklistInstanceDto(
-            entity.id, entity.templateId, entity.templateVersion, entity.title, entity.context,
-            entity.items.map { ChecklistInstanceItemDto(it.itemId, it.label, it.note, it.status) },
-            entity.progressPercent(), entity.creationDate,
+        fun from(checklist: ChecklistInstance) = ChecklistInstanceDto(
+            checklist.id, checklist.templateId, checklist.templateVersion, checklist.title, checklist.context,
+            checklist.items.map { ChecklistInstanceItemDto(it.itemId, it.label, it.note, it.status) },
+            checklist.progressPercent(), checklist.creationDate,
         )
     }
 }

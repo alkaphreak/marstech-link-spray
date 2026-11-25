@@ -65,6 +65,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `DashboardStore` port (Mongo adapter, `insert` on create, the unique slug index created at startup by the adapter);
   the Mongo item types become `DashboardItemEntity` and `DashboardLinkEntity` with the same `@TypeAlias`, so stored
   dashboards load unchanged; link URL validation moves to a `DashboardLinkDto` (same JSON, same 400)
+- `checklist` domain on ports (MLS-276 step 2): template and instance models and a `ChecklistStore` port
+  (Mongo adapter, which owns the namespace indexes, paging, the versioned replace and the atomic item status
+  update); limits read through `ChecklistConfig` (same `mt.link-spray.checklist.*` keys and defaults); the
+  Mongo item types become `ChecklistTemplateItemEntity` and `ChecklistInstanceItemEntity`, stored documents unchanged
 
 ### Fixed
 
