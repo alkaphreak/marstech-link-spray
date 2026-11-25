@@ -9,9 +9,9 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import javax.imageio.ImageIO
 
-class QrCodeServiceImplTest {
+class QrCodeServiceTest {
 
-    private val qrCodeService = QrCodeServiceImpl()
+    private val qrCodeService = QrCodeService()
 
     private fun qrCode(text: String, size: Int = 256, fg: String = "000000", bg: String = "ffffff", svg: Boolean = false) =
         QrCode(text, size, fg, bg, svg)

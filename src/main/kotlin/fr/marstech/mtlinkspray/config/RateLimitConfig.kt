@@ -13,7 +13,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 /**
  * Per-IP rate limit on the public routes that write (links, pastes, dashboards) or send mail
  * (abuse reports), API and form alike (MLS-161, ADR 0006). A shortened spray pays one token per
- * link in SprayServiceImpl instead. A 429 goes through GlobalRestExceptionHandler with Retry-After.
+ * link in SprayService instead. A 429 goes through GlobalRestExceptionHandler with Retry-After.
  */
 @Configuration
 class RateLimitConfig(

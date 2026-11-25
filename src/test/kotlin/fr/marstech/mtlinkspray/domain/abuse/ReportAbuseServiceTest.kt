@@ -1,6 +1,6 @@
 package fr.marstech.mtlinkspray.domain.abuse
 import fr.marstech.mtlinkspray.domain.shared.ClientContext
-import fr.marstech.mtlinkspray.domain.shared.MailSenderService
+import fr.marstech.mtlinkspray.domain.shared.MailPort
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -11,10 +11,10 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
-internal class ReportAbuseServiceImplTest {
+internal class ReportAbuseServiceTest {
     private val abuseReportStore = mock<AbuseReportStore>()
-    private val mailSenderService = mock<MailSenderService>()
-    private val reportAbuseService = ReportAbuseServiceImpl(abuseReportStore, mailSenderService)
+    private val mailPort = mock<MailPort>()
+    private val reportAbuseService = ReportAbuseService(abuseReportStore, mailPort)
 
     @Test
     fun reportAbuse() {
@@ -28,7 +28,7 @@ internal class ReportAbuseServiceImplTest {
         val report = argumentCaptor<AbuseReport>().also { verify(abuseReportStore).create(it.capture()) }.firstValue
         assertEquals("New abuse report received:\n\nspam-xyz", report.description)
         assertEquals("127.0.0.1", report.authorIpAddress)
-        val body = argumentCaptor<String>().also { verify(mailSenderService).sendMail(eq(" MarsTech Link-Spray - Abuse report"), it.capture()) }.firstValue
+        val body = argumentCaptor<String>().also { verify(mailPort).sendMail(eq(" MarsTech Link-Spray - Abuse report"), it.capture()) }.firstValue
         assertEquals(report.toString(), body)
         assertTrue(body.contains("spam-xyz") && body.contains("127.0.0.1"), body)
     }

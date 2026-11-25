@@ -85,6 +85,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Cron webhooks go through a `WebhookClient` port (`JdkWebhookClient` in `adapter/outbound/http/`), and the
   `DnsClient` port throws a domain `DnsQueryException` instead of JNDI's `NamingException` (MLS-276 step 2);
   requests, timeouts, run errors and DNS answers unchanged
+- The single-implementation service interfaces are gone (MLS-276 step 2): each `XxxServiceImpl` becomes
+  `XxxService`, `MailSenderService` becomes `MailPort` (implemented by `SmtpMailSender`), the S3 adapter
+  becomes `DigitalOceanSpacesImageStorage`, and the unused `MtLinkSprayCollection*` document and repository
+  are deleted; behaviour unchanged
 
 ### Fixed
 

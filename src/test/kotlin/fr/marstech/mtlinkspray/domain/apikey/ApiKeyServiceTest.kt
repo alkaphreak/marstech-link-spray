@@ -19,10 +19,10 @@ import org.springframework.boot.test.system.OutputCaptureExtension
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 
 @ExtendWith(OutputCaptureExtension::class)
-class ApiKeyServiceImplTest {
+class ApiKeyServiceTest {
 
     private val apiKeyStore = mock(ApiKeyStore::class.java)
-    private val apiKeyService = ApiKeyServiceImpl(apiKeyStore, BCryptPasswordHasher())
+    private val apiKeyService = ApiKeyService(apiKeyStore, BCryptPasswordHasher())
     private val passwordEncoder = BCryptPasswordEncoder()
 
     private fun givenApiKey(

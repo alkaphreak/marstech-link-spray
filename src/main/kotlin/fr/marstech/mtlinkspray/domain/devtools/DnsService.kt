@@ -1,11 +1,56 @@
 package fr.marstech.mtlinkspray.domain.devtools
+import org.springframework.stereotype.Service
+import java.net.InetAddress
+import java.net.UnknownHostException
+import java.util.concurrent.Executors
 
-interface DnsService {
+@Service
+class DnsService(private val dnsClient: DnsClient) {
 
-    fun lookup(name: String, type: String): DnsLookupResult
+    fun lookup(name: String, type: String): DnsLookupResult =
+        query(PublicDnsResolver.CLOUDFLARE, name, type.uppercase())
 
-    fun reverse(ip: String): DnsLookupResult
+    fun reverse(ip: String): DnsLookupResult =
+        query(PublicDnsResolver.CLOUDFLARE, ptrName(ip), "PTR")
 
     /** The same query on every [fr.marstech.mtlinkspray.domain.devtools.PublicDnsResolver], in parallel. */
-    fun propagation(name: String, type: String): DnsPropagationResult
+    fun propagation(name: String, type: String): DnsPropagationResult {
+        val recordType = type.uppercase()
+        val results = Executors.newVirtualThreadPerTaskExecutor().use { executor ->
+            PublicDnsResolver.entries
+                .map { executor.submit<DnsLookupResult> { query(it, name, recordType) } }
+                .map { it.get() }
+        }
+        val answers = results.filter { it.error == null || it.nxdomain }.map { if (it.nxdomain) null else it.records.toSet() }
+        val complete = answers.size == results.size
+        return DnsPropagationResult(name, recordType, results, complete, consistent = complete && answers.distinct().size == 1)
+    }
+
+    private fun query(resolver: PublicDnsResolver, name: String, type: String): DnsLookupResult {
+        val start = System.nanoTime()
+        val response = try {
+            DnsLookupResult(name, type, resolver.label, dnsClient.query(resolver.address, name, type), 0)
+        } catch (e: DnsQueryException) {
+            DnsLookupResult(name, type, resolver.label, emptyList(), 0, error = e.reason, nxdomain = e.nxdomain)
+        }
+        return response.copy(timeMs = (System.nanoTime() - start) / 1_000_000)
+    }
+
+    companion object {
+
+        /** in-addr.arpa / ip6.arpa name of an IP literal (validated upstream, so no lookup happens here). */
+        fun ptrName(ip: String): String {
+            val bytes = try {
+                InetAddress.getByName(ip).address
+            } catch (e: UnknownHostException) {
+                throw IllegalArgumentException("Invalid IP address: $ip", e)
+            }
+            return if (bytes.size == 4) {
+                bytes.reversed().joinToString(".") { (it.toInt() and 0xff).toString() } + ".in-addr.arpa"
+            } else {
+                bytes.flatMap { listOf((it.toInt() shr 4) and 0xf, it.toInt() and 0xf) }
+                    .reversed().joinToString(".") { it.toString(16) } + ".ip6.arpa"
+            }
+        }
+    }
 }

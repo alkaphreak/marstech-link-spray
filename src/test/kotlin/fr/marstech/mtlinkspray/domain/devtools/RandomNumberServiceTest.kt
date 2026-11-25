@@ -4,13 +4,13 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.web.bind.MissingServletRequestParameterException
 
-class RandomNumberServiceImplTest {
+class RandomNumberServiceTest {
 
-    private lateinit var service: RandomNumberServiceImpl
+    private lateinit var service: RandomNumberService
 
     @BeforeEach
     fun setUp() {
-        service = RandomNumberServiceImpl()
+        service = RandomNumberService()
     }
 
     // --- Happy path ---

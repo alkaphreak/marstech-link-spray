@@ -16,10 +16,10 @@ import java.util.concurrent.atomic.AtomicInteger
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
 
-class MarkdownToPdfServiceImplTest {
+class MarkdownToPdfServiceTest {
 
     private val apiKeyResolver: ApiKeyResolver = mock()
-    private val service = MarkdownToPdfServiceImpl(apiKeyResolver, maxInputBytes = 1024)
+    private val service = MarkdownToPdfService(apiKeyResolver, maxInputBytes = 1024)
 
     private fun renderText(markdown: String): String =
         Loader.loadPDF(service.render("key.secret", markdown.byteInputStream())).use { PDFTextStripper().getText(it) }

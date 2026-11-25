@@ -9,9 +9,9 @@ import org.junit.jupiter.api.assertThrows
 import java.io.File
 
 /** Runs over the real adapter. Fixtures: MaxMind's GeoLite2 test databases (MIT / Apache 2.0), same layout as DB-IP Lite. */
-class IpServiceImplTest {
+class IpServiceTest {
 
-    private val service = IpServiceImpl(MaxMindGeoIpDatabase(File(javaClass.getResource("/geoip")!!.toURI()).path))
+    private val service = IpService(MaxMindGeoIpDatabase(File(javaClass.getResource("/geoip")!!.toURI()).path))
 
     @Test
     fun shouldReturnCountryOfIpv4() {
@@ -60,7 +60,7 @@ class IpServiceImplTest {
     @Test
     fun shouldAnswerWithoutDatabases() {
         // Given
-        val bare = IpServiceImpl(MaxMindGeoIpDatabase("/nonexistent"))
+        val bare = IpService(MaxMindGeoIpDatabase("/nonexistent"))
 
         // When
         val info = bare.lookup("81.2.69.160")

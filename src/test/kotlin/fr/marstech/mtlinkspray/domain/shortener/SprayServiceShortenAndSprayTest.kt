@@ -10,10 +10,10 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
 
-internal class SprayServiceImplTest {
+internal class SprayServiceShortenAndSprayTest {
 
     private val shortenerService: ShortenerService = mock(ShortenerService::class.java)
-    private val sprayService: SprayService = SprayServiceImpl(shortenerService, AnonymousQuota("Write", 1, 0))
+    private val sprayService: SprayService = SprayService(shortenerService, AnonymousQuota("Write", 1, 0))
     private lateinit var httpServletRequest: HttpServletRequest
     private lateinit var links: RequestLinkUrls
     private val client = ClientContext(ipAddress = null)
@@ -98,7 +98,7 @@ internal class SprayServiceImplTest {
         // Given: 2 URLs cost 3 tokens, and this IP already spent 1 of its 3
         val quota = AnonymousQuota("Write", 3, 600_000)
         quota.count("unknown")
-        val limited = SprayServiceImpl(shortenerService, quota)
+        val limited = SprayService(shortenerService, quota)
 
         // When / Then
         assertThrows(fr.marstech.mtlinkspray.domain.shared.QuotaExceededException::class.java) {

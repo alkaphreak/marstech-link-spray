@@ -4,7 +4,7 @@ import fr.marstech.mtlinkspray.domain.cron.CronJobService
 import fr.marstech.mtlinkspray.domain.cron.CronSchedulerPort
 import fr.marstech.mtlinkspray.domain.cron.CronStore
 import fr.marstech.mtlinkspray.domain.shared.ApiKeyResolver
-import fr.marstech.mtlinkspray.domain.shared.MailSenderService
+import fr.marstech.mtlinkspray.domain.shared.MailPort
 import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -27,10 +27,10 @@ class CronJobConfig {
         store: CronStore,
         cron: CronSchedulerPort,
         apiKeyResolver: ApiKeyResolver,
-        mailSenderService: MailSenderService,
+        mailPort: MailPort,
         webhook: WebhookClient,
         p: CronProperties,
-    ) = CronJobService(store, cron, apiKeyResolver, mailSenderService, webhook, p.maxJobsPerNamespace)
+    ) = CronJobService(store, cron, apiKeyResolver, mailPort, webhook, p.maxJobsPerNamespace)
 
     // A listener bean, not @EventListener: the service is a plain class built here.
     @Bean

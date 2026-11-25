@@ -10,11 +10,11 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
-class PasteServiceImplTest {
+class PasteServiceTest {
 
     private val pasteStore = mock<PasteStore>()
     private val passwordHasher = BCryptPasswordHasher()
-    private val pasteService = PasteServiceImpl(pasteStore, passwordHasher)
+    private val pasteService = PasteService(pasteStore, passwordHasher)
 
     @Test
     fun createPaste() {

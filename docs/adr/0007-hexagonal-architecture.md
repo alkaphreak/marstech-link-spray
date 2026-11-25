@@ -166,6 +166,10 @@ commits and linear history, so a rebase merge, which GitHub does not sign, canno
    removal of the interface + Impl pairs, of the dead `MtLinkSprayCollection*` code and of the
    duplicated `namespaceOf()`.
 
+   Amended 2026-11-25 (MLS-276): the duplicated `namespaceOf()` stays, one private line in
+   `CronJobService` and `ChecklistService`. A default method on `ApiKeyResolver` would be stubbed to
+   null by the Mockito mocks of that port, for no gain over one call.
+
    Amended 2026-11-23 (MLS-276): step 2 is split into several pull requests instead of one, since
    the first move left about 190 forbidden imports across 47 domain files. The ArchUnit rules land
    first, wrapped in `FreezingArchRule`: the violations of that day are recorded in

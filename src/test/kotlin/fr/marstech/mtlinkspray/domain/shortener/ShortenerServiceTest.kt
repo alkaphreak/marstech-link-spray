@@ -33,7 +33,7 @@ internal class ShortenerServiceTest {
     private val linkItemRepository = mock<LinkItemRepository>()
     private val httpServletRequest = mock<HttpServletRequest>()
     private val randomIdGeneratorService = mock<RandomIdGeneratorService>()
-    private val shortenerService = ShortenerServiceImpl(
+    private val shortenerService = ShortenerService(
         MongoShortLinkStore(linkItemRepository), randomIdGeneratorService, BotUserAgents(ClasspathBotUserAgentSource()),
     )
 

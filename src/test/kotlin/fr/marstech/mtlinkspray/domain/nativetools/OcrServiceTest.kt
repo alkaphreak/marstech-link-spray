@@ -32,7 +32,7 @@ import kotlin.io.path.exists
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
 
-class OcrServiceImplTest {
+class OcrServiceTest {
 
     @TempDir
     lateinit var dir: Path
@@ -62,7 +62,7 @@ class OcrServiceImplTest {
         maxPdfPages: Int = 2,
         maxPdfPixels: Long = 20_000_000,
         maxImagePixels: Long = 12_000_000,
-    ) = OcrServiceImpl(
+    ) = OcrService(
         apiKeyResolver, NativeWorkPermit(), AnonymousQuota("Anonymous OCR", anonymousQuota, anonymousWindowMillis),
         TesseractOcrEngine(command), maxInputBytes, timeoutSeconds, maxPdfPages, maxPdfPixels, maxImagePixels,
     )
@@ -98,7 +98,7 @@ class OcrServiceImplTest {
         return engine!!
     }
 
-    private fun OcrServiceImpl.anonymous(image: ByteArray = png, lang: String = "fra+eng") =
+    private fun OcrService.anonymous(image: ByteArray = png, lang: String = "fra+eng") =
         recognize(null, "203.0.113.7", image.inputStream(), lang)
 
     @Test

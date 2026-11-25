@@ -1,7 +1,7 @@
 package fr.marstech.mtlinkspray.domain.cron
 import fr.marstech.mtlinkspray.adapter.outbound.http.JdkWebhookClient
 import fr.marstech.mtlinkspray.domain.shared.ApiKeyResolver
-import fr.marstech.mtlinkspray.domain.shared.MailSenderService
+import fr.marstech.mtlinkspray.domain.shared.MailPort
 import fr.marstech.mtlinkspray.domain.shared.ApiCaller
 import fr.marstech.mtlinkspray.adapter.outbound.mongo.cron.CronJobEntity
 import fr.marstech.mtlinkspray.adapter.outbound.mongo.cron.CronRunEntity
@@ -41,7 +41,7 @@ class CronJobServiceTest {
     private val jobRepository: CronJobRepository = mock()
     private val runRepository: CronRunRepository = mock()
     private val apiKeyResolver: ApiKeyResolver = mock()
-    private val mailSenderService: MailSenderService = mock()
+    private val mailPort: MailPort = mock()
     private val httpClient: HttpClient = mock()
     private val mongoTemplate: MongoTemplate = mock()
     private val scheduler = SpringCronScheduler()
@@ -56,7 +56,7 @@ class CronJobServiceTest {
 
     @BeforeEach
     fun setUp() {
-        service = CronJobService(MongoCronStore(jobRepository, runRepository, mongoTemplate, 30), scheduler, apiKeyResolver, mailSenderService, JdkWebhookClient(httpClient), 2)
+        service = CronJobService(MongoCronStore(jobRepository, runRepository, mongoTemplate, 30), scheduler, apiKeyResolver, mailPort, JdkWebhookClient(httpClient), 2)
         service.resolve = { arrayOf(InetAddress.getByName("93.184.215.14")) }
         whenever(apiKeyResolver.resolve("key")).thenReturn(key)
         whenever(apiKeyResolver.isNamespaceEnabled("ns")).thenReturn(true)
@@ -98,7 +98,7 @@ class CronJobServiceTest {
         service.execute("job-1")
         // Then
         assertEquals(0, (storedUpdate()["\$set"] as Document)["consecutiveFailures"])
-        verify(mailSenderService, never()).sendMail(any(), any())
+        verify(mailPort, never()).sendMail(any(), any())
     }
 
     @Test
@@ -113,7 +113,7 @@ class CronJobServiceTest {
         assertEquals(CronRunStatus.FAILED, run.status)
         assertEquals(503, run.httpStatus)
         assertEquals(1, (storedUpdate()["\$inc"] as Document)["consecutiveFailures"])
-        verify(mailSenderService).sendMail(any(), any())
+        verify(mailPort).sendMail(any(), any())
     }
 
     @Test
@@ -126,7 +126,7 @@ class CronJobServiceTest {
         // When
         service.execute("job-1")
         // Then
-        verify(mailSenderService).sendMail(any(), any())
+        verify(mailPort).sendMail(any(), any())
     }
 
     @Test
@@ -148,7 +148,7 @@ class CronJobServiceTest {
         // When
         service.execute("job-1")
         // Then
-        verify(mailSenderService, never()).sendMail(any(), any())
+        verify(mailPort, never()).sendMail(any(), any())
     }
 
     @Test
@@ -156,7 +156,7 @@ class CronJobServiceTest {
         // Given
         givenStoredJob(failuresAfterRun = 3)
         givenResponse(500)
-        whenever(mailSenderService.sendMail(any(), any())).thenThrow(RuntimeException("smtp down"))
+        whenever(mailPort.sendMail(any(), any())).thenThrow(RuntimeException("smtp down"))
         // When
         service.execute("job-1")
         // Then
@@ -225,7 +225,7 @@ class CronJobServiceTest {
         // When
         service.execute("job-1")
         // Then
-        verify(mailSenderService, never()).sendMail(any(), any())
+        verify(mailPort, never()).sendMail(any(), any())
     }
 
     @Test
