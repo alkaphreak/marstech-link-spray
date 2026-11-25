@@ -1,7 +1,0 @@
-#
-#Mon Nov 23 12:19:18 EST 2026
-classes\ that\ reside\ in\ a\ package\ '..domain.shared..'\ and\ are\ top\ level\ classes\ should\ be\ an\ interface,\ a\ value\ type,\ an\ enum\ or\ an\ exception=68237f7c-4aa3-4356-99fd-1210e9e071c4
-no\ classes\ that\ reside\ in\ a\ package\ '..adapter.inbound..'\ should\ depend\ on\ classes\ that\ reside\ in\ a\ package\ '..adapter.outbound..'=9fd82792-f921-4f24-9ef3-4661869ff20e
-no\ classes\ that\ reside\ in\ a\ package\ '..domain..'\ should\ depend\ on\ classes\ that\ reside\ in\ a\ package\ 'org.springframework..'\ and\ not\ equivalent\ to\ org.springframework.stereotype.Service=c88416fe-c0ba-48e7-b5b4-ade9f6948f94
-no\ classes\ that\ reside\ in\ a\ package\ '..domain..'\ should\ depend\ on\ classes\ that\ reside\ in\ any\ package\ ['..adapter..',\ 'com.mongodb..',\ 'jakarta.servlet..']=ac443478-746e-4ba2-a0cc-7bea72ee2cbf
-slices\ matching\ '..domain.(*)..'\ should\ not\ depend\ on\ each\ other=929e1f82-bfa3-4577-a976-3c68d1bdbc6e

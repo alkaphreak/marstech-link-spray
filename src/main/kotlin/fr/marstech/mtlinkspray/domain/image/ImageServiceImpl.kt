@@ -2,13 +2,13 @@ package fr.marstech.mtlinkspray.domain.image
 import fr.marstech.mtlinkspray.domain.shared.ForbiddenException
 import fr.marstech.mtlinkspray.domain.shared.ApiKeyResolver
 import fr.marstech.mtlinkspray.domain.shared.ClientContext
-import fr.marstech.mtlinkspray.domain.shared.ImageTypes
+import fr.marstech.mtlinkspray.domain.shared.ImageType
 import java.io.InputStream
 
 class ImageServiceImpl(
     private val imageStore: ImageStore,
     private val apiKeyResolver: ApiKeyResolver,
-    private val imageStorageService: ImageStorageService,
+    private val imageStorage: ImageStoragePort,
     private val maxFileSizeBytes: Long,
 ) : ImageService {
 
@@ -27,10 +27,10 @@ class ImageServiceImpl(
 
         val filename = upload.originalFilename?.takeIf { it.isNotBlank() } ?: "upload"
         val bytes = upload.content().use { it.readAllBytes() }
-        val contentType = ImageTypes.detect(bytes) ?: throw IllegalArgumentException(
-            "Unsupported file type: only ${ImageTypes.ALLOWED.joinToString()} are accepted"
+        val contentType = ImageType.detect(bytes)?.mediaType ?: throw IllegalArgumentException(
+            "Unsupported file type: only ${ImageType.MEDIA_TYPES.joinToString()} are accepted"
         )
-        val storageKey = imageStorageService.upload(apiKey.namespace, filename, contentType, bytes)
+        val storageKey = imageStorage.upload(apiKey.namespace, filename, contentType, bytes)
 
         return imageStore.create(
             Image(
@@ -50,7 +50,7 @@ class ImageServiceImpl(
 
     override fun downloadImage(id: String, rawApiKey: String?): Pair<Image, InputStream> {
         val image = getImage(id, rawApiKey)
-        return image to imageStorageService.download(image.storageKey)
+        return image to imageStorage.download(image.storageKey)
     }
 
     override fun deleteImage(id: String, rawApiKey: String?) {
@@ -58,7 +58,7 @@ class ImageServiceImpl(
         val image = findImage(id)
         if (image.apiKeyId != apiKey.apiKeyId) throw ForbiddenException("Not authorized to delete this image")
 
-        imageStorageService.delete(image.storageKey)
+        imageStorage.delete(image.storageKey)
         imageStore.deleteById(id)
     }
 

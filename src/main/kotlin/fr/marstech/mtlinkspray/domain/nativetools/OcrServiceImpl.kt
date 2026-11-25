@@ -2,12 +2,11 @@ package fr.marstech.mtlinkspray.domain.nativetools
 import fr.marstech.mtlinkspray.domain.shared.BusyException
 import fr.marstech.mtlinkspray.domain.shared.ApiKeyResolver
 import fr.marstech.mtlinkspray.domain.shared.PayloadTooLargeException
-import fr.marstech.mtlinkspray.domain.shared.ImageTypes
+import fr.marstech.mtlinkspray.domain.shared.ImageType
 import fr.marstech.mtlinkspray.domain.shared.QuotaPort
 import org.apache.pdfbox.Loader
 import org.apache.pdfbox.pdmodel.encryption.InvalidPasswordException
 import org.apache.pdfbox.pdmodel.PDDocument
-import org.apache.pdfbox.rendering.ImageType
 import org.apache.pdfbox.rendering.PDFRenderer
 import java.io.ByteArrayOutputStream
 import java.io.IOException
@@ -48,7 +47,7 @@ class OcrServiceImpl(
             throw PayloadTooLargeException("Image exceeds the maximum allowed size of $maxInputBytes bytes")
         }
         val pdf = bytes.size >= PDF_MAGIC.size && bytes.copyOf(PDF_MAGIC.size).contentEquals(PDF_MAGIC)
-        require(pdf || ImageTypes.detect(bytes) in SUPPORTED_TYPES) { "Body is not a PNG, JPEG or PDF" }
+        require(pdf || ImageType.detect(bytes)?.mediaType in SUPPORTED_TYPES) { "Body is not a PNG, JPEG or PDF" }
         if (!pdf) checkImagePixels(bytes)
 
         // The permit and the deadline cover the PDF parsing too, not just the engine (MLS-255)
@@ -86,7 +85,7 @@ class OcrServiceImpl(
                 throw PayloadTooLargeException("PDF page ${page + 1} is too large to OCR: scan it at A3 or smaller")
             }
             checkDeadline(deadline)
-            val image = renderer.renderImageWithDPI(page, PDF_DPI, ImageType.GRAY)
+            val image = renderer.renderImageWithDPI(page, PDF_DPI, org.apache.pdfbox.rendering.ImageType.GRAY)
             val png = ByteArrayOutputStream().also { ImageIO.write(image, "png", it) }.toByteArray()
             runTesseract(png, languages, deadline)
         }.trim()

@@ -2,7 +2,7 @@ package fr.marstech.mtlinkspray.adapter.inbound.web.image
 import fr.marstech.mtlinkspray.adapter.inbound.web.common.NetworkUtils.clientContext
 import fr.marstech.mtlinkspray.domain.image.ImageService
 import fr.marstech.mtlinkspray.domain.image.ImageUpload
-import fr.marstech.mtlinkspray.domain.shared.ImageTypes
+import fr.marstech.mtlinkspray.domain.shared.ImageType
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.HttpHeaders.CACHE_CONTROL
 import org.springframework.http.HttpHeaders.CONTENT_DISPOSITION
@@ -49,7 +49,7 @@ class ImageApiController(private val imageService: ImageService) {
         val (image, stream) = imageService.downloadImage(id, apiKey)
         // Only verified raster types render inline; anything else (e.g. rows stored before the
         // upload allowlist existed) is forced to a download so it can never run under this origin.
-        val isSafeImage = image.contentType in ImageTypes.ALLOWED
+        val isSafeImage = image.contentType in ImageType.MEDIA_TYPES
         val disposition = ContentDisposition.builder(if (isSafeImage) "inline" else "attachment")
             .filename(image.originalFilename)
             .build()

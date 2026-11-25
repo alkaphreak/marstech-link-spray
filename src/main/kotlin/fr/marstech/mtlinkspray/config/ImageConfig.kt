@@ -2,7 +2,7 @@ package fr.marstech.mtlinkspray.config
 
 import fr.marstech.mtlinkspray.domain.image.ImageService
 import fr.marstech.mtlinkspray.domain.image.ImageServiceImpl
-import fr.marstech.mtlinkspray.domain.image.ImageStorageService
+import fr.marstech.mtlinkspray.domain.image.ImageStoragePort
 import fr.marstech.mtlinkspray.domain.image.ImageStore
 import fr.marstech.mtlinkspray.domain.shared.ApiKeyResolver
 import org.springframework.beans.factory.annotation.Value
@@ -17,7 +17,7 @@ class ImageConfig {
     fun imageService(
         imageStore: ImageStore,
         apiKeyResolver: ApiKeyResolver,
-        imageStorageService: ImageStorageService,
+        imageStorage: ImageStoragePort,
         @Value("\${mt.link-spray.storage.max-file-size-bytes:26214400}") maxFileSizeBytes: Long,
-    ): ImageService = ImageServiceImpl(imageStore, apiKeyResolver, imageStorageService, maxFileSizeBytes)
+    ): ImageService = ImageServiceImpl(imageStore, apiKeyResolver, imageStorage, maxFileSizeBytes)
 }

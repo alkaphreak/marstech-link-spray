@@ -40,7 +40,7 @@ src/main/kotlin/fr/marstech/mtlinkspray/
 │                   #   document (md2pdf, pdf2md), checklist, cron (+ CronJobValidator), apikey,
 │                   #   abuse, signature, devtools (DNS, IP, QR, random number, sleep cycles)
 ├── domain/shared/   # domain errors (PayloadTooLargeException, ForbiddenException, ConflictException,
-│                   #   BusyException, QuotaExceededException), ImageTypes, MailSenderService, ApiKeyResolver +
+│                   #   BusyException, QuotaExceededException), ImageType, MailSenderService, ApiKeyResolver +
 │                   #   ApiCaller (other domains' only view of API keys), PasswordHasher,
 │                   #   ClientContext (caller IP and user agent, built by NetworkUtils.clientContext)
 ├── adapter/inbound/
@@ -73,7 +73,7 @@ src/main/kotlin/fr/marstech/mtlinkspray/
 - `SprayApiController` → `SprayService` — multi-URL spray
 - `PasteApiController` → `PasteService` → `PasteStore` (`MongoPasteStore` → `PasteRepository`) — paste CRUD
 - `DashboardApiController` → `DashboardService` → `DashboardStore` (`MongoDashboardStore`, which also creates the unique slug index) — collection management
-- `ImageApiController` → `ImageService` → `ImageStore` (`MongoImageStore`) and `ImageStorageService` (`DigitalOceanSpacesServiceImpl`) — image storage (MLS-203)
+- `ImageApiController` → `ImageService` → `ImageStore` (`MongoImageStore`) and `ImageStoragePort` (`DigitalOceanSpacesServiceImpl`) — image storage (MLS-203)
 - `AdminApiKeyViewController` → `ApiKeyService` → `ApiKeyStore` (`MongoApiKeyStore` → `ApiKeyRepository`) — admin page to create/list/enable-disable per-app API keys (`/admin/api-keys`, HTTP Basic protected)
 - `Md2PdfApiController` → `MarkdownToPdfService` — raw Markdown body to PDF, `X-Api-Key` (MLS-223)
 - `Pdf2MdApiController` → `PdfToMarkdownService` — raw PDF body to Markdown (PDFBox), `X-Api-Key` (MLS-196)
@@ -146,13 +146,8 @@ See `.local/llm/README.md` for complete conventions.
   today's `_class` values on a cold context; `QuotaE2eTest` runs with small buckets in its own context.
   A new public route gets a success and an error case there. Field injection in `E2eTest` (port,
   `MongoTemplate`) is the one exception to constructor injection, to keep subclasses free of constructors
-- **Architecture rules** (ADR 0007, MLS-276): `ArchitectureTest` checks the hexagonal boundaries, frozen on
-  `src/test/resources/archunit_store` until the migration ends. Never add a violation (the build fails) and
-  never edit the store by hand. The store is read-only, so removing violations also fails the build until
-  `./mvnw test -Dtest=ArchitectureTest -Darchunit.freeze.store.default.allowStoreUpdate=true` records the
-  shrunk store; commit it with the change. A changed constructor or method signature re-reports its old
-  violations as new: add `-Darchunit.freeze.refreeze=true` and check that every added store entry is a
-  removed one with the new signature (`archunit.properties`). New code goes where the ADR says, not next to a frozen violation
+- **Architecture rules** (ADR 0007, MLS-276): `ArchitectureTest` checks the hexagonal boundaries with no
+  freeze: any violation fails the build. New code goes where the ADR says
 - **DTOs for all API responses** — never return raw entities from controllers
 - **Schema-first**: data classes with validation annotations are the contract, not comments
 - **ADRs**: architecture decisions live in `docs/adr/` (MADR; create it from the Marstech-Configs

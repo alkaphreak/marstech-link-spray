@@ -16,14 +16,14 @@ class ImageServiceImplTest {
 
     private val imageStore = mock(ImageStore::class.java)
     private val apiKeyResolver = mock(ApiKeyResolver::class.java)
-    private val imageStorageService = mock(ImageStorageService::class.java)
+    private val imageStorage = mock(ImageStoragePort::class.java)
     private val client = ClientContext(ipAddress = "203.0.113.7")
 
     private fun upload(filename: String, bytes: ByteArray) = ImageUpload(filename, bytes.size.toLong()) { bytes.inputStream() }
 
     private val maxFileSizeBytes = 25L * 1024 * 1024 // 25 MB, same default as production config
     private val imageService = ImageServiceImpl(
-        imageStore, apiKeyResolver, imageStorageService, maxFileSizeBytes
+        imageStore, apiKeyResolver, imageStorage, maxFileSizeBytes
     )
 
     private val jpegBytes = byteArrayOf(0xFF.toByte(), 0xD8.toByte(), 0xFF.toByte(), 0xE0.toByte(), 0x00)
@@ -49,7 +49,7 @@ class ImageServiceImplTest {
     fun uploadImageShouldStoreFileAndSaveMetadata() {
         val file = upload("photo.jpg", jpegBytes)
         `when`(apiKeyResolver.resolve("key123.secret")).thenReturn(apiKey)
-        whenever(imageStorageService.upload(any(), any(), any(), any()))
+        whenever(imageStorage.upload(any(), any(), any(), any()))
             .thenReturn("maeva-app-1/2026/07/generated.jpg")
         whenever(imageStore.create(any())).thenAnswer { it.arguments[0] }
 
@@ -61,7 +61,7 @@ class ImageServiceImplTest {
         assertEquals(apiKey.apiKeyId, result.apiKeyId)
         assertEquals("203.0.113.7", result.authorIpAddress)
         assertEquals(jpegBytes.size.toLong(), result.sizeBytes)
-        verify(imageStorageService).upload(eq("maeva-app-1"), eq("photo.jpg"), eq("image/jpeg"), any())
+        verify(imageStorage).upload(eq("maeva-app-1"), eq("photo.jpg"), eq("image/jpeg"), any())
         verify(imageStore).create(any())
     }
 
@@ -74,7 +74,7 @@ class ImageServiceImplTest {
         assertThrows<IllegalAccessException> {
             imageService.uploadImage("bad-key", file, false, client)
         }
-        verifyNoInteractions(imageStorageService)
+        verifyNoInteractions(imageStorage)
     }
 
     @Test
@@ -85,7 +85,7 @@ class ImageServiceImplTest {
         assertThrows<IllegalArgumentException> {
             imageService.uploadImage("key123.secret", file, false, client)
         }
-        verifyNoInteractions(imageStorageService)
+        verifyNoInteractions(imageStorage)
     }
 
     @Test
@@ -94,10 +94,11 @@ class ImageServiceImplTest {
         val file = upload("logo.svg", svg)
         `when`(apiKeyResolver.resolve("key123.secret")).thenReturn(apiKey)
 
-        assertThrows<IllegalArgumentException> {
+        val e = assertThrows<IllegalArgumentException> {
             imageService.uploadImage("key123.secret", file, false, client)
         }
-        verifyNoInteractions(imageStorageService)
+        assertEquals("Unsupported file type: only image/jpeg, image/png, image/gif, image/webp are accepted", e.message)
+        verifyNoInteractions(imageStorage)
     }
 
     @Test
@@ -105,7 +106,7 @@ class ImageServiceImplTest {
         val pngBytes = byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00)
         val file = upload("photo.jpg", pngBytes)
         `when`(apiKeyResolver.resolve("key123.secret")).thenReturn(apiKey)
-        whenever(imageStorageService.upload(any(), any(), any(), any())).thenReturn("maeva-app-1/x.png")
+        whenever(imageStorage.upload(any(), any(), any(), any())).thenReturn("maeva-app-1/x.png")
         whenever(imageStore.create(any())).thenAnswer { it.arguments[0] }
 
         val result = imageService.uploadImage("key123.secret", file, false, client)
@@ -121,7 +122,7 @@ class ImageServiceImplTest {
         assertThrows<IllegalArgumentException> {
             imageService.uploadImage("key123.secret", file, false, client)
         }
-        verifyNoInteractions(imageStorageService)
+        verifyNoInteractions(imageStorage)
     }
 
     @Test
@@ -133,7 +134,7 @@ class ImageServiceImplTest {
         assertThrows<IllegalArgumentException> {
             imageService.uploadImage("key123.secret", file, false, client)
         }
-        verifyNoInteractions(imageStorageService)
+        verifyNoInteractions(imageStorage)
     }
 
     @Test
@@ -194,7 +195,7 @@ class ImageServiceImplTest {
     fun downloadImageShouldReturnImageAndStream() {
         val image = givenImage(isPrivate = false)
         `when`(imageStore.findById("img-1")).thenReturn(image)
-        `when`(imageStorageService.download(image.storageKey)).thenReturn(ByteArrayInputStream("data".toByteArray()))
+        `when`(imageStorage.download(image.storageKey)).thenReturn(ByteArrayInputStream("data".toByteArray()))
 
         val (resultImage, stream) = imageService.downloadImage("img-1", null)
 
@@ -210,7 +211,7 @@ class ImageServiceImplTest {
 
         imageService.deleteImage("img-1", "key123.secret")
 
-        verify(imageStorageService).delete(image.storageKey)
+        verify(imageStorage).delete(image.storageKey)
         verify(imageStore).deleteById("img-1")
     }
 
@@ -223,7 +224,7 @@ class ImageServiceImplTest {
         assertThrows<ForbiddenException> {
             imageService.deleteImage("img-1", "key123.secret")
         }
-        verify(imageStorageService, never()).delete(any())
+        verify(imageStorage, never()).delete(any())
         verify(imageStore, never()).deleteById(any())
     }
 
