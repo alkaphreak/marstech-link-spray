@@ -92,6 +92,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- `marstech.css` synced with MarsTech-Skin 801b17a: long headings wrap (`overflow-wrap: break-word` on `h1`-`h3`),
+  `html` and `body` clip horizontal overflow instead of scrolling sideways, `.panel` sets its text color (MARSTECH-942)
 - Home page footer: the dead "From Marstech" link (marstech.fr no longer resolves) is now plain text (MLS-278)
 - Web app manifest: name, dark theme colors, `start_url`, and icon paths under `/assets/img/favicons/`
   (they returned 404); `msapplication-TileColor` moves from the old orange to `#05070a` (MLS-278)
