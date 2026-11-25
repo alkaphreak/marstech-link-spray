@@ -30,7 +30,7 @@ class DashboardViewControllerTest {
     @Test
     fun postViewShouldCreateDashboardAndRedirect() {
         val dto = DashboardDto("123", "Test Dashboard")
-        `when`(dashboardService.createDashboard("Test Dashboard")).thenReturn(dto)
+        `when`(dashboardService.createDashboard("Test Dashboard")).thenReturn(dto.toDashboard())
 
         val redirectUrl = controller.postView("Test Dashboard")
         assertEquals("redirect:/dashboard/123", redirectUrl)
@@ -39,7 +39,7 @@ class DashboardViewControllerTest {
     @Test
     fun getDashboardByIdShouldAddDashboardToModel() {
         val dashboard = DashboardDto("456", "Another Dashboard")
-        `when`(dashboardService.getDashboard("456")).thenReturn(dashboard)
+        `when`(dashboardService.getDashboard("456")).thenReturn(dashboard.toDashboard())
 
         val result = controller.getDashboardById("456", request)
         assertEquals(dashboard, result.model["dashboard"])

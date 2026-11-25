@@ -1,13 +1,12 @@
 package fr.marstech.mtlinkspray.adapter.outbound.mongo.dashboard
 
 import org.springframework.data.annotation.TypeAlias
-import fr.marstech.mtlinkspray.adapter.inbound.web.common.ValidUrl
 
+/** The alias keeps the pre-move class name stored in `_class` (ADR 0007); URL validation stays on the request DTO. */
 @TypeAlias("fr.marstech.mtlinkspray.entity.DashboardLink")
-data class DashboardLink(
+data class DashboardLinkEntity(
     override var id: String = java.util.UUID.randomUUID().toString(),
     override var name: String,
     override var description: String? = null,
-    // http(s) only: the public page renders it as an href (MLS-115)
-    @field:ValidUrl var url: String? = null
-) : DashboardItem
+    var url: String? = null
+) : DashboardItemEntity

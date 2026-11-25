@@ -61,6 +61,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `ReservedPathsPort`, random id settings read by `ShortenerConfig` (same keys), bot User-Agent lists read by
   `adapter/outbound/botagents` (patterns now compiled at startup, same fallback when they fail to load);
   `LinkStats` replaces `LinkStatsResponse` (same JSON)
+- `dashboard` domain on ports (MLS-276 step 2): `Dashboard`, `DashboardItem` and `DashboardLink` models and a
+  `DashboardStore` port (Mongo adapter, `insert` on create, the unique slug index created at startup by the adapter);
+  the Mongo item types become `DashboardItemEntity` and `DashboardLinkEntity` with the same `@TypeAlias`, so stored
+  dashboards load unchanged; link URL validation moves to a `DashboardLinkDto` (same JSON, same 400)
 
 ### Fixed
 
