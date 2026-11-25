@@ -103,7 +103,8 @@ named `in` would need backticks in every declaration and import)
 in a version that reads Java 25 bytecode)
 
 - `domain..` depends on no Spring class except `org.springframework.stereotype.Service`, and
-  not on `com.mongodb..`, `jakarta.servlet..` or `..adapter..`.
+  not on `com.mongodb..`, `jakarta.servlet..` or `..adapter..`; since the end of the migration,
+  not on `java.net.http..` or `javax.naming..` either.
 - `..adapter.inbound..` does not depend on `..adapter.outbound..`.
 - A `domain.<name>` package does not depend on another `domain.<name>` package, except
   `domain.shared`.

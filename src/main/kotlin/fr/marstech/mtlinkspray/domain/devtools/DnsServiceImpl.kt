@@ -3,8 +3,6 @@ import org.springframework.stereotype.Service
 import java.net.InetAddress
 import java.net.UnknownHostException
 import java.util.concurrent.Executors
-import javax.naming.NameNotFoundException
-import javax.naming.NamingException
 
 @Service
 class DnsServiceImpl(private val dnsClient: DnsClient) : DnsService {
@@ -31,12 +29,8 @@ class DnsServiceImpl(private val dnsClient: DnsClient) : DnsService {
         val start = System.nanoTime()
         val response = try {
             DnsLookupResult(name, type, resolver.label, dnsClient.query(resolver.address, name, type), 0)
-        } catch (e: NamingException) {
-            DnsLookupResult(
-                name, type, resolver.label, emptyList(), 0,
-                error = e.explanation ?: e.javaClass.simpleName,
-                nxdomain = e is NameNotFoundException,
-            )
+        } catch (e: DnsQueryException) {
+            DnsLookupResult(name, type, resolver.label, emptyList(), 0, error = e.reason, nxdomain = e.nxdomain)
         }
         return response.copy(timeMs = (System.nanoTime() - start) / 1_000_000)
     }

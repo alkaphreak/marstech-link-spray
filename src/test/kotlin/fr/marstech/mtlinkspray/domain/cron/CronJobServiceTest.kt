@@ -1,4 +1,5 @@
 package fr.marstech.mtlinkspray.domain.cron
+import fr.marstech.mtlinkspray.adapter.outbound.http.JdkWebhookClient
 import fr.marstech.mtlinkspray.domain.shared.ApiKeyResolver
 import fr.marstech.mtlinkspray.domain.shared.MailSenderService
 import fr.marstech.mtlinkspray.domain.shared.ApiCaller
@@ -55,7 +56,7 @@ class CronJobServiceTest {
 
     @BeforeEach
     fun setUp() {
-        service = CronJobService(MongoCronStore(jobRepository, runRepository, mongoTemplate, 30), scheduler, apiKeyResolver, mailSenderService, httpClient, 2)
+        service = CronJobService(MongoCronStore(jobRepository, runRepository, mongoTemplate, 30), scheduler, apiKeyResolver, mailSenderService, JdkWebhookClient(httpClient), 2)
         service.resolve = { arrayOf(InetAddress.getByName("93.184.215.14")) }
         whenever(apiKeyResolver.resolve("key")).thenReturn(key)
         whenever(apiKeyResolver.isNamespaceEnabled("ns")).thenReturn(true)

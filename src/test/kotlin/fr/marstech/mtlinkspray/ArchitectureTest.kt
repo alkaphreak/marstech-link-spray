@@ -25,9 +25,11 @@ internal class ArchitectureTest {
         .importPackages("fr.marstech.mtlinkspray")
 
     @Test
-    fun domainShouldNotDependOnAdaptersMongoOrServlet() {
+    fun domainShouldNotDependOnAdaptersOrInfrastructure() {
         noClasses().that().resideInAPackage("..domain..")
-            .should().dependOnClassesThat(resideInAnyPackage("..adapter..", "com.mongodb..", "jakarta.servlet.."))
+            .should().dependOnClassesThat(
+                resideInAnyPackage("..adapter..", "com.mongodb..", "jakarta.servlet..", "java.net.http..", "javax.naming.."),
+            )
             .check(production)
     }
 

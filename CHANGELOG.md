@@ -82,6 +82,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   (`NativeImageEncoder`), both in `adapter/outbound/native/`; commands, limits and messages unchanged
 - `ImageTypes` becomes the `ImageType` enum (JPEG, PNG, GIF, WebP) and `ImageStorageService` the
   `ImageStoragePort` (MLS-276 step 2); detection, accepted types and messages unchanged
+- Cron webhooks go through a `WebhookClient` port (`JdkWebhookClient` in `adapter/outbound/http/`), and the
+  `DnsClient` port throws a domain `DnsQueryException` instead of JNDI's `NamingException` (MLS-276 step 2);
+  requests, timeouts, run errors and DNS answers unchanged
 
 ### Fixed
 
