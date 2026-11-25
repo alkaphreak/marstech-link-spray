@@ -1,4 +1,5 @@
 package fr.marstech.mtlinkspray.adapter.inbound.web.cron
+import fr.marstech.mtlinkspray.domain.cron.CronJob
 import fr.marstech.mtlinkspray.domain.cron.CronJobService
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Max
@@ -19,7 +20,7 @@ class CronJobApiController(private val cronJobService: CronJobService) {
         @RequestHeader("X-Api-Key", required = false) apiKey: String?,
         @Valid @RequestBody request: CronJobRequest,
     ): ResponseEntity<CronJobDto> =
-        ResponseEntity.status(HttpStatus.CREATED).body(toDto(cronJobService.create(apiKey, request)))
+        ResponseEntity.status(HttpStatus.CREATED).body(toDto(cronJobService.create(apiKey, request.toDraft())))
 
     @GetMapping
     fun listJobs(@RequestHeader("X-Api-Key", required = false) apiKey: String?): List<CronJobDto> =
@@ -34,7 +35,7 @@ class CronJobApiController(private val cronJobService: CronJobService) {
         @RequestHeader("X-Api-Key", required = false) apiKey: String?,
         @PathVariable id: String,
         @Valid @RequestBody request: CronJobRequest,
-    ): CronJobDto = toDto(cronJobService.update(apiKey, id, request))
+    ): CronJobDto = toDto(cronJobService.update(apiKey, id, request.toDraft()))
 
     @DeleteMapping("/{id}")
     fun deleteJob(@RequestHeader("X-Api-Key", required = false) apiKey: String?, @PathVariable id: String): ResponseEntity<Void> {
@@ -47,7 +48,7 @@ class CronJobApiController(private val cronJobService: CronJobService) {
         @RequestHeader("X-Api-Key", required = false) apiKey: String?,
         @PathVariable id: String,
         @RequestParam(defaultValue = "50") @Min(1) @Max(500) limit: Int,
-    ): List<CronRunDto> = cronJobService.runs(apiKey, id, limit).map(CronRunDto::fromEntity)
+    ): List<CronRunDto> = cronJobService.runs(apiKey, id, limit).map(CronRunDto::from)
 
-    private fun toDto(job: fr.marstech.mtlinkspray.adapter.outbound.mongo.cron.CronJobEntity) = CronJobDto.fromEntity(job, cronJobService.nextRunAt(job))
+    private fun toDto(job: CronJob) = CronJobDto.from(job, cronJobService.nextRunAt(job))
 }

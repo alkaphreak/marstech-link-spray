@@ -1,5 +1,4 @@
 package fr.marstech.mtlinkspray.domain.cron
-import org.springframework.scheduling.support.CronExpression
 import java.net.Inet4Address
 import java.net.Inet6Address
 import java.net.InetAddress
@@ -14,21 +13,20 @@ object CronJobValidator {
     // ponytail: checks the next 10 gaps only; a schedule whose short gap comes later slips through, cap is harmless (1 req/s worst case)
     private const val CHECKED_GAPS = 10
 
-    fun validateSchedule(schedule: String, from: LocalDateTime = LocalDateTime.now()): CronExpression {
-        val cron = try {
-            CronExpression.parse(schedule)
+    fun validateSchedule(schedule: String, cron: CronSchedulerPort, from: LocalDateTime = LocalDateTime.now()) {
+        val first = try {
+            cron.next(schedule, from)
         } catch (e: IllegalArgumentException) {
             throw IllegalArgumentException("Invalid cron expression '$schedule': ${e.message}")
         }
-        var previous = cron.next(from) ?: throw IllegalArgumentException("Cron expression '$schedule' never fires")
+        var previous = first ?: throw IllegalArgumentException("Cron expression '$schedule' never fires")
         repeat(CHECKED_GAPS) {
-            val next = cron.next(previous) ?: return cron
+            val next = cron.next(schedule, previous) ?: return
             require(Duration.between(previous, next) >= MIN_INTERVAL) {
                 "Cron expression '$schedule' fires more often than once per ${MIN_INTERVAL.toMinutes()} minute"
             }
             previous = next
         }
-        return cron
     }
 
     /** Rejects anything but a public http(s) target, so a job cannot probe the server or private networks (SSRF). */

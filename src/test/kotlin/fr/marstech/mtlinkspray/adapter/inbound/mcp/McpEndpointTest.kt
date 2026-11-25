@@ -1,5 +1,5 @@
 package fr.marstech.mtlinkspray.adapter.inbound.mcp
-import fr.marstech.mtlinkspray.domain.cron.CronJobService
+import fr.marstech.mtlinkspray.domain.cron.CronStore
 import fr.marstech.mtlinkspray.domain.devtools.DnsService
 import org.hamcrest.Matchers.containsInAnyOrder
 import org.hamcrest.Matchers.containsString
@@ -8,6 +8,8 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
+import org.mockito.kotlin.verify
+import org.springframework.test.context.bean.override.mockito.MockReset
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.ResultActions
@@ -31,9 +33,10 @@ internal class McpEndpointTest {
     @MockitoBean
     private lateinit var dnsService: DnsService
 
-    // No MongoDB in the test profile: its startup index creation waits 3 x 30 s otherwise
-    @MockitoBean
-    private lateinit var cronJobService: CronJobService
+    // No MongoDB in the test profile: the cron store's startup index creation waits 3 x 30 s otherwise.
+    // Not reset: the startup call happens once, before the first test.
+    @MockitoBean(reset = MockReset.NONE)
+    private lateinit var cronStore: CronStore
 
     private fun rpc(body: String): ResultActions = mockMvc.perform(
         post("/mcp")
@@ -41,6 +44,11 @@ internal class McpEndpointTest {
             .header("Accept", "application/json, text/event-stream")
             .content(body)
     )
+
+    @Test
+    fun shouldScheduleEnabledCronJobsWhenTheApplicationIsReady() {
+        verify(cronStore).findEnabledJobs()
+    }
 
     @Test
     fun initializeShouldAnswerWithoutASession() {

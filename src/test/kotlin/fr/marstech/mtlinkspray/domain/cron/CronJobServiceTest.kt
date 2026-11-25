@@ -1,13 +1,13 @@
 package fr.marstech.mtlinkspray.domain.cron
 import fr.marstech.mtlinkspray.domain.shared.ApiKeyResolver
 import fr.marstech.mtlinkspray.domain.shared.MailSenderService
-import fr.marstech.mtlinkspray.adapter.inbound.web.cron.CronJobRequest
 import fr.marstech.mtlinkspray.domain.shared.ApiCaller
 import fr.marstech.mtlinkspray.adapter.outbound.mongo.cron.CronJobEntity
 import fr.marstech.mtlinkspray.adapter.outbound.mongo.cron.CronRunEntity
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.cron.CronRunStatus
 import fr.marstech.mtlinkspray.adapter.outbound.mongo.cron.CronJobRepository
 import fr.marstech.mtlinkspray.adapter.outbound.mongo.cron.CronRunRepository
+import fr.marstech.mtlinkspray.adapter.outbound.mongo.cron.MongoCronStore
+import fr.marstech.mtlinkspray.adapter.outbound.scheduler.SpringCronScheduler
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -43,6 +43,7 @@ class CronJobServiceTest {
     private val mailSenderService: MailSenderService = mock()
     private val httpClient: HttpClient = mock()
     private val mongoTemplate: MongoTemplate = mock()
+    private val scheduler = SpringCronScheduler()
     private lateinit var service: CronJobService
 
     private val job = CronJobEntity(
@@ -54,7 +55,7 @@ class CronJobServiceTest {
 
     @BeforeEach
     fun setUp() {
-        service = CronJobService(jobRepository, runRepository, apiKeyResolver, mailSenderService, httpClient, mongoTemplate, 2, 30)
+        service = CronJobService(MongoCronStore(jobRepository, runRepository, mongoTemplate, 30), scheduler, apiKeyResolver, mailSenderService, httpClient, 2)
         service.resolve = { arrayOf(InetAddress.getByName("93.184.215.14")) }
         whenever(apiKeyResolver.resolve("key")).thenReturn(key)
         whenever(apiKeyResolver.isNamespaceEnabled("ns")).thenReturn(true)
@@ -63,6 +64,10 @@ class CronJobServiceTest {
 
     @AfterEach
     fun tearDown() = service.stop()
+
+    private fun request(
+        name: String, schedule: String, url: String, isEnabled: Boolean = true, headers: Map<String, String> = emptyMap(),
+    ) = CronJobDraft(name, schedule, "GET", url, headers, null, 10, 3, isEnabled)
 
     private fun givenResponse(status: Int) {
         val response: HttpResponse<InputStream> = mock()
@@ -195,21 +200,10 @@ class CronJobServiceTest {
     }
 
     @Test
-    fun shouldStillScheduleJobsWhenIndexCreationFails() {
-        // Given
-        whenever(mongoTemplate.indexOps(any<Class<*>>())).thenThrow(RuntimeException("mongo down"))
-        whenever(jobRepository.findByIsEnabledTrue()).thenReturn(listOf(job))
-        // When
-        service.start()
-        // Then
-        assertNotNull(service.nextRunAt(job))
-    }
-
-    @Test
     fun shouldSurviveJobLoadingFailureAtStartup() {
         whenever(jobRepository.findByIsEnabledTrue()).thenThrow(RuntimeException("mongo down"))
         service.start()
-        assertNull(service.nextRunAt(job))
+        assertNull(service.nextRunAt(job.toDomain()))
     }
 
     @Test
@@ -257,7 +251,7 @@ class CronJobServiceTest {
         // Given
         whenever(jobRepository.countByNamespace("ns")).thenReturn(0)
         // When
-        val created = service.create("key", CronJobRequest(name = "ping", schedule = "0 */5 * * * *", url = "https://example.com"))
+        val created = service.create("key", request(name = "ping", schedule = "0 */5 * * * *", url = "https://example.com"))
         // Then
         assertEquals("ns", created.namespace)
         assertNotNull(service.nextRunAt(created))
@@ -266,7 +260,7 @@ class CronJobServiceTest {
     @Test
     fun shouldNotScheduleDisabledJob() {
         whenever(jobRepository.countByNamespace("ns")).thenReturn(0)
-        val created = service.create("key", CronJobRequest(name = "ping", schedule = "0 */5 * * * *", url = "https://example.com", isEnabled = false))
+        val created = service.create("key", request(name = "ping", schedule = "0 */5 * * * *", url = "https://example.com", isEnabled = false))
         assertNull(service.nextRunAt(created))
     }
 
@@ -274,7 +268,7 @@ class CronJobServiceTest {
     fun shouldRejectCreationPastNamespaceLimit() {
         whenever(jobRepository.countByNamespace("ns")).thenReturn(2)
         assertThrows<IllegalArgumentException> {
-            service.create("key", CronJobRequest(name = "ping", schedule = "0 */5 * * * *", url = "https://example.com"))
+            service.create("key", request(name = "ping", schedule = "0 */5 * * * *", url = "https://example.com"))
         }
     }
 
@@ -282,7 +276,7 @@ class CronJobServiceTest {
     fun shouldRejectRestrictedHeaderAtCreation() {
         whenever(jobRepository.countByNamespace("ns")).thenReturn(0)
         assertThrows<IllegalArgumentException> {
-            service.create("key", CronJobRequest(name = "ping", schedule = "0 */5 * * * *", url = "https://example.com", headers = mapOf("Host" to "internal")))
+            service.create("key", request(name = "ping", schedule = "0 */5 * * * *", url = "https://example.com", headers = mapOf("Host" to "internal")))
         }
     }
 
@@ -291,7 +285,7 @@ class CronJobServiceTest {
         // Given
         whenever(jobRepository.findByIdAndNamespace("job-1", "ns")).thenReturn(Optional.of(job.copy(consecutiveFailures = 5)))
         // When
-        val updated = service.update("key", "job-1", CronJobRequest(name = "ping", schedule = "0 0 * * * *", url = "https://example.com", isEnabled = false))
+        val updated = service.update("key", "job-1", request(name = "ping", schedule = "0 0 * * * *", url = "https://example.com", isEnabled = false))
         // Then
         assertEquals(0, updated.consecutiveFailures)
         assertEquals("0 0 * * * *", updated.schedule)
@@ -304,7 +298,7 @@ class CronJobServiceTest {
         whenever(jobRepository.findByIdAndNamespace("job-1", "ns")).thenReturn(Optional.of(job))
         service.resolve = { throw java.net.UnknownHostException(it) }
         // When
-        val updated = service.update("key", "job-1", CronJobRequest(name = job.name, schedule = job.schedule, url = job.url, isEnabled = false))
+        val updated = service.update("key", "job-1", request(name = job.name, schedule = job.schedule, url = job.url, isEnabled = false))
         // Then
         assertEquals(false, updated.isEnabled)
     }
@@ -316,7 +310,7 @@ class CronJobServiceTest {
         service.resolve = { throw java.net.UnknownHostException(it) }
         // When / Then
         assertThrows<IllegalArgumentException> {
-            service.update("key", "job-1", CronJobRequest(name = job.name, schedule = job.schedule, url = "https://other.example.com"))
+            service.update("key", "job-1", request(name = job.name, schedule = job.schedule, url = "https://other.example.com"))
         }
     }
 
@@ -336,9 +330,8 @@ class CronJobServiceTest {
 
     @Test
     fun shouldScheduleEnabledJobsAtStartup() {
-        whenever(mongoTemplate.indexOps(any<Class<*>>())).thenReturn(mock())
         whenever(jobRepository.findByIsEnabledTrue()).thenReturn(listOf(job))
         service.start()
-        assertNotNull(service.nextRunAt(job))
+        assertNotNull(service.nextRunAt(job.toDomain()))
     }
 }

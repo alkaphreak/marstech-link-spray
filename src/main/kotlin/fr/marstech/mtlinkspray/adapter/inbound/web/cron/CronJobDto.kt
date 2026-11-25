@@ -1,7 +1,8 @@
 package fr.marstech.mtlinkspray.adapter.inbound.web.cron
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.cron.CronJobEntity
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.cron.CronRunEntity
-import fr.marstech.mtlinkspray.adapter.outbound.mongo.cron.CronRunStatus
+import fr.marstech.mtlinkspray.domain.cron.CronJob
+import fr.marstech.mtlinkspray.domain.cron.CronJobDraft
+import fr.marstech.mtlinkspray.domain.cron.CronRun
+import fr.marstech.mtlinkspray.domain.cron.CronRunStatus
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
@@ -21,7 +22,9 @@ data class CronJobRequest(
     @field:Min(1) @field:Max(10) val timeoutSeconds: Int = 10,
     @field:Min(1) @field:Max(100) val failureThreshold: Int = 3,
     val isEnabled: Boolean = true,
-)
+) {
+    fun toDraft() = CronJobDraft(name, schedule, method, url, headers, body, timeoutSeconds, failureThreshold, isEnabled)
+}
 
 data class CronJobDto(
     val id: String,
@@ -41,10 +44,10 @@ data class CronJobDto(
     val nextRunAt: Instant?,
 ) {
     companion object {
-        fun fromEntity(entity: CronJobEntity, nextRunAt: Instant?) = CronJobDto(
-            entity.id, entity.name, entity.schedule, entity.method, entity.url, entity.headers, entity.body,
-            entity.timeoutSeconds, entity.failureThreshold, entity.isEnabled, entity.creationDate,
-            entity.lastRunAt, entity.lastStatus, entity.consecutiveFailures, nextRunAt,
+        fun from(job: CronJob, nextRunAt: Instant?) = CronJobDto(
+            job.id, job.name, job.schedule, job.method, job.url, job.headers, job.body,
+            job.timeoutSeconds, job.failureThreshold, job.isEnabled, job.creationDate,
+            job.lastRunAt, job.lastStatus, job.consecutiveFailures, nextRunAt,
         )
     }
 }
@@ -57,7 +60,7 @@ data class CronRunDto(
     val error: String?,
 ) {
     companion object {
-        fun fromEntity(entity: CronRunEntity) =
-            CronRunDto(entity.startedAt, entity.durationMs, entity.status, entity.httpStatus, entity.error)
+        fun from(run: CronRun) =
+            CronRunDto(run.startedAt, run.durationMs, run.status, run.httpStatus, run.error)
     }
 }

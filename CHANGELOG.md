@@ -69,6 +69,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   (Mongo adapter, which owns the namespace indexes, paging, the versioned replace and the atomic item status
   update); limits read through `ChecklistConfig` (same `mt.link-spray.checklist.*` keys and defaults); the
   Mongo item types become `ChecklistTemplateItemEntity` and `ChecklistInstanceItemEntity`, stored documents unchanged
+- `cron` domain on ports (MLS-276 step 2): `CronJob` and `CronRun` models, a `CronStore` port (Mongo adapter, which owns
+  the lookup and TTL indexes and the atomic run-result update) and a `CronSchedulerPort` (`SpringCronScheduler`: Spring
+  `CronExpression` parsing and the private task scheduler, as ADR 0007 asks); the job limit is read through
+  `CronJobConfig` (same `mt.link-spray.cron.*` keys and defaults); stored jobs and runs unchanged
 
 ### Fixed
 
