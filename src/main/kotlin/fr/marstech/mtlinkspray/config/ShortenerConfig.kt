@@ -1,11 +1,14 @@
 package fr.marstech.mtlinkspray.config
 
+import fr.marstech.mtlinkspray.adapter.outbound.urlhaus.UrlhausReputation
+import fr.marstech.mtlinkspray.domain.shortener.UrlReputationPort
 import fr.marstech.mtlinkspray.domain.shortener.RandomIdGeneratorService
 import fr.marstech.mtlinkspray.domain.shortener.RandomIdSettings
 import fr.marstech.mtlinkspray.domain.shortener.ReservedPathsPort
 import fr.marstech.mtlinkspray.domain.shortener.ShortLinkStore
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -34,4 +37,9 @@ class ShortenerConfig {
             store, reservedPaths,
             RandomIdSettings(p.length, p.prefix, p.charset, p.cache.enabled, p.cache.depth, p.cache.treshold),
         )
+
+    /** URLhaus check on every new short link (MLS-120); no key, no check (dev, tests, a key not yet set in prod). */
+    @Bean
+    fun urlReputation(@Value("\${mt.link-spray.urlhaus.auth-key:}") authKey: String): UrlReputationPort =
+        if (authKey.isBlank()) UrlReputationPort { false } else UrlhausReputation(authKey)
 }

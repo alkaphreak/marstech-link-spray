@@ -7,6 +7,13 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- New short links and sprays are checked against URLhaus (abuse.ch): a listed malware URL is refused with a 403
+  (error page in the browser), and a spray holding one creates no link at all. Exact listed URLs only: a variant
+  (query string, another shortener in front) is not caught. The check lets the link through when URLhaus is
+  unreachable or slow, and is off until `URLHAUS_AUTH_KEY` is set (MLS-120)
+
 ### Fixed
 
 - The abuse report mail is readable: report ID, date with its time zone, reporter IP and description on their own

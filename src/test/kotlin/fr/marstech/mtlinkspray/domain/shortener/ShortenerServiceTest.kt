@@ -1,5 +1,6 @@
 package fr.marstech.mtlinkspray.domain.shortener
 import fr.marstech.mtlinkspray.adapter.inbound.web.shortener.RequestLinkUrls
+import fr.marstech.mtlinkspray.domain.shared.ForbiddenException
 import fr.marstech.mtlinkspray.adapter.outbound.botagents.ClasspathBotUserAgentSource
 import fr.marstech.mtlinkspray.adapter.outbound.mongo.shortener.MongoShortLinkStore
 import fr.marstech.mtlinkspray.adapter.outbound.mongo.shared.HistoryItem
@@ -33,8 +34,10 @@ internal class ShortenerServiceTest {
     private val linkItemRepository = mock<LinkItemRepository>()
     private val httpServletRequest = mock<HttpServletRequest>()
     private val randomIdGeneratorService = mock<RandomIdGeneratorService>()
+    private val urlReputation = mock<UrlReputationPort>()
     private val shortenerService = ShortenerService(
         MongoShortLinkStore(linkItemRepository), randomIdGeneratorService, BotUserAgents(ClasspathBotUserAgentSource()),
+        urlReputation,
     )
 
     @BeforeEach
@@ -234,5 +237,16 @@ internal class ShortenerServiceTest {
         whenever(linkItemRepository.findById("abc")).thenReturn(Optional.of(storedLink("abc", 42, lastClick, 7)))
 
         Assertions.assertEquals(LinkStats(42, lastClick, 7), shortenerService.getStats("abc"))
+    }
+
+    @Test
+    fun shortenShouldRefuseAMaliciousUrlWithoutStoringIt() {
+        whenever(urlReputation.anyMalicious(listOf("https://evil.example"))).thenReturn(true)
+
+        val e = Assertions.assertThrows(ForbiddenException::class.java) {
+            shortenerService.shorten("https://evil.example", RequestLinkUrls(httpServletRequest))
+        }
+        Assertions.assertEquals(ShortenerService.MALICIOUS_URL, e.message)
+        verify(linkItemRepository, never()).insert(any<LinkItem>())
     }
 }

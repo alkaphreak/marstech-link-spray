@@ -35,12 +35,15 @@ class SprayService(
         require(urls.size <= MAX_URLS) { "A spray holds at most $MAX_URLS URLs" }
         // One token per short link created: each URL plus the spray link itself (MLS-161, ADR 0006)
         writeQuota.count(client.ipAddress ?: "unknown", urls.size + 1L)
+        // All URLs are checked at once before any link is created: a rejected spray leaves no orphan links,
+        // and the spray link only wraps the short links just created from them (MLS-120)
+        shortenerService.rejectMalicious(urls)
         val shortenedUrls = urls.map { url ->
-            (shortenerService.shorten(url, links)
+            (shortenerService.store(url, links)
                 ?: throw UrlShorteningException("Failed to shorten URL", null))
                 .also(onChildShortened)
         }
-        return shortenerService.shorten(links.spray(shortenedUrls), links)
+        return shortenerService.store(links.spray(shortenedUrls), links)
             ?: throw UrlShorteningException("Failed to shorten spray URL", null)
     }
 

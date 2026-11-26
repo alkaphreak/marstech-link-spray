@@ -4,6 +4,7 @@ import fr.marstech.mtlinkspray.config.SecurityConfig
 import fr.marstech.mtlinkspray.config.ValidationConfig
 import fr.marstech.mtlinkspray.adapter.inbound.web.common.RootApiController
 import fr.marstech.mtlinkspray.adapter.inbound.web.common.GlobalRestExceptionHandler
+import fr.marstech.mtlinkspray.domain.shared.ForbiddenException
 import fr.marstech.mtlinkspray.domain.shortener.ShortenerService
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -13,6 +14,7 @@ import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
 import org.springframework.context.annotation.Import
+import org.springframework.http.MediaType
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
@@ -80,6 +82,16 @@ class ViewShortenerControllerMvcTest {
         mockMvc.perform(post("/shortener").param(INPUT_LINK, "ftp://example.com/file"))
             .andExpect(status().isBadRequest)
         verify(shortenerService, never()).shorten(any<String>(), any())
+    }
+
+    @Test
+    fun shouldRenderA403PageForAMaliciousUrl() {
+        // Given (MLS-120)
+        whenever(shortenerService.shorten(any<String>(), any())).thenThrow(ForbiddenException(ShortenerService.MALICIOUS_URL))
+
+        // When / Then
+        mockMvc.perform(post("/shortener").param(INPUT_LINK, "https://evil.example").accept(MediaType.TEXT_HTML))
+            .andExpect(status().isForbidden)
     }
 
     private companion object {
