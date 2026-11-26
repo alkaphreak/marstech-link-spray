@@ -53,9 +53,9 @@ src/main/kotlin/fr/marstech/mtlinkspray/
 │   │               #   port implementations (MongoApiKeyStore, MongoPasteStore, MongoAbuseReportStore, MongoShortLinkStore, MongoDashboardStore, MongoChecklistStore, MongoCronStore, MongoWriteSignatureStore
 │   │               #   with its TTL index)
 │   ├── security/    # BCryptPasswordHasher
-│   ├── s3/ dns/ geoip/ botagents/ mail/ native/ ratelimit/ scheduler/ http/ web/  # DigitalOcean Spaces, JNDI DNS,
+│   ├── s3/ dns/ geoip/ botagents/ mail/ native/ ratelimit/ scheduler/ http/ web/ urlhaus/  # DigitalOcean Spaces, JNDI DNS,
 │   │               #   DB-IP GeoIP, bot User-Agent lists, SMTP, Bucket4j AnonymousQuota, SpringCronScheduler, JdkWebhookClient (cron webhooks),
-│   │               #   ReservedPaths (ReservedPathsPort)
+│   │               #   ReservedPaths (ReservedPathsPort), UrlhausReputation (UrlReputationPort, MLS-120)
 └── config/          # Security, CSP, rate limit, S3, JSON body cap, DocumentConfig (md2pdf/pdf2md
                      #   services with their limits), NativeToolsConfig (OCR and image compression
                      #   services with their limits and quotas), ImageConfig (image upload limit),

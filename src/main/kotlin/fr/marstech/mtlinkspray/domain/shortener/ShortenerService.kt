@@ -1,4 +1,5 @@
 package fr.marstech.mtlinkspray.domain.shortener
+import fr.marstech.mtlinkspray.domain.shared.ForbiddenException
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 
@@ -7,6 +8,7 @@ class ShortenerService(
     private val shortLinkStore: ShortLinkStore,
     private val randomIdGeneratorService: RandomIdGeneratorService,
     private val botUserAgents: BotUserAgents,
+    private val urlReputation: UrlReputationPort,
 ) {
 
     /**
@@ -16,10 +18,23 @@ class ShortenerService(
      * @param url   the target URL
      * @param links builds the short URL from the new link's id
      * @return the shortened URL
+     * @throws ForbiddenException (403) for a listed malware URL (MLS-120)
      */
-    fun shorten(url: String, links: LinkUrls): String? = links.shortLink(
-        shortLinkStore.createWithFreeId(url, MAX_INSERT_ATTEMPTS, randomIdGeneratorService::getGeneratedFreeId).id
-    )
+    fun shorten(url: String, links: LinkUrls): String? {
+        rejectMalicious(listOf(url))
+        return store(url, links)
+    }
+
+    /** Stores [url] without the reputation check: for URLs already passed to [rejectMalicious] (a spray). */
+    fun store(url: String, links: LinkUrls): String? =
+        links.shortLink(
+            shortLinkStore.createWithFreeId(url, MAX_INSERT_ATTEMPTS, randomIdGeneratorService::getGeneratedFreeId).id
+        )
+
+    /** Throws [ForbiddenException] (403) when any of [urls] is a listed malware URL (MLS-120). */
+    fun rejectMalicious(urls: Collection<String>) {
+        if (urlReputation.anyMalicious(urls)) throw ForbiddenException(MALICIOUS_URL)
+    }
 
     /**
      * Get the target URL from the shortened UID and count the click, as a robot's when the User-Agent says so
@@ -46,5 +61,6 @@ class ShortenerService(
 
     companion object {
         private const val MAX_INSERT_ATTEMPTS = 3
+        const val MALICIOUS_URL = "This URL is listed as a malware URL and cannot be shortened"
     }
 }

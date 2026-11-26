@@ -202,6 +202,13 @@ class GlobalRestExceptionHandler(
     @ExceptionHandler(ForbiddenException::class)
     fun handleForbidden(e: ForbiddenException, request: WebRequest) = domainError(FORBIDDEN, e, request)
 
+    // Any 403 asked by a browser (a form posting a malware URL, MLS-120) gets the error page; API clients keep the JSON
+    @ExceptionHandler(ForbiddenException::class, produces = [TEXT_HTML_VALUE])
+    fun handleForbiddenPage(e: ForbiddenException): ModelAndView =
+        ModelAndView(ERROR.viewName, FORBIDDEN)
+            .addObject("viewNameEnum", ERROR)
+            .addObject("errorMessage", e.message)
+
     @ExceptionHandler(ConflictException::class)
     fun handleDomainConflict(e: ConflictException, request: WebRequest) = domainError(CONFLICT, e, request)
 

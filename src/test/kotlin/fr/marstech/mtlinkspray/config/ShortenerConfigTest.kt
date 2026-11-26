@@ -31,4 +31,10 @@ class ShortenerConfigTest {
     fun missingKeyFailsAsTheValueAnnotationDid() {
         assertThrows<BindException> { bind(keys - "mt.link-spray.random-id.length") }
     }
+
+    @Test
+    fun urlReputationIsOffWithoutAKeyAndUrlhausWithOne() {
+        kotlin.test.assertFalse(ShortenerConfig().urlReputation("").isMalicious("https://evil.example"))
+        kotlin.test.assertIs<fr.marstech.mtlinkspray.adapter.outbound.urlhaus.UrlhausReputation>(ShortenerConfig().urlReputation("key"))
+    }
 }

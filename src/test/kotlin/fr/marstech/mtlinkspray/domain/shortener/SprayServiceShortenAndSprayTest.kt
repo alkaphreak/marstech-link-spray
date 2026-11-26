@@ -35,10 +35,10 @@ internal class SprayServiceShortenAndSprayTest {
         val shortUrl2 = "http://localhost/def"
         val finalShortUrl = "http://localhost/xyz"
 
-        `when`(shortenerService.shorten("https://example.com", links)).thenReturn(shortUrl1)
-        `when`(shortenerService.shorten("https://example.org", links)).thenReturn(shortUrl2)
+        `when`(shortenerService.store("https://example.com", links)).thenReturn(shortUrl1)
+        `when`(shortenerService.store("https://example.org", links)).thenReturn(shortUrl2)
         val sprayUrl = links.spray(listOf(shortUrl1, shortUrl2))
-        `when`(shortenerService.shorten(sprayUrl, links)).thenReturn(finalShortUrl)
+        `when`(shortenerService.store(sprayUrl, links)).thenReturn(finalShortUrl)
 
         // When
         val children = mutableListOf<String>()
@@ -53,7 +53,7 @@ internal class SprayServiceShortenAndSprayTest {
     fun shortenAndSprayShouldThrowExceptionWhenUrlShorteningFails() {
         // Given
         val urls = listOf("https://example.com")
-        `when`(shortenerService.shorten("https://example.com", links)).thenReturn(null)
+        `when`(shortenerService.store("https://example.com", links)).thenReturn(null)
 
         // When / Then
         assertThrows(UrlShorteningException::class.java) {
@@ -66,9 +66,9 @@ internal class SprayServiceShortenAndSprayTest {
         // Given
         val urls = listOf("https://example.com")
         val shortUrl = "http://localhost/abc"
-        `when`(shortenerService.shorten("https://example.com", links)).thenReturn(shortUrl)
+        `when`(shortenerService.store("https://example.com", links)).thenReturn(shortUrl)
         val sprayUrl = links.spray(listOf(shortUrl))
-        `when`(shortenerService.shorten(sprayUrl, links)).thenReturn(null)
+        `when`(shortenerService.store(sprayUrl, links)).thenReturn(null)
 
         // When / Then
         assertThrows(UrlShorteningException::class.java) {
@@ -82,9 +82,9 @@ internal class SprayServiceShortenAndSprayTest {
         val urls = listOf("https://single.example.com")
         val shortUrl = "http://localhost/s1"
         val finalShortUrl = "http://localhost/final"
-        `when`(shortenerService.shorten("https://single.example.com", links)).thenReturn(shortUrl)
+        `when`(shortenerService.store("https://single.example.com", links)).thenReturn(shortUrl)
         val sprayUrl = links.spray(listOf(shortUrl))
-        `when`(shortenerService.shorten(sprayUrl, links)).thenReturn(finalShortUrl)
+        `when`(shortenerService.store(sprayUrl, links)).thenReturn(finalShortUrl)
 
         // When
         val result = sprayService.shortenAndSpray(urls, client, links)
@@ -115,5 +115,17 @@ internal class SprayServiceShortenAndSprayTest {
         }
         org.junit.jupiter.api.Assertions.assertEquals("A spray holds at most 100 URLs", e.message)
         org.mockito.Mockito.verifyNoInteractions(shortenerService)
+    }
+
+    @Test
+    fun shortenAndSprayShouldCreateNothingWhenOneUrlIsMalicious() {
+        val urls = listOf("https://example.com", "https://evil.example")
+        org.mockito.Mockito.doThrow(fr.marstech.mtlinkspray.domain.shared.ForbiddenException("malicious"))
+            .`when`(shortenerService).rejectMalicious(urls)
+
+        assertThrows(fr.marstech.mtlinkspray.domain.shared.ForbiddenException::class.java) {
+            sprayService.shortenAndSpray(urls, client, links)
+        }
+        org.mockito.Mockito.verify(shortenerService, org.mockito.Mockito.never()).store("https://example.com", links)
     }
 }

@@ -253,4 +253,11 @@ class GlobalRestExceptionHandlerTest {
         assertEquals("param", response.body?.fieldErrors?.single()?.field)
         assertEquals("must not be blank", response.body?.fieldErrors?.single()?.message)
     }
+
+    @Test
+    fun shouldRenderTheErrorPageWith403ForABrowser() {
+        val page = handler.handleForbiddenPage(fr.marstech.mtlinkspray.domain.shared.ForbiddenException("malicious"))
+        assertEquals(HttpStatus.FORBIDDEN, page.status)
+        assertEquals("malicious", page.model["errorMessage"])
+    }
 }
