@@ -26,6 +26,16 @@ internal class ShortenerE2eTest : E2eTest() {
     }
 
     @Test
+    fun shouldAnswer303BehindTheProxy() {
+        // Behind DO's proxy (X-Forwarded-*), Boot 4.2's relative redirects answer 303 See Other (MLS-282)
+        val uid = createShortLink("https://example.com/proxied")
+
+        val redirect = get("/$uid", mapOf("X-Forwarded-Proto" to "https", "X-Forwarded-Host" to "sol4.space"))
+        assertEquals(303, redirect.statusCode())
+        assertEquals("https://example.com/proxied", redirect.header("Location"))
+    }
+
+    @Test
     fun shouldCountHeadAsBotClick() {
         val uid = createShortLink("https://example.com/head")
 

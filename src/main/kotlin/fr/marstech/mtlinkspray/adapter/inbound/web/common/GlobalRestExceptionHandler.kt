@@ -39,14 +39,20 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException
 import org.springframework.web.multipart.MultipartException
 import org.springframework.web.servlet.ModelAndView
 import org.springframework.web.multipart.support.MissingServletRequestPartException
+import org.slf4j.LoggerFactory
+import org.springframework.web.util.DisconnectedClientHelper
 
 private const val VALIDATION_FAILED = "Validation Failed"
+
+// A 500 body never carries the exception message: it can expose class and constructor internals (MLS-282)
+private const val INTERNAL_ERROR_MESSAGE = "Internal server error"
 
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @RestControllerAdvice
 class GlobalRestExceptionHandler(
     @Value("\${spring.servlet.multipart.max-file-size:25MB}") private val maxFileSize: DataSize = DataSize.ofMegabytes(25),
 ) {
+    private val log = LoggerFactory.getLogger(javaClass)
 
     @ExceptionHandler(MethodArgumentTypeMismatchException::class)
     fun handleMethodArgumentTypeMismatch(
@@ -95,10 +101,11 @@ class GlobalRestExceptionHandler(
         ex: RuntimeException,
         request: WebRequest
     ): ResponseEntity<ErrorResponse> {
+        log.error("Unhandled error on {}", request.getDescription(false), ex)
         val errorResponse = ErrorResponse.from(
             status = INTERNAL_SERVER_ERROR.value(),
             error = "Internal Server Error",
-            message = ex.message ?: "Internal server error",
+            message = INTERNAL_ERROR_MESSAGE,
             path = request.getDescription(false).removePrefix("uri=")
         )
         return ResponseEntity(errorResponse, INTERNAL_SERVER_ERROR)
@@ -113,10 +120,15 @@ class GlobalRestExceptionHandler(
         // of turning a client error into a 500
         val springError = e as? org.springframework.web.ErrorResponse
         val status = springError?.statusCode?.let { HttpStatus.resolve(it.value()) } ?: INTERNAL_SERVER_ERROR
+        val serverError = status.is5xxServerError
+        // A client that hung up mid-response is not a server fault: no stack trace for it
+        if (serverError && !DisconnectedClientHelper.isClientDisconnectedException(e)) {
+            log.error("Unhandled error on {}", request.getDescription(false), e)
+        }
         val errorResponse = ErrorResponse.from(
             status = status.value(),
             error = status.reasonPhrase,
-            message = e.message ?: "An unexpected error occurred",
+            message = if (serverError) INTERNAL_ERROR_MESSAGE else e.message ?: "An unexpected error occurred",
             path = request.getDescription(false).removePrefix("uri=")
         )
         // Keep the framework's headers, e.g. Allow on a 405

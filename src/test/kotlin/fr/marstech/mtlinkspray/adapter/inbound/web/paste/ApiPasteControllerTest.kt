@@ -118,7 +118,7 @@ class ApiPasteControllerTest {
             .let(mockMvc::perform)
             .andExpect(status().isInternalServerError)
             .andExpect(content().contentType(APPLICATION_JSON))
-            .andExpect(jsonPath("$.message").value("Test exception"))
+            .andExpect(jsonPath("$.message").value("Internal server error"))
             .andExpect(jsonPath("$.status").value(500))
             .andExpect(jsonPath("$.error").value("Internal Server Error"))
     }
@@ -181,7 +181,7 @@ class ApiPasteControllerTest {
             .let(mockMvc::perform)
             .andExpect(status().isInternalServerError)
             .andExpect(jsonPath("$.status").value(500))
-            .andExpect(jsonPath("$.message").value("Paste not found"))
+            .andExpect(jsonPath("$.message").value("Internal server error"))
     }
 
     @Test
