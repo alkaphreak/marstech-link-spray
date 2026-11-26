@@ -7,6 +7,12 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- The abuse report mail is readable: report ID, date with its time zone, reporter IP and description on their own
+  lines, instead of the raw data class dump; the stored description no longer carries the mail prefix, and the subject
+  lost its leading space (MLS-53)
+
 ---
 
 ## [0.17.1] - 2026-11-26
