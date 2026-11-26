@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+---
+
+## [0.17.1] - 2026-11-26
+
 ### Fixed
 
 - Short links, pastes, dashboards, images and abuse reports stored by 2025 releases load again: their
