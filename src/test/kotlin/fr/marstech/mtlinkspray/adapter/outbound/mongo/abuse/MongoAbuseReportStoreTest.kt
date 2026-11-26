@@ -14,7 +14,7 @@ internal class MongoAbuseReportStoreTest {
     @Test
     fun shouldInsertReportWithAuthorIpAndAction() {
         // Given
-        val report = AbuseReport(description = "New abuse report received:\n\nspam-xyz", authorIpAddress = "203.0.113.7")
+        val report = AbuseReport(description = "spam-xyz", authorIpAddress = "203.0.113.7")
 
         // When
         val stored = store.create(report)
