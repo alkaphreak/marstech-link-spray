@@ -50,14 +50,18 @@ Modules are not independent today: `OcrService.recognize` resolves the API key
   worker enabling `nativetools` or `document` runs without `apikey` and without reading
   `api_keys`. The web controllers and the MCP tools (`Sol4McpTools`) call the same domain
   port, local or delegated.
-- **Base modules**: `apikey`, the rate limit and mail are enabled on every public instance.
+- **Base modules**: `apikey`, `signature`, the rate limit and mail are enabled on every public
+  instance (`signature` because the shortener, spray and paste web controllers inject
+  `WriteSignatureService`). From step A, an instance checks at startup that every module its
+  enabled modules depend on is enabled too, and fails with that module's name instead of a
+  Spring wiring error.
 
 ### Hosts and traffic
 
 | Host                     | Public web | Role                                                     |
 |--------------------------|------------|----------------------------------------------------------|
 | App Platform, other cloud | yes       | serves every web and API route, runs its enabled modules |
-| AlkaNaz (Docker, MLS-40) | no         | worker: consumes jobs over an outbound NATS connection   |
+| AlkaNaz (Docker, MLS-40) | no         | worker: consumes jobs over an outbound NATS connection; a stateful module only after step F |
 | MacBook Air / Pro        | no         | worker, available only while the Mac is awake            |
 
 Only cloud instances sit behind the public domain; no port opens on the home network. Every
@@ -132,7 +136,10 @@ shared across instances that NATS KV cannot serve fast enough.
 
 NATS messages are capped at about 1 MB. A job input or result above a threshold (512 KB) goes
 to DigitalOcean Spaces through the existing S3 adapter (MLS-203), under a `jobs/` prefix with a
-lifecycle rule that deletes objects after one day; the message carries a pre-signed URL.
+lifecycle rule filtered on that prefix that deletes objects after one day. Workers hold no
+Spaces key: the caller pre-signs a GET for the input and a PUT for a result above the
+threshold, and the message carries both URLs. The bucket also holds user images, private ones
+included, so a worker key would expose them.
 
 RustFS (Apache-2.0, S3-compatible, 1.x stable) joins `docker-compose.dev.yml` and
 `docker-compose.test.yml` as the local S3 endpoint, pinned to an exact version since it
@@ -143,12 +150,14 @@ exchanged between home workers on the LAN.
 
 ### Data
 
-Every instance may enable any module, so every instance may get MongoDB credentials. Each
-collection keeps the single owning module it has today (ADR 0007); no module reads another
-module's collection. All instances share the one MongoDB user and URI; an instance enabling
-only stateless modules (`nativetools`, `document`) is simply not given it. A roaming MacBook
-runs stateless modules only and never holds the URI; a fixed home host (AlkaNaz) may run a
-stateful module, which needs an IP allowlist entry for its public IP, decided in step D.
+An instance gets the MongoDB URI only if it enables a stateful module. All such instances
+share the one MongoDB user and URI; an instance enabling only stateless modules
+(`nativetools`, `document`) is not given it, and no worker holds it until step F. A roaming
+MacBook runs stateless modules only and never holds the URI. Each collection has a single
+owning module and no module reads another module's collection: this ownership rule is new in
+this ADR (ADR 0007 only fixes the `adapter/outbound/mongo/<domain>` layout and the collection
+names) and is enforced by an ArchUnit rule added in step A. There is one database, no data
+migration, and backups are unchanged.
 
 ### Mixed versions
 
@@ -176,7 +185,7 @@ no instance on it. A late MacBook image keeps serving the versions it knows.
 - Bad: Synadia Cloud becomes a runtime dependency of every write (rate limit) and of every
   delegated call; when it is down, delegated modules answer 503 and the rate limit fails open
   (see Failure modes).
-- Bad: a home host running a stateful module stores the full MongoDB credentials.
+- Bad: from step F, a home host running a stateful module stores the full MongoDB credentials.
 - Bad: a custom Bucket4j proxy manager, a module condition and the lease code to write and test.
 
 ### Known ceilings
@@ -198,8 +207,9 @@ One pull request per step, each releasable on its own:
 | A    | NATS client, module list and Service API registry; every module still local, behaviour unchanged | MLS-23 |
 | B    | Cron lease, `sol4.cron.changed.v1`, `nextRunAt` from the expression; ADR 0003 amended |        |
 | C    | Shared rate-limit buckets in NATS KV; ADR 0006 amended                   |        |
-| D    | `nativetools` and `document` as pulled work with Spaces payloads (presigner added to the S3 adapter, Spaces made mandatory for workers); database access for home hosts; first worker on AlkaNaz | MLS-40 |
+| D    | `nativetools` and `document` as pulled work with Spaces payloads (presigner added to the S3 adapter, workers get pre-signed URLs, no Spaces key); first worker on AlkaNaz | MLS-40 |
 | E    | CSRF token in a cookie, then a second public instance behind the App Platform load balancer |        |
+| F    | Only once a named stateful module must run on AlkaNaz: database access for that host (MongoDB provider in production, then trusted source, fixed IP or VPN) |        |
 
 MLS-127 (API gateway) is no longer needed: every public instance serves the whole surface.
 
